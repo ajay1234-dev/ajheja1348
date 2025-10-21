@@ -1,0 +1,126 @@
+You are extending the existing **healthcare AI application** that uses **React (frontend)** and **Node.js + Firebase (backend)**.
+
+The current setup has Firestore collections:
+- `doctors`
+- `patients`
+- `healthTimeline`
+- `reports`
+- `sharedReports`
+
+The backend and frontend are already working with authentication and basic report upload,
+but there’s a missing piece:
+**doctors do not have a specialization field stored in Firestore,**
+which breaks AI-based doctor mapping when patients upload reports.
+
+---
+
+## 🧩 Your Task
+
+Add the missing logic so that:
+1. **When a doctor registers or signs up:**
+   - The registration form includes a `specialization` input (e.g., Cardiologist, Dermatologist, Orthopedic).
+   - This value is saved to the Firestore `doctors` collection.
+   - Example Firestore document structure for doctors:
+     ```json
+     {
+       "doctorId": "auth_uid_here",
+       "name": "Dr. Rajesh Kumar",
+       "email": "rajesh@example.com",
+       "specialization": "Cardiologist",
+       "createdAt": "2025-10-18T12:00:00Z"
+     }
+     ```
+
+2. **When a patient registers:**
+   - The registration form asks for basic info (name, age, gender, symptoms if available).
+   - The patient data is saved in the `patients` collection:
+     ```json
+     {
+       "patientId": "auth_uid_here",
+       "name": "Anita Singh",
+       "email": "anita@example.com",
+       "age": 27,
+       "gender": "Female",
+       "createdAt": "2025-10-18T12:00:00Z"
+     }
+     ```
+
+3. **Backend (Node.js + Express) Updates**
+   - Update the `/auth/signup` or equivalent signup route:
+     - Check the role (doctor or patient) from the frontend payload.
+     - If the role is `"doctor"`, include `specialization` in the Firestore `doctors` collection.
+     - If `"patient"`, create a record in the `patients` collection.
+
+   - Update the `/uploadReport` AI mapping logic:
+     - Use the specialization field to match doctors.
+     - Example:
+       ```js
+       const keywordMap = {
+         skin: "Dermatologist",
+         heart: "Cardiologist",
+         bp: "Cardiologist",
+         bone: "Orthopedic",
+         fracture: "Orthopedic",
+         eye: "Ophthalmologist"
+       };
+       ```
+
+     - The system should search the `doctors` collection:
+       ```js
+       const doctorSnapshot = await db.collection("doctors")
+         .where("specialization", "==", detectedSpecialization)
+         .limit(1)
+         .get();
+       ```
+
+4. **Frontend (React) Updates**
+   - In the signup page:
+     - Add a dropdown or input for specialization, visible only when `role === "doctor"`.
+       ```jsx
+       {role === "doctor" && (
+         <div className="form-group">
+           <label>Specialization</label>
+           <select
+             name="specialization"
+             value={formData.specialization}
+             onChange={handleChange}
+           >
+             <option value="">Select Specialization</option>
+             <option value="Cardiologist">Cardiologist</option>
+             <option value="Dermatologist">Dermatologist</option>
+             <option value="Orthopedic">Orthopedic</option>
+             <option value="Neurologist">Neurologist</option>
+           </select>
+         </div>
+       )}
+       ```
+
+   - In the patient dashboard:
+     - When reports are uploaded, display “Assigned Doctor: Dr. [Name] (Specialization)” once the backend returns mapping results.
+
+5. **Firestore Data Rules Update (optional)**  
+   Your current rules are fine — no major changes needed since specialization is just an extra field under doctors.
+
+---
+
+## ✅ Expected Results
+
+After this update:
+- Every new doctor who signs up will have a specialization stored in Firestore.  
+- AI-based doctor recommendation (via `/uploadReport`) will now correctly detect and map doctors based on specialization.  
+- Patients will see their mapped doctors after uploading reports.  
+- Doctors will see their patients (many-to-many mapping) based on specialization and reports.
+
+---
+
+## 🧠 Bonus Improvement
+
+Add a **fallback logic**:
+If no doctor is found for a detected specialization, send a response:
+```json
+{ "message": "No available doctor for this specialization. Please check again later." }
+```
+
+---
+
+**Final goal:** Seamlessly integrate doctor specialization into both signup and AI mapping workflow, without changing existing Firestore collections or authentication flow.
