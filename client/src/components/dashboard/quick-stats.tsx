@@ -1,4 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  HoverMotion,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/ui/motion-wrapper";
 import { FileText, Pill, Bell, Heart } from "lucide-react";
 import type { DashboardStats } from "@/types/medical";
 
@@ -21,64 +26,74 @@ export default function QuickStats({ stats }: QuickStatsProps) {
       label: "Total Reports",
       value: currentStats.totalReports,
       icon: FileText,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
+      color: "text-sky-400",
+      bgColor: "bg-sky-400/20",
+      gradient: "from-sky-400 to-blue-500",
     },
     {
       label: "Active Medications",
       value: currentStats.activeMedications,
       icon: Pill,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: "text-emerald-400",
+      bgColor: "bg-emerald-400/20",
+      gradient: "from-emerald-400 to-green-500",
     },
     {
       label: "Pending Reminders",
       value: currentStats.pendingReminders,
       icon: Bell,
-      color: "text-amber-600",
-      bgColor: "bg-amber-100",
+      color: "text-amber-400",
+      bgColor: "bg-amber-400/20",
+      gradient: "from-amber-400 to-orange-500",
     },
     {
       label: "Health Score",
       value: currentStats.healthScore,
       icon: Heart,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: "text-pink-400",
+      bgColor: "bg-pink-400/20",
+      gradient: "from-pink-400 to-purple-500",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {statItems.map((item, index) => {
-        const Icon = item.icon;
+    <StaggerContainer>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statItems.map((item, index) => {
+          const Icon = item.icon;
 
-        return (
-          <Card
-            key={index}
-            className="shadow-lg hover-lift border-2 border-transparent hover:border-primary/20 smooth-transition perspective-card"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <CardContent className="p-6 card-inner">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    {item.label}
-                  </p>
-                  <p
-                    className="text-3xl font-bold text-foreground mt-2"
-                    data-testid={`stat-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    {item.value}
-                  </p>
-                </div>
-                <div className={`w-14 h-14 ${item.bgColor} rounded-xl flex items-center justify-center pulse-ring smooth-transition`}>
-                  <Icon className={`h-7 w-7 ${item.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+          return (
+            <StaggerItem key={index}>
+              <HoverMotion>
+                <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-white/80 uppercase tracking-wide drop-shadow-md">
+                          {item.label}
+                        </p>
+                        <p
+                          className="text-4xl font-bold text-white mt-2 drop-shadow-lg"
+                          data-testid={`stat-${item.label
+                            .toLowerCase()
+                            .replace(/\s+/g, "-")}`}
+                        >
+                          {item.value}
+                        </p>
+                      </div>
+                      <div
+                        className={`w-16 h-16 bg-gradient-to-br ${item.gradient} rounded-2xl flex items-center justify-center shadow-xl soft-glow icon-static`}
+                      >
+                        <Icon className="h-8 w-8 text-white drop-shadow-lg" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </HoverMotion>
+            </StaggerItem>
+          );
+        })}
+      </div>
+    </StaggerContainer>
   );
 }

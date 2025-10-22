@@ -1,21 +1,37 @@
 import { useState, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { CloudUpload, File, CheckCircle, AlertCircle, Stethoscope, Loader2, UserCheck } from "lucide-react";
+import {
+  CloudUpload,
+  File,
+  CheckCircle,
+  AlertCircle,
+  Stethoscope,
+  Loader2,
+  UserCheck,
+} from "lucide-react";
 
 export default function UploadReportForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [suggestedDoctor, setSuggestedDoctor] = useState<any>(null);
   const [sharedReportId, setSharedReportId] = useState<string | null>(null);
-  const [approvalStatus, setApprovalStatus] = useState<'pending' | 'approved'>('pending');
+  const [approvalStatus, setApprovalStatus] = useState<"pending" | "approved">(
+    "pending"
+  );
   const uploadingRef = useRef<boolean>(false); // Prevent duplicate submissions
   const { toast } = useToast();
   const { user } = useAuth();
@@ -24,16 +40,16 @@ export default function UploadReportForm() {
     mutationFn: async (data: { file: File }) => {
       // Step 1: Upload the file first
       const formData = new FormData();
-      formData.append('file', data.file);
+      formData.append("file", data.file);
 
-      const uploadResponse = await fetch('/api/reports/upload', {
-        method: 'POST',
+      const uploadResponse = await fetch("/api/reports/upload", {
+        method: "POST",
         body: formData,
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('File upload failed');
+        throw new Error("File upload failed");
       }
 
       const uploadResult = await uploadResponse.json();
@@ -43,50 +59,54 @@ export default function UploadReportForm() {
       let reportDetails;
       let attempts = 0;
       const maxAttempts = 30; // 30 seconds maximum wait time
-      
+
       while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between checks
-        
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second between checks
+
         const reportResponse = await fetch(`/api/reports/${reportId}`, {
-          credentials: 'include',
+          credentials: "include",
         });
 
         if (!reportResponse.ok) {
-          throw new Error('Failed to fetch report details');
+          throw new Error("Failed to fetch report details");
         }
 
         reportDetails = await reportResponse.json();
-        
+
         // Check if OCR has completed (originalText is available)
         if (reportDetails.originalText && reportDetails.originalText.trim()) {
           console.log(`✅ OCR completed after ${attempts + 1} seconds`);
           break;
         }
-        
+
         attempts++;
-        console.log(`⏳ Waiting for OCR processing... (${attempts}/${maxAttempts})`);
+        console.log(
+          `⏳ Waiting for OCR processing... (${attempts}/${maxAttempts})`
+        );
       }
-      
+
       if (!reportDetails?.originalText || !reportDetails.originalText.trim()) {
-        throw new Error('OCR processing timeout - please try again or use a clearer image');
+        throw new Error(
+          "OCR processing timeout - please try again or use a clearer image"
+        );
       }
 
       // Step 3: Call the uploadReport endpoint for AI analysis
-      const assignResponse = await fetch('/api/uploadReport', {
-        method: 'POST',
+      const assignResponse = await fetch("/api/uploadReport", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           patientId: user?.id,
           reportId: reportId,
           reportURL: reportDetails.fileUrl,
         }),
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (!assignResponse.ok) {
-        throw new Error('Doctor assignment failed');
+        throw new Error("Doctor assignment failed");
       }
 
       return assignResponse.json();
@@ -95,9 +115,9 @@ export default function UploadReportForm() {
       setUploadProgress(0);
       setSuggestedDoctor(null);
       setSharedReportId(null);
-      setApprovalStatus('pending');
+      setApprovalStatus("pending");
       const interval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
+        setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
       setTimeout(() => clearInterval(interval), 2000);
@@ -107,8 +127,8 @@ export default function UploadReportForm() {
       setUploadProgress(100);
       setSuggestedDoctor(data.suggestedDoctor);
       setSharedReportId(data.reportId);
-      setApprovalStatus(data.approvalStatus || 'pending');
-      
+      setApprovalStatus(data.approvalStatus || "pending");
+
       toast({
         title: "✅ Report Analyzed Successfully!",
         description: `AI detected: ${data.aiDetection.detectedSpecialization}. Doctor suggested for your approval.`,
@@ -124,7 +144,10 @@ export default function UploadReportForm() {
       setUploadProgress(0);
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to upload report. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to upload report. Please try again.",
         variant: "destructive",
       });
     },
@@ -132,39 +155,46 @@ export default function UploadReportForm() {
 
   const approveMutation = useMutation({
     mutationFn: async (reportId: string) => {
-      const response = await apiRequest('PUT', `/api/shared-reports/${reportId}/approve`);
+      const response = await apiRequest(
+        "PUT",
+        `/api/shared-reports/${reportId}/approve`
+      );
       return response.json();
     },
     onSuccess: () => {
-      setApprovalStatus('approved');
+      setApprovalStatus("approved");
       toast({
         title: "✅ Doctor Approved!",
-        description: "The doctor will now be able to see your report and provide care.",
+        description:
+          "The doctor will now be able to see your report and provide care.",
         duration: 5000,
       });
-      
+
       // Invalidate queries to refresh both patient and doctor lists
       queryClient.invalidateQueries({ queryKey: ["/api/patient/doctors"] });
       queryClient.invalidateQueries({ queryKey: ["/api/doctor/patients"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/doctor/shared-reports"] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["/api/doctor/shared-reports"],
+      });
+
       // Reset form after approval
       setTimeout(() => {
         setSelectedFile(null);
         setUploadProgress(0);
         setSuggestedDoctor(null);
         setSharedReportId(null);
-        setApprovalStatus('pending');
+        setApprovalStatus("pending");
         uploadingRef.current = false; // Ensure upload lock is reset
       }, 3000);
     },
     onError: (error) => {
       // Check if error is because doctor is already approved
-      const errorMessage = error instanceof Error ? error.message : "Failed to approve doctor";
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to approve doctor";
+
       if (errorMessage.includes("already approved")) {
         // If already approved, update state to reflect that
-        setApprovalStatus('approved');
+        setApprovalStatus("approved");
         toast({
           title: "Already Approved",
           description: "This doctor has already been approved for your report.",
@@ -182,10 +212,10 @@ export default function UploadReportForm() {
 
   const handleApprove = () => {
     // Prevent approval if already approved or in progress
-    if (approvalStatus === 'approved' || approveMutation.isPending) {
+    if (approvalStatus === "approved" || approveMutation.isPending) {
       return;
     }
-    
+
     if (sharedReportId) {
       approveMutation.mutate(sharedReportId);
     }
@@ -194,7 +224,12 @@ export default function UploadReportForm() {
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      const validTypes = [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+      ];
       const maxSize = 10 * 1024 * 1024; // 10MB
 
       if (!validTypes.includes(file.type)) {
@@ -222,9 +257,9 @@ export default function UploadReportForm() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/pdf': ['.pdf'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
+      "application/pdf": [".pdf"],
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/png": [".png"],
     },
     maxSize: 10 * 1024 * 1024,
     multiple: false,
@@ -235,7 +270,9 @@ export default function UploadReportForm() {
 
     // Prevent duplicate submissions
     if (uploadingRef.current || uploadMutation.isPending) {
-      console.log('⚠️ Upload already in progress, ignoring duplicate submission');
+      console.log(
+        "⚠️ Upload already in progress, ignoring duplicate submission"
+      );
       return;
     }
 
@@ -255,11 +292,14 @@ export default function UploadReportForm() {
   };
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle>Upload Medical Report</CardTitle>
-        <CardDescription>
-          Upload your medical report or prescription for AI-powered analysis and automatic doctor assignment
+    <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+      <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
+        <CardTitle className="text-white drop-shadow-lg">
+          Upload Medical Report
+        </CardTitle>
+        <CardDescription className="text-white/80 drop-shadow-md">
+          Upload your medical report or prescription for AI-powered analysis and
+          automatic doctor assignment
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -271,8 +311,8 @@ export default function UploadReportForm() {
               {...getRootProps()}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${
                 isDragActive
-                  ? 'border-primary bg-primary/5 scale-105'
-                  : 'border-border hover:border-primary hover:bg-primary/5'
+                  ? "border-primary bg-primary/5 scale-105"
+                  : "border-border hover:border-primary hover:bg-primary/5"
               }`}
               data-testid="upload-zone"
             >
@@ -315,8 +355,12 @@ export default function UploadReportForm() {
           {uploadMutation.isPending && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Uploading and processing...</span>
-                <span className="font-medium text-foreground">{uploadProgress}%</span>
+                <span className="text-muted-foreground">
+                  Uploading and processing...
+                </span>
+                <span className="font-medium text-foreground">
+                  {uploadProgress}%
+                </span>
               </div>
               <Progress value={uploadProgress} className="h-2" />
             </div>
@@ -324,53 +368,52 @@ export default function UploadReportForm() {
 
           {/* Success Message with Suggested Doctor */}
           {suggestedDoctor && (
-            <Card className={approvalStatus === 'approved' ? 
-              "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800" :
-              "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800"
-            }>
+            <Card
+              className={`glass-card backdrop-blur-sm border-2 rounded-2xl ${
+                approvalStatus === "approved"
+                  ? "bg-green-400/10 border-green-400/30"
+                  : "bg-blue-400/10 border-blue-400/30"
+              }`}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start space-x-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    approvalStatus === 'approved' ?
-                    "bg-green-100 dark:bg-green-900" :
-                    "bg-blue-100 dark:bg-blue-900"
-                  }`}>
-                    {approvalStatus === 'approved' ? (
-                      <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      approvalStatus === "approved"
+                        ? "bg-gradient-to-br from-green-400 to-green-500 soft-glow"
+                        : "bg-gradient-to-br from-blue-400 to-blue-500 soft-glow"
+                    }`}
+                  >
+                    {approvalStatus === "approved" ? (
+                      <CheckCircle className="h-6 w-6 text-white drop-shadow-lg" />
                     ) : (
-                      <Stethoscope className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                      <Stethoscope className="h-6 w-6 text-white drop-shadow-lg" />
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className={`font-semibold mb-1 ${
-                      approvalStatus === 'approved' ?
-                      "text-green-900 dark:text-green-100" :
-                      "text-blue-900 dark:text-blue-100"
-                    }`}>
-                      {approvalStatus === 'approved' ? 'Doctor Approved!' : 'Doctor Suggested for Approval'}
+                    <h4 className="font-semibold mb-1 text-white drop-shadow-lg">
+                      {approvalStatus === "approved"
+                        ? "Doctor Approved!"
+                        : "Doctor Suggested for Approval"}
                     </h4>
-                    <div className={`flex items-center space-x-2 text-sm ${
-                      approvalStatus === 'approved' ?
-                      "text-green-800 dark:text-green-200" :
-                      "text-blue-800 dark:text-blue-200"
-                    }`}>
+                    <div className="flex items-center space-x-2 text-sm text-white/80 drop-shadow-md">
                       <UserCheck className="h-4 w-4" />
                       <span>
-                        <strong>Dr. {suggestedDoctor.firstName} {suggestedDoctor.lastName}</strong>
+                        <strong>
+                          Dr. {suggestedDoctor.firstName}{" "}
+                          {suggestedDoctor.lastName}
+                        </strong>
                       </span>
                     </div>
-                    <p className={`text-sm mt-1 ${
-                      approvalStatus === 'approved' ?
-                      "text-green-700 dark:text-green-300" :
-                      "text-blue-700 dark:text-blue-300"
-                    }`}>
+                    <p className="text-sm mt-1 text-white/70 drop-shadow-md">
                       Specialization: {suggestedDoctor.specialization}
                     </p>
-                    
-                    {approvalStatus === 'pending' && (
+
+                    {approvalStatus === "pending" && (
                       <div className="mt-3">
                         <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">
-                          Based on AI analysis of your report, we recommend this specialist. Click below to approve.
+                          Based on AI analysis of your report, we recommend this
+                          specialist. Click below to approve.
                         </p>
                         <Button
                           onClick={handleApprove}
@@ -392,8 +435,8 @@ export default function UploadReportForm() {
                         </Button>
                       </div>
                     )}
-                    
-                    {approvalStatus === 'approved' && (
+
+                    {approvalStatus === "approved" && (
                       <p className="text-sm text-green-600 dark:text-green-400 mt-2">
                         ✓ The doctor can now see your report and provide care
                       </p>

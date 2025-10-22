@@ -4,13 +4,38 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, Loader2, UserIcon, Stethoscope, Activity, Pill, FileText } from "lucide-react";
+import {
+  Heart,
+  Loader2,
+  UserIcon,
+  Stethoscope,
+  Activity,
+  Pill,
+  FileText,
+} from "lucide-react";
 import { SiGoogle } from "react-icons/si";
-import { signInWithRedirect, getRedirectResult, GoogleAuthProvider } from "firebase/auth";
+import { HeroImage, MEDICAL_IMAGES } from "@/components/ui/hero-image";
+import {
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider,
+} from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 
 export default function Login() {
@@ -79,7 +104,8 @@ export default function Login() {
     if (!auth || !googleProvider) {
       toast({
         title: "Configuration error",
-        description: "Firebase is not properly configured. Please contact support.",
+        description:
+          "Firebase is not properly configured. Please contact support.",
         variant: "destructive",
       });
       return;
@@ -126,41 +152,75 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center login-background px-4 py-8 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-20 dark:opacity-10">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-700"></div>
-        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
+    <div className="min-h-screen flex items-center justify-center futuristic-bg px-4 py-8 relative overflow-hidden">
+      {/* Hero Section with Image */}
+      <div className="absolute inset-0">
+        <HeroImage
+          src={MEDICAL_IMAGES.hero}
+          alt="Healthcare Login"
+          className="w-full h-full"
+          overlay={true}
+        />
       </div>
 
-      <div className="absolute top-10 left-10 float-animation">
-        <Activity className="h-12 w-12 text-white/30" />
-      </div>
-      <div className="absolute top-20 right-20 float-animation" style={{ animationDelay: '1s' }}>
-        <Pill className="h-10 w-10 text-white/30" />
-      </div>
-      <div className="absolute bottom-20 left-20 float-animation" style={{ animationDelay: '2s' }}>
-        <FileText className="h-10 w-10 text-white/30" />
+      {/* Floating Particles Background */}
+      <div className="absolute inset-0 opacity-30 dark:opacity-20">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-sky-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse floating-particles"></div>
+        <div className="absolute top-40 right-20 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-700 floating-particles"></div>
+        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000 floating-particles"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-500 floating-particles"></div>
       </div>
 
-      <Card className="w-full max-w-md card-3d backdrop-blur-sm bg-white/95 dark:bg-slate-900/95 shadow-2xl relative z-10 slide-in-bottom">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center pulse-ring rotate-3d shadow-lg">
-              <Heart className="h-8 w-8 text-white" />
+      {/* Floating Icons */}
+      <div className="absolute top-10 left-10 floating-particles">
+        <Activity className="h-12 w-12 text-white/40 drop-shadow-lg" />
+      </div>
+      <div
+        className="absolute top-20 right-20 floating-particles"
+        style={{ animationDelay: "1s" }}
+      >
+        <Pill className="h-10 w-10 text-white/40 drop-shadow-lg" />
+      </div>
+      <div
+        className="absolute bottom-20 left-20 floating-particles"
+        style={{ animationDelay: "2s" }}
+      >
+        <FileText className="h-10 w-10 text-white/40 drop-shadow-lg" />
+      </div>
+      <div
+        className="absolute bottom-10 right-10 floating-particles"
+        style={{ animationDelay: "3s" }}
+      >
+        <Heart className="h-8 w-8 text-white/40 drop-shadow-lg" />
+      </div>
+
+      <Card className="w-full max-w-md glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 shadow-2xl relative z-10 page-transition border-2 border-white/20 dark:border-white/10">
+        <CardHeader className="space-y-1 text-center p-8">
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-3xl flex items-center justify-center soft-glow shadow-2xl">
+              <Heart className="h-9 w-9 text-white drop-shadow-lg" />
             </div>
-            <span className="text-3xl font-bold gradient-text">MediCare</span>
+            <span className="text-4xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+              MediCare
+            </span>
           </div>
-          <CardTitle className="text-3xl font-bold text-shadow-light dark:text-shadow-dark">Welcome back</CardTitle>
-          <CardDescription className="text-base">
+          <CardTitle className="text-3xl font-bold text-white drop-shadow-lg">
+            Welcome back
+          </CardTitle>
+          <CardDescription className="text-lg text-white/80 drop-shadow-md">
             Sign in to your account to continue managing your health
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
+        <CardContent className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-3">
+              <Label
+                htmlFor="email"
+                className="text-sm font-semibold text-white/90 drop-shadow-md"
+              >
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -169,12 +229,17 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 data-testid="input-email"
-                className="smooth-transition hover:border-primary focus:ring-2 focus:ring-primary"
+                className="h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-semibold">Password</Label>
+            <div className="space-y-3">
+              <Label
+                htmlFor="password"
+                className="text-sm font-semibold text-white/90 drop-shadow-md"
+              >
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -183,49 +248,87 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 data-testid="input-password"
-                className="smooth-transition hover:border-primary focus:ring-2 focus:ring-primary"
+                className="h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Login as</Label>
-              <RadioGroup value={role} onValueChange={setRole} className="grid grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-white/90 drop-shadow-md">
+                Login as
+              </Label>
+              <RadioGroup
+                value={role}
+                onValueChange={setRole}
+                className="grid grid-cols-2 gap-4"
+              >
                 <Label
                   htmlFor="login-role-patient"
-                  className={`flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-900 p-4 hover:border-primary hover:shadow-lg smooth-transition cursor-pointer ${
-                    role === "patient" ? "border-primary shadow-lg scale-105" : ""
+                  className={`flex flex-col items-center justify-between rounded-2xl border-2 bg-white/10 backdrop-blur-sm p-5 hover:bg-white/20 hover:border-sky-400/50 smooth-transition cursor-pointer modern-card ${
+                    role === "patient"
+                      ? "border-sky-400 shadow-lg scale-105 bg-white/20"
+                      : "border-white/30"
                   }`}
                 >
-                  <RadioGroupItem value="patient" id="login-role-patient" className="sr-only" />
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${role === "patient" ? "bg-primary/20" : "bg-gray-100 dark:bg-slate-700"}`}>
-                    <UserIcon className={`h-6 w-6 ${role === "patient" ? "text-primary" : "text-gray-600 dark:text-gray-400"}`} />
+                  <RadioGroupItem
+                    value="patient"
+                    id="login-role-patient"
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
+                      role === "patient" ? "bg-sky-400/20" : "bg-white/10"
+                    }`}
+                  >
+                    <UserIcon
+                      className={`h-7 w-7 ${
+                        role === "patient" ? "text-sky-400" : "text-white/60"
+                      }`}
+                    />
                   </div>
-                  <span className="text-sm font-semibold">Patient</span>
+                  <span className="text-sm font-semibold text-white drop-shadow-md">
+                    Patient
+                  </span>
                 </Label>
                 <Label
                   htmlFor="login-role-doctor"
-                  className={`flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-900 p-4 hover:border-primary hover:shadow-lg smooth-transition cursor-pointer ${
-                    role === "doctor" ? "border-primary shadow-lg scale-105" : ""
+                  className={`flex flex-col items-center justify-between rounded-2xl border-2 bg-white/10 backdrop-blur-sm p-5 hover:bg-white/20 hover:border-sky-400/50 smooth-transition cursor-pointer modern-card ${
+                    role === "doctor"
+                      ? "border-sky-400 shadow-lg scale-105 bg-white/20"
+                      : "border-white/30"
                   }`}
                 >
-                  <RadioGroupItem value="doctor" id="login-role-doctor" className="sr-only" />
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${role === "doctor" ? "bg-primary/20" : "bg-gray-100 dark:bg-slate-700"}`}>
-                    <Stethoscope className={`h-6 w-6 ${role === "doctor" ? "text-primary" : "text-gray-600 dark:text-gray-400"}`} />
+                  <RadioGroupItem
+                    value="doctor"
+                    id="login-role-doctor"
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
+                      role === "doctor" ? "bg-sky-400/20" : "bg-white/10"
+                    }`}
+                  >
+                    <Stethoscope
+                      className={`h-7 w-7 ${
+                        role === "doctor" ? "text-sky-400" : "text-white/60"
+                      }`}
+                    />
                   </div>
-                  <span className="text-sm font-semibold">Doctor</span>
+                  <span className="text-sm font-semibold text-white drop-shadow-md">
+                    Doctor
+                  </span>
                 </Label>
               </RadioGroup>
             </div>
 
             <Button
               type="submit"
-              className="w-full h-12 text-base font-semibold hover-lift bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 hover:from-sky-500 hover:via-blue-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-sky-400/25 transition-all duration-300 transform hover:scale-105"
               disabled={isLoading}
               data-testid="button-login"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="mr-3 h-6 w-6 animate-spin" />
                   Signing in...
                 </>
               ) : (
@@ -236,31 +339,33 @@ export default function Login() {
 
           {auth && googleProvider && (
             <>
-              <div className="relative my-6">
+              <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-300 dark:border-gray-700" />
+                  <span className="w-full border-t border-white/30" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white dark:bg-slate-900 px-3 text-muted-foreground font-semibold">Or continue with</span>
+                <div className="relative flex justify-center text-sm uppercase">
+                  <span className="bg-transparent px-4 text-white/70 font-semibold backdrop-blur-sm">
+                    Or continue with
+                  </span>
                 </div>
               </div>
 
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 text-base font-semibold hover-lift border-2"
+                className="w-full h-14 text-lg font-semibold bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 backdrop-blur-sm transition-all duration-300 transform hover:scale-105"
                 onClick={handleGoogleSignIn}
                 disabled={isGoogleLoading || isLoading}
                 data-testid="button-google-signin"
               >
                 {isGoogleLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Loader2 className="mr-3 h-6 w-6 animate-spin" />
                     Signing in with Google...
                   </>
                 ) : (
                   <>
-                    <SiGoogle className="mr-2 h-5 w-5 text-red-500" />
+                    <SiGoogle className="mr-3 h-6 w-6 text-red-400" />
                     Sign in with Google
                   </>
                 )}
@@ -268,10 +373,14 @@ export default function Login() {
             </>
           )}
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
+          <div className="mt-8 text-center">
+            <p className="text-sm text-white/80">
               Don't have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline font-semibold hover:text-primary/80 smooth-transition" data-testid="link-register">
+              <Link
+                href="/register"
+                className="text-sky-400 hover:text-sky-300 font-semibold hover:underline smooth-transition drop-shadow-md"
+                data-testid="link-register"
+              >
                 Sign up
               </Link>
             </p>
@@ -280,14 +389,16 @@ export default function Login() {
       </Card>
 
       <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Select Your Role</DialogTitle>
-            <DialogDescription className="text-base">
+        <DialogContent className="sm:max-w-md glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-3xl font-bold text-white drop-shadow-lg">
+              Select Your Role
+            </DialogTitle>
+            <DialogDescription className="text-lg text-white/80 drop-shadow-md">
               Please select whether you are a patient or a doctor to continue
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-6 p-6">
             <RadioGroup
               value={selectedRole}
               onValueChange={setSelectedRole}
@@ -295,38 +406,74 @@ export default function Login() {
             >
               <Label
                 htmlFor="role-patient"
-                className={`flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-5 hover:bg-accent hover:text-accent-foreground cursor-pointer smooth-transition ${
-                  selectedRole === "patient" ? "border-primary shadow-lg scale-105" : ""
+                className={`flex flex-col items-center justify-between rounded-2xl border-2 bg-white/10 backdrop-blur-sm p-6 hover:bg-white/20 hover:border-sky-400/50 smooth-transition cursor-pointer modern-card ${
+                  selectedRole === "patient"
+                    ? "border-sky-400 shadow-lg scale-105 bg-white/20"
+                    : "border-white/30"
                 }`}
               >
-                <RadioGroupItem value="patient" id="role-patient" className="sr-only" />
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedRole === "patient" ? "bg-primary/20" : "bg-gray-100 dark:bg-slate-700"}`}>
-                  <UserIcon className={`h-7 w-7 ${selectedRole === "patient" ? "text-primary" : "text-gray-600 dark:text-gray-400"}`} />
+                <RadioGroupItem
+                  value="patient"
+                  id="role-patient"
+                  className="sr-only"
+                />
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                    selectedRole === "patient" ? "bg-sky-400/20" : "bg-white/10"
+                  }`}
+                >
+                  <UserIcon
+                    className={`h-8 w-8 ${
+                      selectedRole === "patient"
+                        ? "text-sky-400"
+                        : "text-white/60"
+                    }`}
+                  />
                 </div>
-                <span className="text-base font-semibold">Patient</span>
+                <span className="text-lg font-semibold text-white drop-shadow-md">
+                  Patient
+                </span>
               </Label>
               <Label
                 htmlFor="role-doctor"
-                className={`flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-5 hover:bg-accent hover:text-accent-foreground cursor-pointer smooth-transition ${
-                  selectedRole === "doctor" ? "border-primary shadow-lg scale-105" : ""
+                className={`flex flex-col items-center justify-between rounded-2xl border-2 bg-white/10 backdrop-blur-sm p-6 hover:bg-white/20 hover:border-sky-400/50 smooth-transition cursor-pointer modern-card ${
+                  selectedRole === "doctor"
+                    ? "border-sky-400 shadow-lg scale-105 bg-white/20"
+                    : "border-white/30"
                 }`}
               >
-                <RadioGroupItem value="doctor" id="role-doctor" className="sr-only" />
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${selectedRole === "doctor" ? "bg-primary/20" : "bg-gray-100 dark:bg-slate-700"}`}>
-                  <Stethoscope className={`h-7 w-7 ${selectedRole === "doctor" ? "text-primary" : "text-gray-600 dark:text-gray-400"}`} />
+                <RadioGroupItem
+                  value="doctor"
+                  id="role-doctor"
+                  className="sr-only"
+                />
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                    selectedRole === "doctor" ? "bg-sky-400/20" : "bg-white/10"
+                  }`}
+                >
+                  <Stethoscope
+                    className={`h-8 w-8 ${
+                      selectedRole === "doctor"
+                        ? "text-sky-400"
+                        : "text-white/60"
+                    }`}
+                  />
                 </div>
-                <span className="text-base font-semibold">Doctor</span>
+                <span className="text-lg font-semibold text-white drop-shadow-md">
+                  Doctor
+                </span>
               </Label>
             </RadioGroup>
             <Button
               onClick={handleRoleSelection}
-              className="w-full h-12 text-base font-semibold hover-lift bg-gradient-to-r from-blue-600 to-purple-600"
+              className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 hover:from-sky-500 hover:via-blue-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-sky-400/25 transition-all duration-300 transform hover:scale-105"
               disabled={isGoogleLoading}
               data-testid="button-confirm-role"
             >
               {isGoogleLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="mr-3 h-6 w-6 animate-spin" />
                   Signing in...
                 </>
               ) : (

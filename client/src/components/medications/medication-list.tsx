@@ -4,7 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Pill, Edit2, Trash2, Plus, Clock } from "lucide-react";
@@ -17,13 +24,20 @@ interface MedicationListProps {
   isLoading: boolean;
 }
 
-export default function MedicationList({ medications, isLoading }: MedicationListProps) {
-  const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
+export default function MedicationList({
+  medications,
+  isLoading,
+}: MedicationListProps) {
+  const [editingMedication, setEditingMedication] = useState<Medication | null>(
+    null
+  );
   const { toast } = useToast();
 
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const response = await apiRequest("PATCH", `/api/medications/${id}`, { isActive: !isActive });
+      const response = await apiRequest("PATCH", `/api/medications/${id}`, {
+        isActive: !isActive,
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -52,7 +66,10 @@ export default function MedicationList({ medications, isLoading }: MedicationLis
   });
 
   const handleToggleActive = (medication: Medication) => {
-    toggleActiveMutation.mutate({ id: medication.id, isActive: medication.isActive! });
+    toggleActiveMutation.mutate({
+      id: medication.id,
+      isActive: medication.isActive!,
+    });
   };
 
   const handleDelete = (medication: Medication) => {
@@ -63,31 +80,36 @@ export default function MedicationList({ medications, isLoading }: MedicationLis
 
   const getFrequencyDisplay = (frequency: string) => {
     const frequencyMap: { [key: string]: string } = {
-      'daily': 'Once daily',
-      'twice_daily': 'Twice daily',
-      'three_times_daily': 'Three times daily',
-      'four_times_daily': 'Four times daily',
-      'weekly': 'Weekly',
-      'as_needed': 'As needed',
+      daily: "Once daily",
+      twice_daily: "Twice daily",
+      three_times_daily: "Three times daily",
+      four_times_daily: "Four times daily",
+      weekly: "Weekly",
+      as_needed: "As needed",
     };
-    
+
     return frequencyMap[frequency] || frequency;
   };
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Medications</CardTitle>
+      <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
+          <CardTitle className="text-white drop-shadow-lg">
+            Your Medications
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center space-x-4 p-4 border border-border rounded-lg">
-                <div className="w-10 h-10 bg-muted rounded-full animate-pulse" />
+              <div
+                key={i}
+                className="flex items-center space-x-4 p-4 glass-card backdrop-blur-sm bg-white/5 border border-white/20 rounded-lg"
+              >
+                <div className="w-10 h-10 bg-white/20 rounded-full animate-pulse" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted rounded animate-pulse" />
-                  <div className="h-3 bg-muted rounded w-1/2 animate-pulse" />
+                  <div className="h-4 bg-white/20 rounded animate-pulse" />
+                  <div className="h-3 bg-white/20 rounded w-1/2 animate-pulse" />
                 </div>
               </div>
             ))}
@@ -98,19 +120,23 @@ export default function MedicationList({ medications, isLoading }: MedicationLis
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Your Medications</CardTitle>
+    <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+      <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
+        <CardTitle className="text-white drop-shadow-lg">
+          Your Medications
+        </CardTitle>
       </CardHeader>
-      
-      <CardContent>
+
+      <CardContent className="p-6">
         {medications.length === 0 ? (
           <div className="text-center py-8">
-            <Pill className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">
+            <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 soft-glow icon-static">
+              <Pill className="h-8 w-8 text-white drop-shadow-lg" />
+            </div>
+            <h3 className="text-lg font-medium text-white mb-2 drop-shadow-lg">
               No medications added
             </h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-white/80 mb-4 drop-shadow-md">
               Add your first medication to start tracking your prescriptions
             </p>
             <Dialog>
@@ -140,26 +166,36 @@ export default function MedicationList({ medications, isLoading }: MedicationLis
                 data-testid={`medication-${medication.id}`}
               >
                 <div className="flex items-center space-x-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    medication.isActive ? 'bg-primary/10' : 'bg-muted'
-                  }`}>
-                    <Pill className={`h-5 w-5 ${
-                      medication.isActive ? 'text-primary' : 'text-muted-foreground'
-                    }`} />
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      medication.isActive ? "bg-primary/10" : "bg-muted"
+                    }`}
+                  >
+                    <Pill
+                      className={`h-5 w-5 ${
+                        medication.isActive
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    />
                   </div>
-                  
+
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className={`font-medium ${
-                        medication.isActive ? 'text-foreground' : 'text-muted-foreground'
-                      }`}>
+                      <h4
+                        className={`font-medium ${
+                          medication.isActive
+                            ? "text-foreground"
+                            : "text-muted-foreground"
+                        }`}
+                      >
                         {medication.name}
                       </h4>
                       {!medication.isActive && (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>{medication.dosage}</span>
                       <span>•</span>
@@ -169,12 +205,16 @@ export default function MedicationList({ medications, isLoading }: MedicationLis
                           <span>•</span>
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            Started {safeFormatDate(medication.startDate, 'MMM d, yyyy')}
+                            Started{" "}
+                            {safeFormatDate(
+                              medication.startDate,
+                              "MMM d, yyyy"
+                            )}
                           </span>
                         </>
                       )}
                     </div>
-                    
+
                     {medication.instructions && (
                       <p className="text-xs text-muted-foreground mt-1">
                         {medication.instructions}
@@ -182,7 +222,7 @@ export default function MedicationList({ medications, isLoading }: MedicationLis
                     )}
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -202,13 +242,13 @@ export default function MedicationList({ medications, isLoading }: MedicationLis
                           Update your medication details and reminders
                         </DialogDescription>
                       </DialogHeader>
-                      <ReminderSetup 
+                      <ReminderSetup
                         medication={editingMedication}
                         onSuccess={() => setEditingMedication(null)}
                       />
                     </DialogContent>
                   </Dialog>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -218,7 +258,7 @@ export default function MedicationList({ medications, isLoading }: MedicationLis
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
-                  
+
                   <Switch
                     checked={medication.isActive}
                     onCheckedChange={() => handleToggleActive(medication)}

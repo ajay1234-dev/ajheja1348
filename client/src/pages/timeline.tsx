@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import HealthChart from "@/components/timeline/health-chart";
 import TimelineEvents from "@/components/timeline/timeline-events";
 import { Calendar, TrendingUp } from "lucide-react";
@@ -21,27 +27,27 @@ export default function Timeline() {
   // Helper function to convert various date formats to Date object
   const parseEventDate = (dateValue: any): Date => {
     if (!dateValue) return new Date();
-    
+
     // If it's already a Date object
     if (dateValue instanceof Date) {
       return dateValue;
     }
-    
+
     // If it's a Firestore Timestamp with toDate method
-    if (dateValue && typeof dateValue.toDate === 'function') {
+    if (dateValue && typeof dateValue.toDate === "function") {
       return dateValue.toDate();
     }
-    
+
     // If it's a number (Unix timestamp)
-    if (typeof dateValue === 'number') {
+    if (typeof dateValue === "number") {
       return new Date(dateValue);
     }
-    
+
     // If it's a string (ISO format)
-    if (typeof dateValue === 'string') {
+    if (typeof dateValue === "string") {
       return new Date(dateValue);
     }
-    
+
     // Fallback
     return new Date();
   };
@@ -49,10 +55,10 @@ export default function Timeline() {
   // Filter data based on time range
   const getFilteredData = () => {
     if (!timeline || !Array.isArray(timeline)) return [];
-    
+
     const now = new Date();
     const cutoffDate = new Date();
-    
+
     switch (timeRange) {
       case "1m":
         cutoffDate.setMonth(now.getMonth() - 1);
@@ -69,8 +75,10 @@ export default function Timeline() {
       default:
         return timeline;
     }
-    
-    return timeline.filter((event: any) => parseEventDate(event.date) >= cutoffDate);
+
+    return timeline.filter(
+      (event: any) => parseEventDate(event.date) >= cutoffDate
+    );
   };
 
   const filteredData = getFilteredData();
@@ -86,7 +94,7 @@ export default function Timeline() {
             Track your health progress and visualize trends over time
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           <Select value={metricType} onValueChange={setMetricType}>
             <SelectTrigger className="w-48" data-testid="metric-filter">
@@ -100,7 +108,7 @@ export default function Timeline() {
               <SelectItem value="weight">Weight</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-48" data-testid="time-range-filter">
               <SelectValue placeholder="Time Range" />
@@ -118,65 +126,93 @@ export default function Timeline() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
+        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Events</p>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-sm text-white/80 drop-shadow-md">
+                  Total Events
+                </p>
+                <p className="text-2xl font-bold text-white drop-shadow-lg">
                   {filteredData.length}
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-primary" />
+              <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg flex items-center justify-center soft-glow icon-static">
+                <Calendar className="h-6 w-6 text-white drop-shadow-lg" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Lab Results</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {filteredData.filter((e: any) => e.eventType === 'lab_result').length}
+                <p className="text-sm text-white/80 drop-shadow-md">
+                  Lab Results
+                </p>
+                <p className="text-2xl font-bold text-white drop-shadow-lg">
+                  {
+                    filteredData.filter(
+                      (e: any) => e.eventType === "lab_result"
+                    ).length
+                  }
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
+              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center soft-glow icon-static">
+                <TrendingUp className="h-6 w-6 text-white drop-shadow-lg" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Medication Changes</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {filteredData.filter((e: any) => e.eventType === 'medication_change').length}
+                <p className="text-sm text-white/80 drop-shadow-md">
+                  Medication Changes
+                </p>
+                <p className="text-2xl font-bold text-white drop-shadow-lg">
+                  {
+                    filteredData.filter(
+                      (e: any) => e.eventType === "medication_change"
+                    ).length
+                  }
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-amber-600" />
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center soft-glow icon-static">
+                <TrendingUp className="h-6 w-6 text-white drop-shadow-lg" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Appointments</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {filteredData.filter((e: any) => e.eventType === 'appointment').length}
+                <p className="text-sm text-white/80 drop-shadow-md">
+                  Appointments
+                </p>
+                <p className="text-2xl font-bold text-white drop-shadow-lg">
+                  {
+                    filteredData.filter(
+                      (e: any) => e.eventType === "appointment"
+                    ).length
+                  }
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-blue-600" />
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center soft-glow icon-static">
+                <Calendar className="h-6 w-6 text-white drop-shadow-lg" />
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Health Trends Chart */}
-      <HealthChart 
+      <HealthChart
         data={filteredData}
         timeRange={timeRange}
         metricType={metricType}
@@ -184,10 +220,7 @@ export default function Timeline() {
       />
 
       {/* Timeline Events */}
-      <TimelineEvents 
-        events={filteredData}
-        isLoading={isLoading}
-      />
+      <TimelineEvents events={filteredData} isLoading={isLoading} />
     </div>
   );
 }

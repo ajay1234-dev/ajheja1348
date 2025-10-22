@@ -2,20 +2,21 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  LayoutDashboard, 
-  Upload, 
-  FileText, 
-  Pill, 
-  Clock, 
-  Bell, 
+import {
+  LayoutDashboard,
+  Upload,
+  FileText,
+  Pill,
+  Clock,
+  Bell,
   Share,
   Heart,
   LogOut,
   Menu,
   X,
-  UserCircle
+  UserCircle,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -43,8 +44,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
-  
-  const navigation = user?.role === 'doctor' ? doctorNavigation : patientNavigation;
+
+  const navigation =
+    user?.role === "doctor" ? doctorNavigation : patientNavigation;
 
   const handleLogout = async () => {
     try {
@@ -55,7 +57,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   };
 
   const sidebarClasses = cn(
-    "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-border shadow-xl transform transition-all duration-300 ease-in-out",
+    "fixed lg:static inset-y-0 left-0 z-50 w-72 sm:w-80 glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl transform transition-all duration-500 ease-in-out hover:shadow-sky-400/25",
     {
       "translate-x-0": isOpen || !isMobile,
       "-translate-x-full": !isOpen && isMobile,
@@ -66,12 +68,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <div className={sidebarClasses}>
       <div className="flex flex-col h-full">
         {/* Logo Section */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-border bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center pulse-ring shadow-lg">
-              <Heart className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between h-20 px-6 border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
+          <div className="flex items-center space-x-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center soft-glow shadow-2xl icon-static">
+              <Heart className="h-8 w-8 text-white drop-shadow-lg" />
             </div>
-            <span className="text-xl font-bold gradient-text">MediCare</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-lg">
+              MediCare
+            </span>
           </div>
 
           {isMobile && (
@@ -80,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               size="sm"
               onClick={onClose}
               data-testid="sidebar-close"
-              className="hover-lift"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 backdrop-blur-sm transition-all duration-300 transform hover:scale-105"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -88,8 +92,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 px-4 py-6 space-y-2 smooth-scrollbar overflow-y-auto">
-          {navigation.map((item) => {
+        <nav className="flex-1 px-4 sm:px-6 py-6 sm:py-8 space-y-2 sm:space-y-3 smooth-scrollbar overflow-y-auto">
+          {navigation.map((item, index) => {
             const isActive = location === item.href;
             const Icon = item.icon;
 
@@ -98,37 +102,62 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center px-4 py-3 text-sm font-semibold rounded-xl smooth-transition interactive-element",
+                  "flex items-center px-3 sm:px-5 py-3 sm:py-4 text-sm sm:text-base font-semibold rounded-xl sm:rounded-2xl smooth-transition modern-card backdrop-blur-sm",
                   {
-                    "text-primary bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 shadow-md scale-105": isActive,
-                    "text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-50 dark:hover:from-slate-800 dark:hover:to-slate-700": !isActive,
+                    "text-white bg-gradient-to-r from-sky-400/20 to-purple-600/20 border-2 border-sky-400/50 shadow-lg scale-105 soft-glow":
+                      isActive,
+                    "text-white/80 hover:text-white hover:bg-white/10 hover:border-white/30 border-2 border-transparent":
+                      !isActive,
                   }
                 )}
                 onClick={() => isMobile && onClose()}
-                data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                data-testid={`nav-${item.name
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")}`}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <Icon className="mr-3 h-5 w-5" />
-                {item.name}
+                <div
+                  className={cn(
+                    "w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg",
+                    {
+                      "bg-gradient-to-br from-sky-400 to-blue-500 soft-glow ai-thinking":
+                        isActive,
+                      "bg-white/10": !isActive,
+                    }
+                  )}
+                >
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow-lg" />
+                </div>
+                <span className="hidden sm:inline">{item.name}</span>
+                <span className="sm:hidden text-xs">
+                  {item.name.split(" ")[0]}
+                </span>
               </Link>
             );
           })}
         </nav>
 
         {/* User Profile Section */}
-        <div className="border-t border-border p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
-          <div className="flex items-center space-x-3 mb-3 p-2 rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 smooth-transition">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg pulse-ring">
-              <span className="text-base font-bold text-white">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+        <div className="border-t border-white/20 p-4 sm:p-6 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
+          <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl glass-card backdrop-blur-sm bg-white/5 border border-white/20 hover:bg-white/10 smooth-transition modern-card">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl soft-glow ai-thinking">
+              <span className="text-sm sm:text-lg font-bold text-white drop-shadow-lg">
+                {user?.firstName?.[0]}
+                {user?.lastName?.[0]}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-foreground truncate">
+              <p className="text-sm sm:text-base font-bold text-white truncate drop-shadow-md">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-xs sm:text-sm text-white/70 truncate drop-shadow-md">
                 {user?.email}
               </p>
+              {user?.role && (
+                <Badge className="mt-1 bg-white/20 border-white/30 text-white backdrop-blur-sm text-xs">
+                  {user.role}
+                </Badge>
+              )}
             </div>
           </div>
 
@@ -136,11 +165,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl hover-lift smooth-transition"
+            className="w-full justify-start text-white/80 hover:text-white hover:bg-red-400/20 border-red-400/30 rounded-xl sm:rounded-2xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm"
             data-testid="logout-button"
           >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
+            <LogOut className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Sign Out</span>
+            <span className="sm:hidden">Logout</span>
           </Button>
         </div>
       </div>

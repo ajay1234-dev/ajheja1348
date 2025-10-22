@@ -35,27 +35,29 @@ export default function ReportCard({ report }: ReportCardProps) {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch(`/api/reports/${report.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: "DELETE",
+        credentials: "include",
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to delete report');
+        throw new Error(error.message || "Failed to delete report");
       }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
       toast({
         title: "Report deleted",
-        description: "The report has been successfully deleted from your records.",
+        description:
+          "The report has been successfully deleted from your records.",
       });
       setDeleteDialogOpen(false);
     },
     onError: (error: Error) => {
       toast({
         title: "Delete failed",
-        description: error.message || "Failed to delete the report. Please try again.",
+        description:
+          error.message || "Failed to delete the report. Please try again.",
         variant: "destructive",
       });
     },
@@ -72,69 +74,71 @@ export default function ReportCard({ report }: ReportCardProps) {
   const handleDownload = async () => {
     try {
       const response = await fetch(`/api/reports/${report.id}/download`, {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error('Download failed');
+        throw new Error("Download failed");
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `medical_report_${report.id}_${new Date().toISOString().split('T')[0]}.txt`;
+      a.download = `medical_report_${report.id}_${
+        new Date().toISOString().split("T")[0]
+      }.txt`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Download failed:', error);
+      console.error("Download failed:", error);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'processing':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'failed':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case "completed":
+        return "bg-green-400/20 text-green-300 border-green-400/30";
+      case "processing":
+        return "bg-amber-400/20 text-amber-300 border-amber-400/30";
+      case "failed":
+        return "bg-red-400/20 text-red-300 border-red-400/30";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-white/20 text-white/80 border-white/30";
     }
   };
 
   const getReportTypeDisplay = (type: string) => {
-    return type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return type.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="border-b border-border">
+    <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+      <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <CardTitle className="text-lg">
+              <CardTitle className="text-lg text-white drop-shadow-lg">
                 {getReportTypeDisplay(report.reportType)}
               </CardTitle>
-              <Badge className={getStatusColor(report.status || 'processing')}>
-                {report.status || 'processing'}
+              <Badge className={getStatusColor(report.status || "processing")}>
+                {report.status || "processing"}
               </Badge>
             </div>
-            
-            <p className="text-sm text-muted-foreground mb-1">
+
+            <p className="text-sm text-white/70 mb-1 drop-shadow-md">
               {report.fileName}
             </p>
-            
-            <div className="flex items-center text-xs text-muted-foreground">
+
+            <div className="flex items-center text-xs text-white/60 drop-shadow-md">
               <Clock className="h-3 w-3 mr-1" />
-              {safeFormatDate(report.createdAt, 'MMM d, yyyy h:mm a')}
+              {safeFormatDate(report.createdAt, "MMM d, yyyy h:mm a")}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {report.summary && (
               <Button
@@ -147,13 +151,17 @@ export default function ReportCard({ report }: ReportCardProps) {
                 <Play className="h-4 w-4" />
               </Button>
             )}
-            
+
             <Button
               variant="ghost"
               size="sm"
               onClick={handleDownload}
-              disabled={report.status !== 'completed'}
-              title={report.status === 'completed' ? 'Download report' : 'Report must be completed to download'}
+              disabled={report.status !== "completed"}
+              title={
+                report.status === "completed"
+                  ? "Download report"
+                  : "Report must be completed to download"
+              }
               data-testid={`download-${report.id}`}
             >
               <Download className="h-4 w-4" />
@@ -161,18 +169,18 @@ export default function ReportCard({ report }: ReportCardProps) {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-6">
-        {report.status === 'completed' && report.analysis ? (
+        {report.status === "completed" && report.analysis ? (
           <AnalysisSummary analysis={report.analysis} />
-        ) : report.status === 'processing' ? (
+        ) : report.status === "processing" ? (
           <div className="text-center py-6">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-sm text-muted-foreground">
               Processing your report...
             </p>
           </div>
-        ) : report.status === 'failed' ? (
+        ) : report.status === "failed" ? (
           <div className="text-center py-6">
             <FileText className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <p className="text-sm text-red-600 mb-2">
@@ -185,36 +193,35 @@ export default function ReportCard({ report }: ReportCardProps) {
         ) : (
           <div className="bg-muted/50 rounded-lg p-4">
             <p className="text-sm text-muted-foreground">
-              Report uploaded successfully. Analysis will appear here once processing is complete.
+              Report uploaded successfully. Analysis will appear here once
+              processing is complete.
             </p>
           </div>
         )}
-        
+
         {report.summary && (
           <div className="mt-4 p-4 bg-muted/50 rounded-lg">
             <h5 className="text-sm font-medium text-foreground mb-2">
               Summary:
             </h5>
-            <p className="text-sm text-muted-foreground">
-              {report.summary}
-            </p>
+            <p className="text-sm text-muted-foreground">{report.summary}</p>
           </div>
         )}
-        
+
         <div className="mt-6 flex justify-between items-center">
           <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               data-testid={`view-details-${report.id}`}
             >
               <FileText className="h-4 w-4 mr-2" />
               View Details
             </Button>
-            
-            {report.status === 'completed' && (
-              <Button 
-                variant="outline" 
+
+            {report.status === "completed" && (
+              <Button
+                variant="outline"
                 size="sm"
                 data-testid={`share-report-${report.id}`}
               >
@@ -223,11 +230,14 @@ export default function ReportCard({ report }: ReportCardProps) {
               </Button>
             )}
           </div>
-          
-          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+
+          <AlertDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+          >
             <AlertDialogTrigger asChild>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
                 data-testid={`delete-report-${report.id}`}
@@ -240,11 +250,15 @@ export default function ReportCard({ report }: ReportCardProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Report?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete this report? This action cannot be undone and will permanently remove the report from your records.
+                  Are you sure you want to delete this report? This action
+                  cannot be undone and will permanently remove the report from
+                  your records.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel data-testid="cancel-delete">Cancel</AlertDialogCancel>
+                <AlertDialogCancel data-testid="cancel-delete">
+                  Cancel
+                </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteMutation.mutate()}
                   disabled={deleteMutation.isPending}

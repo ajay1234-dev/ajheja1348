@@ -14,33 +14,33 @@ interface HeaderProps {
 export default function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved === 'true' || false;
+    const saved = localStorage.getItem("darkMode");
+    return saved === "true" || false;
   });
 
   useEffect(() => {
     if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('darkMode', (!isDarkMode).toString());
+    document.documentElement.classList.toggle("dark");
+    localStorage.setItem("darkMode", (!isDarkMode).toString());
   };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
   };
 
   return (
-    <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-border px-6 py-4 shadow-sm smooth-transition">
+    <header className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 px-6 py-4 shadow-2xl smooth-transition">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button
