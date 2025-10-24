@@ -65,15 +65,15 @@ export default function QuickStats({ stats }: QuickStatsProps) {
           return (
             <StaggerItem key={index}>
               <HoverMotion>
-                <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+                <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-white/80 uppercase tracking-wide drop-shadow-md">
+                        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                           {item.label}
                         </p>
                         <p
-                          className="text-4xl font-bold text-white mt-2 drop-shadow-lg"
+                          className="text-4xl font-bold mt-2"
                           data-testid={`stat-${item.label
                             .toLowerCase()
                             .replace(/\s+/g, "-")}`}
@@ -82,9 +82,9 @@ export default function QuickStats({ stats }: QuickStatsProps) {
                         </p>
                       </div>
                       <div
-                        className={`w-16 h-16 bg-gradient-to-br ${item.gradient} rounded-2xl flex items-center justify-center shadow-xl soft-glow icon-static`}
+                        className={`w-16 h-16 bg-gradient-to-br ${item.gradient} rounded-lg flex items-center justify-center`}
                       >
-                        <Icon className="h-8 w-8 text-white drop-shadow-lg" />
+                        <Icon className="h-8 w-8 text-primary-foreground" />
                       </div>
                     </div>
                   </CardContent>

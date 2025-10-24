@@ -33,7 +33,7 @@ export const MEDICAL_IMAGES = {
   doctor:
     "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&h=400&fit=crop&crop=center",
   upload:
-    "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=400&fit=crop&crop=center",
+    "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=1200&h=400&fit=crop&crop=center&q=80",
   health:
     "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=800&h=400&fit=crop&crop=center",
 } as const;

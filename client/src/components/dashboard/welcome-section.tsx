@@ -15,20 +15,20 @@ export default function WelcomeSection() {
 
   return (
     <HoverMotion>
-      <Card className="glass-card backdrop-blur-xl bg-gradient-to-r from-sky-400/10 via-blue-500/10 to-purple-600/10 dark:from-sky-400/20 dark:via-blue-500/20 dark:to-purple-600/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+      <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
         <CardContent className="p-8">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-4xl font-bold text-white mb-3 drop-shadow-lg bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+              <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
                 {getGreeting()}, {user?.firstName}!
               </h2>
-              <p className="text-white/80 text-xl font-medium drop-shadow-md">
+              <p className="text-foreground text-xl font-medium">
                 Here's your health summary for today
               </p>
             </div>
             <div className="hidden md:block">
               <div className="w-24 h-24 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl soft-glow icon-static">
-                <UserRound className="h-12 w-12 text-white drop-shadow-lg" />
+                <UserRound className="h-12 w-12 text-primary-foreground" />
               </div>
             </div>
           </div>

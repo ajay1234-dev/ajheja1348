@@ -1,7 +1,7 @@
-import { 
-  type User, 
-  type InsertUser, 
-  type Report, 
+import {
+  type User,
+  type InsertUser,
+  type Report,
   type InsertReport,
   type Medication,
   type InsertMedication,
@@ -14,7 +14,7 @@ import {
   type HealthProgress,
   type InsertHealthProgress,
   type SharedReport,
-  type InsertSharedReport
+  type InsertSharedReport,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { firestore } from "./firebase-admin";
@@ -23,44 +23,48 @@ import type { IStorage } from "./storage";
 export class FirestoreStorage implements IStorage {
   private getCollection(role?: string) {
     if (!firestore) {
-      throw new Error('Firestore is not initialized');
+      throw new Error("Firestore is not initialized");
     }
 
-    if (role === 'doctor') {
-      return firestore.collection('doctors');
-    } else if (role === 'patient') {
-      return firestore.collection('patients');
+    if (role === "doctor") {
+      return firestore.collection("doctors");
+    } else if (role === "patient") {
+      return firestore.collection("patients");
     }
 
-    return firestore.collection('users');
+    return firestore.collection("users");
   }
 
-  private async getUserFromBothCollections(email: string): Promise<{ user: User; collection: string } | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  private async getUserFromBothCollections(
+    email: string
+  ): Promise<{ user: User; collection: string } | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const patientDoc = await firestore.collection('patients')
-      .where('email', '==', email)
+    const patientDoc = await firestore
+      .collection("patients")
+      .where("email", "==", email)
       .limit(1)
       .get();
 
     if (!patientDoc.empty) {
       const data = patientDoc.docs[0].data();
-      return { 
+      return {
         user: { id: patientDoc.docs[0].id, ...data } as User,
-        collection: 'patients'
+        collection: "patients",
       };
     }
 
-    const doctorDoc = await firestore.collection('doctors')
-      .where('email', '==', email)
+    const doctorDoc = await firestore
+      .collection("doctors")
+      .where("email", "==", email)
       .limit(1)
       .get();
 
     if (!doctorDoc.empty) {
       const data = doctorDoc.docs[0].data();
-      return { 
+      return {
         user: { id: doctorDoc.docs[0].id, ...data } as User,
-        collection: 'doctors'
+        collection: "doctors",
       };
     }
 
@@ -68,14 +72,14 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const patientDoc = await firestore.collection('patients').doc(id).get();
+    const patientDoc = await firestore.collection("patients").doc(id).get();
     if (patientDoc.exists) {
       return { id: patientDoc.id, ...patientDoc.data() } as User;
     }
 
-    const doctorDoc = await firestore.collection('doctors').doc(id).get();
+    const doctorDoc = await firestore.collection("doctors").doc(id).get();
     if (doctorDoc.exists) {
       return { id: doctorDoc.id, ...doctorDoc.data() } as User;
     }
@@ -89,34 +93,35 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getAllPatients(): Promise<User[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('patients').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+    const snapshot = await firestore.collection("patients").get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as User));
   }
 
   async getAllDoctors(): Promise<User[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('doctors').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+    const snapshot = await firestore.collection("doctors").get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as User));
   }
 
   async getDoctorsBySpecialization(specialization: string): Promise<User[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('doctors')
-      .where('specialization', '==', specialization)
+    const snapshot = await firestore
+      .collection("doctors")
+      .where("specialization", "==", specialization)
       .get();
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as User));
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const id = randomUUID();
-    const role = insertUser.role || 'patient';
+    const role = insertUser.role || "patient";
     const collection = this.getCollection(role);
 
     const now = new Date();
@@ -128,7 +133,7 @@ export class FirestoreStorage implements IStorage {
       lastName: insertUser.lastName,
       role: role,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     };
 
     // Only add optional fields if they have values
@@ -159,11 +164,14 @@ export class FirestoreStorage implements IStorage {
     if (insertUser.gender) {
       docData.gender = insertUser.gender;
     }
+    if (insertUser.profilePictureUrl) {
+      docData.profilePictureUrl = insertUser.profilePictureUrl;
+    }
 
     await collection.doc(id).set(docData);
 
     // Build the user object to return
-    const user: User = { 
+    const user: User = {
       id,
       email: insertUser.email,
       password: insertUser.password || null,
@@ -178,15 +186,19 @@ export class FirestoreStorage implements IStorage {
       specialization: insertUser.specialization || null,
       age: insertUser.age || null,
       gender: insertUser.gender || null,
+      profilePictureUrl: insertUser.profilePictureUrl || null,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     };
 
     return user;
   }
 
-  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async updateUser(
+    id: string,
+    updates: Partial<User>
+  ): Promise<User | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const user = await this.getUser(id);
     if (!user) return undefined;
@@ -200,7 +212,7 @@ export class FirestoreStorage implements IStorage {
   }
 
   async deleteUser(id: string): Promise<boolean> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     try {
       const user = await this.getUser(id);
@@ -211,42 +223,50 @@ export class FirestoreStorage implements IStorage {
       // Delete all related data
       // 1. Delete all reports
       const reports = await this.getUserReports(id);
-      await Promise.all(reports.map(report => this.deleteReport(report.id)));
+      await Promise.all(reports.map((report) => this.deleteReport(report.id)));
 
       // 2. Delete all medications
       const medications = await this.getUserMedications(id);
-      await Promise.all(medications.map(med => this.deleteMedication(med.id)));
+      await Promise.all(
+        medications.map((med) => this.deleteMedication(med.id))
+      );
 
       // 3. Delete all reminders
-      const reminders = await firestore.collection('reminders')
-        .where('userId', '==', id)
+      const reminders = await firestore
+        .collection("reminders")
+        .where("userId", "==", id)
         .get();
-      await Promise.all(reminders.docs.map(doc => doc.ref.delete()));
+      await Promise.all(reminders.docs.map((doc) => doc.ref.delete()));
 
       // 4. Delete all shared reports
       const sharedReports = await this.getSharedReportsByPatientId(id);
-      await Promise.all(sharedReports.map(async (sr) => {
-        if (!firestore) return;
-        await firestore.collection('sharedReports').doc(sr.id).delete();
-      }));
+      await Promise.all(
+        sharedReports.map(async (sr) => {
+          if (!firestore) return;
+          await firestore.collection("sharedReports").doc(sr.id).delete();
+        })
+      );
 
       // 5. Delete all health timeline entries
-      const timeline = await firestore.collection('healthTimeline')
-        .where('userId', '==', id)
+      const timeline = await firestore
+        .collection("healthTimeline")
+        .where("userId", "==", id)
         .get();
-      await Promise.all(timeline.docs.map(doc => doc.ref.delete()));
+      await Promise.all(timeline.docs.map((doc) => doc.ref.delete()));
 
       // 6. Delete all health progress entries
-      const progress = await firestore.collection('healthProgress')
-        .where('userId', '==', id)
+      const progress = await firestore
+        .collection("healthProgress")
+        .where("userId", "==", id)
         .get();
-      await Promise.all(progress.docs.map(doc => doc.ref.delete()));
+      await Promise.all(progress.docs.map((doc) => doc.ref.delete()));
 
       // 7. Delete all doctor consultations
-      const consultations = await firestore.collection('doctorConsultations')
-        .where('userId', '==', id)
+      const consultations = await firestore
+        .collection("doctorConsultations")
+        .where("userId", "==", id)
         .get();
-      await Promise.all(consultations.docs.map(doc => doc.ref.delete()));
+      await Promise.all(consultations.docs.map((doc) => doc.ref.delete()));
 
       // 8. Finally, delete the user
       await collection.doc(id).delete();
@@ -260,22 +280,25 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getReport(id: string): Promise<Report | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const doc = await firestore.collection('reports').doc(id).get();
+    const doc = await firestore.collection("reports").doc(id).get();
     if (!doc.exists) return undefined;
 
     return { id: doc.id, ...doc.data() } as Report;
   }
 
   async getUserReports(userId: string): Promise<Report[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('reports')
-      .where('userId', '==', userId)
+    const snapshot = await firestore
+      .collection("reports")
+      .where("userId", "==", userId)
       .get();
 
-    const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Report));
+    const reports = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Report)
+    );
 
     // Sort in memory to avoid composite index requirement
     return reports.sort((a, b) => {
@@ -283,8 +306,10 @@ export class FirestoreStorage implements IStorage {
       const getTime = (value: any): number => {
         if (!value) return 0;
         if (value instanceof Date) return value.getTime();
-        if (value.toDate && typeof value.toDate === 'function') return value.toDate().getTime(); // Firestore Timestamp
-        if (typeof value === 'string' || typeof value === 'number') return new Date(value).getTime();
+        if (value.toDate && typeof value.toDate === "function")
+          return value.toDate().getTime(); // Firestore Timestamp
+        if (typeof value === "string" || typeof value === "number")
+          return new Date(value).getTime();
         return 0;
       };
 
@@ -293,7 +318,7 @@ export class FirestoreStorage implements IStorage {
   }
 
   async createReport(insertReport: InsertReport): Promise<Report> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const id = randomUUID();
     const now = new Date();
@@ -310,10 +335,10 @@ export class FirestoreStorage implements IStorage {
       status: insertReport.status || undefined,
       uploadedAt: insertReport.uploadedAt || now,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     };
 
-    await firestore.collection('reports').doc(id).set({
+    await firestore.collection("reports").doc(id).set({
       userId: report.userId,
       fileName: report.fileName,
       fileUrl: report.fileUrl,
@@ -325,51 +350,57 @@ export class FirestoreStorage implements IStorage {
       status: report.status,
       uploadedAt: report.uploadedAt,
       createdAt: report.createdAt,
-      updatedAt: report.updatedAt
+      updatedAt: report.updatedAt,
     });
 
     return report;
   }
 
-  async updateReport(id: string, updates: Partial<Report>): Promise<Report | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async updateReport(
+    id: string,
+    updates: Partial<Report>
+  ): Promise<Report | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const report = await this.getReport(id);
     if (!report) return undefined;
 
     const updatedData = { ...updates, updatedAt: new Date() };
-    await firestore.collection('reports').doc(id).update(updatedData);
+    await firestore.collection("reports").doc(id).update(updatedData);
 
     return { ...report, ...updatedData };
   }
 
   async deleteReport(id: string): Promise<boolean> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const report = await this.getReport(id);
     if (!report) return false;
 
-    await firestore.collection('reports').doc(id).delete();
+    await firestore.collection("reports").doc(id).delete();
     return true;
   }
 
   async getMedication(id: string): Promise<Medication | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const doc = await firestore.collection('medications').doc(id).get();
+    const doc = await firestore.collection("medications").doc(id).get();
     if (!doc.exists) return undefined;
 
     return { id: doc.id, ...doc.data() } as Medication;
   }
 
   async getUserMedications(userId: string): Promise<Medication[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('medications')
-      .where('userId', '==', userId)
+    const snapshot = await firestore
+      .collection("medications")
+      .where("userId", "==", userId)
       .get();
 
-    const medications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Medication));
+    const medications = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Medication)
+    );
 
     // Sort in memory to avoid composite index requirement
     return medications.sort((a, b) => {
@@ -377,8 +408,10 @@ export class FirestoreStorage implements IStorage {
       const getTime = (value: any): number => {
         if (!value) return 0;
         if (value instanceof Date) return value.getTime();
-        if (value.toDate && typeof value.toDate === 'function') return value.toDate().getTime(); // Firestore Timestamp
-        if (typeof value === 'string' || typeof value === 'number') return new Date(value).getTime();
+        if (value.toDate && typeof value.toDate === "function")
+          return value.toDate().getTime(); // Firestore Timestamp
+        if (typeof value === "string" || typeof value === "number")
+          return new Date(value).getTime();
         return 0;
       };
 
@@ -387,18 +420,23 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getActiveMedications(userId: string): Promise<Medication[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('medications')
-      .where('userId', '==', userId)
-      .where('isActive', '==', true)
+    const snapshot = await firestore
+      .collection("medications")
+      .where("userId", "==", userId)
+      .where("isActive", "==", true)
       .get();
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Medication));
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Medication)
+    );
   }
 
-  async createMedication(insertMedication: InsertMedication): Promise<Medication> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async createMedication(
+    insertMedication: InsertMedication
+  ): Promise<Medication> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const id = randomUUID();
     const now = new Date();
@@ -412,19 +450,22 @@ export class FirestoreStorage implements IStorage {
       duration: insertMedication.duration || null,
       instructions: insertMedication.instructions || null,
       sideEffects: insertMedication.sideEffects || null,
-      isActive: insertMedication.isActive !== undefined ? insertMedication.isActive : true,
+      isActive:
+        insertMedication.isActive !== undefined
+          ? insertMedication.isActive
+          : true,
       prescribedBy: insertMedication.prescribedBy || null,
       doctorSpecialization: insertMedication.doctorSpecialization || null,
       prescriptionDate: insertMedication.prescriptionDate || null,
       startDate: insertMedication.startDate || null,
       endDate: insertMedication.endDate || null,
       notes: insertMedication.notes || null,
-      status: insertMedication.status || 'active',
+      status: insertMedication.status || "active",
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     };
 
-    await firestore.collection('medications').doc(id).set({
+    await firestore.collection("medications").doc(id).set({
       userId: medication.userId,
       reportId: medication.reportId,
       name: medication.name,
@@ -442,51 +483,57 @@ export class FirestoreStorage implements IStorage {
       notes: medication.notes,
       status: medication.status,
       createdAt: medication.createdAt,
-      updatedAt: medication.updatedAt
+      updatedAt: medication.updatedAt,
     });
 
     return medication;
   }
 
-  async updateMedication(id: string, updates: Partial<Medication>): Promise<Medication | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async updateMedication(
+    id: string,
+    updates: Partial<Medication>
+  ): Promise<Medication | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const medication = await this.getMedication(id);
     if (!medication) return undefined;
 
     const updatedData = { ...updates, updatedAt: new Date() };
-    await firestore.collection('medications').doc(id).update(updatedData);
+    await firestore.collection("medications").doc(id).update(updatedData);
 
     return { ...medication, ...updatedData };
   }
 
   async deleteMedication(id: string): Promise<boolean> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const medication = await this.getMedication(id);
     if (!medication) return false;
 
-    await firestore.collection('medications').doc(id).delete();
+    await firestore.collection("medications").doc(id).delete();
     return true;
   }
 
   async getReminder(id: string): Promise<Reminder | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const doc = await firestore.collection('reminders').doc(id).get();
+    const doc = await firestore.collection("reminders").doc(id).get();
     if (!doc.exists) return undefined;
 
     return { id: doc.id, ...doc.data() } as Reminder;
   }
 
   async getUserReminders(userId: string): Promise<Reminder[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('reminders')
-      .where('userId', '==', userId)
+    const snapshot = await firestore
+      .collection("reminders")
+      .where("userId", "==", userId)
       .get();
 
-    const reminders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Reminder));
+    const reminders = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Reminder)
+    );
 
     // Sort in memory to avoid composite index requirement
     return reminders.sort((a, b) => {
@@ -494,8 +541,10 @@ export class FirestoreStorage implements IStorage {
       const getTime = (value: any): number => {
         if (!value) return 0;
         if (value instanceof Date) return value.getTime();
-        if (value.toDate && typeof value.toDate === 'function') return value.toDate().getTime(); // Firestore Timestamp
-        if (typeof value === 'string' || typeof value === 'number') return new Date(value).getTime();
+        if (value.toDate && typeof value.toDate === "function")
+          return value.toDate().getTime(); // Firestore Timestamp
+        if (typeof value === "string" || typeof value === "number")
+          return new Date(value).getTime();
         return 0;
       };
 
@@ -504,19 +553,22 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getActiveReminders(userId: string): Promise<Reminder[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('reminders')
-      .where('userId', '==', userId)
-      .where('isActive', '==', true)
-      .where('isCompleted', '==', false)
+    const snapshot = await firestore
+      .collection("reminders")
+      .where("userId", "==", userId)
+      .where("isActive", "==", true)
+      .where("isCompleted", "==", false)
       .get();
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Reminder));
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Reminder)
+    );
   }
 
   async createReminder(insertReminder: InsertReminder): Promise<Reminder> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const id = randomUUID();
     const reminder: Reminder = {
@@ -528,11 +580,12 @@ export class FirestoreStorage implements IStorage {
       message: insertReminder.message || null,
       scheduledTime: insertReminder.scheduledTime,
       isCompleted: insertReminder.isCompleted || false,
-      isActive: insertReminder.isActive !== undefined ? insertReminder.isActive : true,
-      createdAt: new Date()
+      isActive:
+        insertReminder.isActive !== undefined ? insertReminder.isActive : true,
+      createdAt: new Date(),
     };
 
-    await firestore.collection('reminders').doc(id).set({
+    await firestore.collection("reminders").doc(id).set({
       userId: reminder.userId,
       medicationId: reminder.medicationId,
       type: reminder.type,
@@ -541,48 +594,60 @@ export class FirestoreStorage implements IStorage {
       scheduledTime: reminder.scheduledTime,
       isCompleted: reminder.isCompleted,
       isActive: reminder.isActive,
-      createdAt: reminder.createdAt
+      createdAt: reminder.createdAt,
     });
 
     return reminder;
   }
 
-  async updateReminder(id: string, updates: Partial<Reminder>): Promise<Reminder | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async updateReminder(
+    id: string,
+    updates: Partial<Reminder>
+  ): Promise<Reminder | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const reminder = await this.getReminder(id);
     if (!reminder) return undefined;
 
-    await firestore.collection('reminders').doc(id).update(updates);
+    await firestore.collection("reminders").doc(id).update(updates);
 
     return { ...reminder, ...updates };
   }
 
   // Doctor Consultations
-  async getDoctorConsultation(id: string): Promise<DoctorConsultation | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async getDoctorConsultation(
+    id: string
+  ): Promise<DoctorConsultation | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const doc = await firestore.collection('doctorConsultations').doc(id).get();
+    const doc = await firestore.collection("doctorConsultations").doc(id).get();
     if (!doc.exists) return undefined;
 
     return { id: doc.id, ...doc.data() } as DoctorConsultation;
   }
 
-  async getUserDoctorConsultations(userId: string): Promise<DoctorConsultation[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async getUserDoctorConsultations(
+    userId: string
+  ): Promise<DoctorConsultation[]> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('doctorConsultations')
-      .where('userId', '==', userId)
+    const snapshot = await firestore
+      .collection("doctorConsultations")
+      .where("userId", "==", userId)
       .get();
 
-    const consultations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DoctorConsultation));
+    const consultations = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as DoctorConsultation)
+    );
 
     return consultations.sort((a, b) => {
       const getTime = (value: any): number => {
         if (!value) return 0;
         if (value instanceof Date) return value.getTime();
-        if (value.toDate && typeof value.toDate === 'function') return value.toDate().getTime();
-        if (typeof value === 'string' || typeof value === 'number') return new Date(value).getTime();
+        if (value.toDate && typeof value.toDate === "function")
+          return value.toDate().getTime();
+        if (typeof value === "string" || typeof value === "number")
+          return new Date(value).getTime();
         return 0;
       };
 
@@ -590,8 +655,10 @@ export class FirestoreStorage implements IStorage {
     });
   }
 
-  async createDoctorConsultation(insertConsultation: InsertDoctorConsultation): Promise<DoctorConsultation> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async createDoctorConsultation(
+    insertConsultation: InsertDoctorConsultation
+  ): Promise<DoctorConsultation> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const id = randomUUID();
     const now = new Date();
@@ -609,10 +676,10 @@ export class FirestoreStorage implements IStorage {
       doctorNotes: insertConsultation.doctorNotes || null,
       summary: insertConsultation.summary || null,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     };
 
-    await firestore.collection('doctorConsultations').doc(id).set({
+    await firestore.collection("doctorConsultations").doc(id).set({
       userId: consultation.userId,
       reportId: consultation.reportId,
       doctorName: consultation.doctorName,
@@ -625,7 +692,7 @@ export class FirestoreStorage implements IStorage {
       doctorNotes: consultation.doctorNotes,
       summary: consultation.summary,
       createdAt: consultation.createdAt,
-      updatedAt: consultation.updatedAt
+      updatedAt: consultation.updatedAt,
     });
 
     return consultation;
@@ -633,20 +700,25 @@ export class FirestoreStorage implements IStorage {
 
   // Health Progress
   async getUserHealthProgress(userId: string): Promise<HealthProgress[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('healthProgress')
-      .where('userId', '==', userId)
+    const snapshot = await firestore
+      .collection("healthProgress")
+      .where("userId", "==", userId)
       .get();
 
-    const progress = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HealthProgress));
+    const progress = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as HealthProgress)
+    );
 
     return progress.sort((a, b) => {
       const getTime = (value: any): number => {
         if (!value) return 0;
         if (value instanceof Date) return value.getTime();
-        if (value.toDate && typeof value.toDate === 'function') return value.toDate().getTime();
-        if (typeof value === 'string' || typeof value === 'number') return new Date(value).getTime();
+        if (value.toDate && typeof value.toDate === "function")
+          return value.toDate().getTime();
+        if (typeof value === "string" || typeof value === "number")
+          return new Date(value).getTime();
         return 0;
       };
 
@@ -654,8 +726,10 @@ export class FirestoreStorage implements IStorage {
     });
   }
 
-  async createHealthProgress(insertProgress: InsertHealthProgress): Promise<HealthProgress> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async createHealthProgress(
+    insertProgress: InsertHealthProgress
+  ): Promise<HealthProgress> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const id = randomUUID();
     const progress: HealthProgress = {
@@ -669,10 +743,10 @@ export class FirestoreStorage implements IStorage {
       temperature: insertProgress.temperature || null,
       oxygenLevel: insertProgress.oxygenLevel || null,
       notes: insertProgress.notes || null,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
-    await firestore.collection('healthProgress').doc(id).set({
+    await firestore.collection("healthProgress").doc(id).set({
       userId: progress.userId,
       recordDate: progress.recordDate,
       bloodPressure: progress.bloodPressure,
@@ -682,7 +756,7 @@ export class FirestoreStorage implements IStorage {
       temperature: progress.temperature,
       oxygenLevel: progress.oxygenLevel,
       notes: progress.notes,
-      createdAt: progress.createdAt
+      createdAt: progress.createdAt,
     });
 
     return progress;
@@ -692,15 +766,15 @@ export class FirestoreStorage implements IStorage {
   private convertFirestoreTimestamps(obj: any): any {
     if (!obj) return obj;
 
-    if (obj.toDate && typeof obj.toDate === 'function') {
+    if (obj.toDate && typeof obj.toDate === "function") {
       return obj.toDate();
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.convertFirestoreTimestamps(item));
+      return obj.map((item) => this.convertFirestoreTimestamps(item));
     }
 
-    if (typeof obj === 'object') {
+    if (typeof obj === "object") {
       const converted: any = {};
       for (const key in obj) {
         converted[key] = this.convertFirestoreTimestamps(obj[key]);
@@ -713,13 +787,14 @@ export class FirestoreStorage implements IStorage {
 
   // Health Timeline
   async getUserHealthTimeline(userId: string): Promise<HealthTimeline[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('healthTimeline')
-      .where('userId', '==', userId)
+    const snapshot = await firestore
+      .collection("healthTimeline")
+      .where("userId", "==", userId)
       .get();
 
-    const timeline = snapshot.docs.map(doc => {
+    const timeline = snapshot.docs.map((doc) => {
       const data = this.convertFirestoreTimestamps(doc.data());
       return { id: doc.id, ...data } as HealthTimeline;
     });
@@ -730,7 +805,8 @@ export class FirestoreStorage implements IStorage {
       const getTime = (value: any): number => {
         if (!value) return 0;
         if (value instanceof Date) return value.getTime();
-        if (typeof value === 'string' || typeof value === 'number') return new Date(value).getTime();
+        if (typeof value === "string" || typeof value === "number")
+          return new Date(value).getTime();
         return 0;
       };
 
@@ -738,8 +814,10 @@ export class FirestoreStorage implements IStorage {
     });
   }
 
-  async createHealthTimelineEntry(insertEntry: InsertHealthTimeline): Promise<HealthTimeline> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async createHealthTimelineEntry(
+    insertEntry: InsertHealthTimeline
+  ): Promise<HealthTimeline> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const id = randomUUID();
     const entry: HealthTimeline = {
@@ -762,10 +840,10 @@ export class FirestoreStorage implements IStorage {
       doctorInfo: insertEntry.doctorInfo || null,
       notes: insertEntry.notes || null,
       fileUrl: insertEntry.fileUrl || null,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
-    await firestore.collection('healthTimeline').doc(id).set({
+    await firestore.collection("healthTimeline").doc(id).set({
       userId: entry.userId,
       reportId: entry.reportId,
       consultationId: entry.consultationId,
@@ -784,17 +862,18 @@ export class FirestoreStorage implements IStorage {
       doctorInfo: entry.doctorInfo,
       notes: entry.notes,
       fileUrl: entry.fileUrl,
-      createdAt: entry.createdAt
+      createdAt: entry.createdAt,
     });
 
     return entry;
   }
 
   async getSharedReport(token: string): Promise<SharedReport | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('sharedReports')
-      .where('shareToken', '==', token)
+    const snapshot = await firestore
+      .collection("sharedReports")
+      .where("shareToken", "==", token)
       .limit(1)
       .get();
 
@@ -805,9 +884,9 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getSharedReportById(id: string): Promise<SharedReport | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const doc = await firestore.collection('sharedReports').doc(id).get();
+    const doc = await firestore.collection("sharedReports").doc(id).get();
 
     if (!doc.exists) return undefined;
 
@@ -815,49 +894,61 @@ export class FirestoreStorage implements IStorage {
   }
 
   async getSharedReportsByDoctorEmail(email: string): Promise<SharedReport[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('sharedReports')
-      .where('doctorEmail', '==', email)
+    const snapshot = await firestore
+      .collection("sharedReports")
+      .where("doctorEmail", "==", email)
       .get();
 
-    const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SharedReport));
-    
+    const reports = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as SharedReport)
+    );
+
     // Sort in memory to avoid composite index requirement
     return reports.sort((a, b) => {
       const getTime = (date: any): number => {
         if (!date) return 0;
         if (date instanceof Date) return date.getTime();
-        if (typeof date === 'string' || typeof date === 'number') return new Date(date).getTime();
+        if (typeof date === "string" || typeof date === "number")
+          return new Date(date).getTime();
         return 0;
       };
       return getTime(b.createdAt) - getTime(a.createdAt);
     });
   }
 
-  async getSharedReportsByPatientId(patientId: string): Promise<SharedReport[]> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async getSharedReportsByPatientId(
+    patientId: string
+  ): Promise<SharedReport[]> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore.collection('sharedReports')
-      .where('userId', '==', patientId)
+    const snapshot = await firestore
+      .collection("sharedReports")
+      .where("userId", "==", patientId)
       .get();
 
-    const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SharedReport));
-    
+    const reports = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as SharedReport)
+    );
+
     // Sort in memory to avoid composite index requirement
     return reports.sort((a, b) => {
       const getTime = (date: any): number => {
         if (!date) return 0;
         if (date instanceof Date) return date.getTime();
-        if (typeof date === 'string' || typeof date === 'number') return new Date(date).getTime();
+        if (typeof date === "string" || typeof date === "number")
+          return new Date(date).getTime();
         return 0;
       };
       return getTime(b.createdAt) - getTime(a.createdAt);
     });
   }
 
-  async createSharedReport(insertSharedReport: InsertSharedReport): Promise<SharedReport> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async createSharedReport(
+    insertSharedReport: InsertSharedReport
+  ): Promise<SharedReport> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
     const id = randomUUID();
     const sharedReport: SharedReport = {
@@ -867,7 +958,10 @@ export class FirestoreStorage implements IStorage {
       shareToken: insertSharedReport.shareToken,
       doctorEmail: insertSharedReport.doctorEmail || null,
       expiresAt: insertSharedReport.expiresAt,
-      isActive: insertSharedReport.isActive !== undefined ? insertSharedReport.isActive : true,
+      isActive:
+        insertSharedReport.isActive !== undefined
+          ? insertSharedReport.isActive
+          : true,
       viewCount: insertSharedReport.viewCount || 0,
       patientId: insertSharedReport.patientId || null,
       doctorId: insertSharedReport.doctorId || null,
@@ -877,11 +971,11 @@ export class FirestoreStorage implements IStorage {
       reportSummary: insertSharedReport.reportSummary || null,
       symptoms: insertSharedReport.symptoms || null,
       description: insertSharedReport.description || null,
-      approvalStatus: insertSharedReport.approvalStatus || 'pending',
-      createdAt: new Date()
+      approvalStatus: insertSharedReport.approvalStatus || "pending",
+      createdAt: new Date(),
     };
 
-    await firestore.collection('sharedReports').doc(id).set({
+    await firestore.collection("sharedReports").doc(id).set({
       userId: sharedReport.userId,
       reportIds: sharedReport.reportIds,
       shareToken: sharedReport.shareToken,
@@ -898,20 +992,30 @@ export class FirestoreStorage implements IStorage {
       symptoms: sharedReport.symptoms,
       description: sharedReport.description,
       approvalStatus: sharedReport.approvalStatus,
-      createdAt: sharedReport.createdAt
+      createdAt: sharedReport.createdAt,
     });
 
     return sharedReport;
   }
 
-  async updateSharedReport(id: string, updates: Partial<SharedReport>): Promise<SharedReport | undefined> {
-    if (!firestore) throw new Error('Firestore is not initialized');
+  async updateSharedReport(
+    id: string,
+    updates: Partial<SharedReport>
+  ): Promise<SharedReport | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
 
-    const sharedReport = await firestore.collection('sharedReports').doc(id).get();
+    const sharedReport = await firestore
+      .collection("sharedReports")
+      .doc(id)
+      .get();
     if (!sharedReport.exists) return undefined;
 
-    await firestore.collection('sharedReports').doc(id).update(updates);
+    await firestore.collection("sharedReports").doc(id).update(updates);
 
-    return { id: sharedReport.id, ...sharedReport.data(), ...updates } as SharedReport;
+    return {
+      id: sharedReport.id,
+      ...sharedReport.data(),
+      ...updates,
+    } as SharedReport;
   }
 }

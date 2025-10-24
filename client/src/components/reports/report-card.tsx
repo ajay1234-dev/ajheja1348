@@ -101,13 +101,13 @@ export default function ReportCard({ report }: ReportCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-green-400/20 text-green-300 border-green-400/30";
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300 dark:border-green-700";
       case "processing":
-        return "bg-amber-400/20 text-amber-300 border-amber-400/30";
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700";
       case "failed":
-        return "bg-red-400/20 text-red-300 border-red-400/30";
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-300 dark:border-red-700";
       default:
-        return "bg-white/20 text-white/80 border-white/30";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-700";
     }
   };
 
@@ -116,12 +116,12 @@ export default function ReportCard({ report }: ReportCardProps) {
   };
 
   return (
-    <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
-      <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
+    <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+      <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <CardTitle className="text-lg text-white drop-shadow-lg">
+              <CardTitle className="text-lg">
                 {getReportTypeDisplay(report.reportType)}
               </CardTitle>
               <Badge className={getStatusColor(report.status || "processing")}>
@@ -129,11 +129,11 @@ export default function ReportCard({ report }: ReportCardProps) {
               </Badge>
             </div>
 
-            <p className="text-sm text-white/70 mb-1 drop-shadow-md">
+            <p className="text-sm text-muted-foreground mb-1">
               {report.fileName}
             </p>
 
-            <div className="flex items-center text-xs text-white/60 drop-shadow-md">
+            <div className="flex items-center text-xs text-muted-foreground">
               <Clock className="h-3 w-3 mr-1" />
               {safeFormatDate(report.createdAt, "MMM d, yyyy h:mm a")}
             </div>

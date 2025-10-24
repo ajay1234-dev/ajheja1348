@@ -176,48 +176,44 @@ export default function DragDropZone({
 
   return (
     <div className="space-y-6">
-      <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+      <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
         <CardContent className="p-6">
           <div
             {...getRootProps()}
             className={`upload-zone border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${
               isDragActive
-                ? "border-sky-400 bg-sky-400/10 scale-105"
-                : "border-white/30 hover:border-sky-400 hover:bg-sky-400/5"
+                ? "border-primary bg-primary/10 scale-105"
+                : "border-gray-300 dark:border-slate-600 hover:border-primary hover:bg-primary/5"
             }`}
             data-testid="upload-zone"
           >
             <input {...getInputProps()} data-testid="file-input" />
 
-            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center mb-4 soft-glow icon-static">
-              <CloudUpload className="h-8 w-8 text-white drop-shadow-lg" />
+            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
+              <CloudUpload className="h-8 w-8 text-primary-foreground" />
             </div>
 
             {isDragActive ? (
               <div>
-                <h4 className="text-lg font-medium text-white mb-2 drop-shadow-lg">
+                <h4 className="text-lg font-medium mb-2">
                   Drop your files here
                 </h4>
-                <p className="text-white/80 drop-shadow-md">
+                <p className="text-muted-foreground">
                   Release to upload your medical documents
                 </p>
               </div>
             ) : (
               <div>
-                <h4 className="text-lg font-medium text-white mb-2 drop-shadow-lg">
+                <h4 className="text-lg font-medium mb-2">
                   Drag & Drop your medical documents
                 </h4>
-                <p className="text-white/80 mb-4 drop-shadow-md">
+                <p className="text-muted-foreground mb-4">
                   or click to browse your computer
                 </p>
-                <Button
-                  onClick={open}
-                  data-testid="browse-files-button"
-                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 backdrop-blur-sm transition-all duration-300 transform hover:scale-105"
-                >
+                <Button onClick={open} data-testid="browse-files-button">
                   Choose Files
                 </Button>
-                <p className="text-xs text-white/60 mt-4 drop-shadow-md">
+                <p className="text-xs text-muted-foreground mt-4">
                   Supports PDF, PNG, JPG files up to 10MB
                 </p>
               </div>

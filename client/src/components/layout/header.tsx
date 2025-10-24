@@ -40,7 +40,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 px-6 py-4 shadow-2xl smooth-transition">
+    <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-2 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button

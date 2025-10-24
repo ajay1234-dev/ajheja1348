@@ -2,14 +2,21 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { UserCircle, Save, Trash2, AlertTriangle, Loader2 } from "lucide-react";
-import { 
+import ProfilePictureUpload from "@/components/profile/profile-picture-upload";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -40,18 +47,18 @@ export default function ProfilePage() {
       setFormData({
         firstName: profile.firstName,
         lastName: profile.lastName,
-        phone: profile.phone || '',
-        dateOfBirth: profile.dateOfBirth || '',
-        specialization: profile.specialization || '',
+        phone: profile.phone || "",
+        dateOfBirth: profile.dateOfBirth || "",
+        specialization: profile.specialization || "",
         age: profile.age || undefined,
-        gender: profile.gender || '',
+        gender: profile.gender || "",
       });
     }
   }, [profile]);
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<User>) => {
-      const response = await apiRequest('PATCH', '/api/profile', updates);
+      const response = await apiRequest("PATCH", "/api/profile", updates);
       return response.json();
     },
     onSuccess: (data) => {
@@ -66,7 +73,8 @@ export default function ProfilePage() {
     onError: (error) => {
       toast({
         title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update profile",
+        description:
+          error instanceof Error ? error.message : "Failed to update profile",
         variant: "destructive",
       });
     },
@@ -74,7 +82,7 @@ export default function ProfilePage() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('DELETE', '/api/profile');
+      const response = await apiRequest("DELETE", "/api/profile");
       return response.json();
     },
     onSuccess: () => {
@@ -83,12 +91,13 @@ export default function ProfilePage() {
         description: "Your account has been permanently deleted.",
       });
       logout();
-      navigate('/login');
+      navigate("/login");
     },
     onError: (error) => {
       toast({
         title: "Deletion Failed",
-        description: error instanceof Error ? error.message : "Failed to delete account",
+        description:
+          error instanceof Error ? error.message : "Failed to delete account",
         variant: "destructive",
       });
     },
@@ -107,11 +116,11 @@ export default function ProfilePage() {
       setFormData({
         firstName: profile.firstName,
         lastName: profile.lastName,
-        phone: profile.phone || '',
-        dateOfBirth: profile.dateOfBirth || '',
-        specialization: profile.specialization || '',
+        phone: profile.phone || "",
+        dateOfBirth: profile.dateOfBirth || "",
+        specialization: profile.specialization || "",
         age: profile.age || undefined,
-        gender: profile.gender || '',
+        gender: profile.gender || "",
       });
     }
     setIsEditing(false);
@@ -155,12 +164,16 @@ export default function ProfilePage() {
         )}
       </div>
 
+      {/* Profile Picture Upload */}
+      <ProfilePictureUpload
+        currentPictureUrl={profile.profilePictureUrl}
+        userId={profile.id}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
-          <CardDescription>
-            Your basic profile information
-          </CardDescription>
+          <CardDescription>Your basic profile information</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -169,7 +182,9 @@ export default function ProfilePage() {
               <Input
                 id="firstName"
                 value={isEditing ? formData.firstName : profile.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, firstName: e.target.value })
+                }
                 disabled={!isEditing}
                 data-testid="input-firstName"
               />
@@ -180,7 +195,9 @@ export default function ProfilePage() {
               <Input
                 id="lastName"
                 value={isEditing ? formData.lastName : profile.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, lastName: e.target.value })
+                }
                 disabled={!isEditing}
                 data-testid="input-lastName"
               />
@@ -197,7 +214,9 @@ export default function ProfilePage() {
               className="bg-muted"
               data-testid="input-email"
             />
-            <p className="text-xs text-muted-foreground">Email cannot be changed</p>
+            <p className="text-xs text-muted-foreground">
+              Email cannot be changed
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -205,8 +224,10 @@ export default function ProfilePage() {
             <Input
               id="phone"
               type="tel"
-              value={isEditing ? (formData.phone ?? '') : (profile.phone ?? '')}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              value={isEditing ? formData.phone ?? "" : profile.phone ?? ""}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
               disabled={!isEditing}
               placeholder="Enter phone number"
               data-testid="input-phone"
@@ -218,20 +239,32 @@ export default function ProfilePage() {
             <Input
               id="dateOfBirth"
               type="date"
-              value={isEditing ? (formData.dateOfBirth ?? '') : (profile.dateOfBirth ?? '')}
-              onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+              value={
+                isEditing
+                  ? formData.dateOfBirth ?? ""
+                  : profile.dateOfBirth ?? ""
+              }
+              onChange={(e) =>
+                setFormData({ ...formData, dateOfBirth: e.target.value })
+              }
               disabled={!isEditing}
               data-testid="input-dateOfBirth"
             />
           </div>
 
-          {profile.role === 'doctor' && (
+          {profile.role === "doctor" && (
             <div className="space-y-2">
               <Label htmlFor="specialization">Specialization</Label>
               <Input
                 id="specialization"
-                value={isEditing ? (formData.specialization ?? '') : (profile.specialization ?? '')}
-                onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                value={
+                  isEditing
+                    ? formData.specialization ?? ""
+                    : profile.specialization ?? ""
+                }
+                onChange={(e) =>
+                  setFormData({ ...formData, specialization: e.target.value })
+                }
                 disabled={!isEditing}
                 placeholder="e.g., Cardiology, Neurology"
                 data-testid="input-specialization"
@@ -239,15 +272,20 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {profile.role === 'patient' && (
+          {profile.role === "patient" && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="age">Age</Label>
                 <Input
                   id="age"
                   type="number"
-                  value={isEditing ? (formData.age ?? '') : (profile.age ?? '')}
-                  onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || undefined })}
+                  value={isEditing ? formData.age ?? "" : profile.age ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      age: parseInt(e.target.value) || undefined,
+                    })
+                  }
                   disabled={!isEditing}
                   placeholder="Enter age"
                   data-testid="input-age"
@@ -258,8 +296,12 @@ export default function ProfilePage() {
                 <Label htmlFor="gender">Gender</Label>
                 <Input
                   id="gender"
-                  value={isEditing ? (formData.gender ?? '') : (profile.gender ?? '')}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  value={
+                    isEditing ? formData.gender ?? "" : profile.gender ?? ""
+                  }
+                  onChange={(e) =>
+                    setFormData({ ...formData, gender: e.target.value })
+                  }
                   disabled={!isEditing}
                   placeholder="e.g., Male, Female, Other"
                   data-testid="input-gender"
@@ -311,10 +353,7 @@ export default function ProfilePage() {
         <CardContent>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                data-testid="button-delete-account"
-              >
+              <Button variant="destructive" data-testid="button-delete-account">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Account
               </Button>
@@ -326,8 +365,9 @@ export default function ProfilePage() {
                   Are you absolutely sure?
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete your account
-                  and remove all your data from our servers, including:
+                  This action cannot be undone. This will permanently delete
+                  your account and remove all your data from our servers,
+                  including:
                   <ul className="list-disc list-inside mt-2 space-y-1">
                     <li>All medical reports</li>
                     <li>Medication records</li>
@@ -353,7 +393,7 @@ export default function ProfilePage() {
                       Deleting...
                     </>
                   ) : (
-                    'Delete Account'
+                    "Delete Account"
                   )}
                 </AlertDialogAction>
               </AlertDialogFooter>

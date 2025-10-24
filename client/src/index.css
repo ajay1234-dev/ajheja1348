@@ -4,26 +4,26 @@
 @tailwind utilities;
 
 :root {
-  --background: 248 250 252;
-  --foreground: 15 23 42;
+  --background: 255 255 255;
+  --foreground: 0 0 0;
   --card: 255 255 255;
-  --card-foreground: 15 23 42;
+  --card-foreground: 0 0 0;
   --popover: 255 255 255;
-  --popover-foreground: 15 23 42;
+  --popover-foreground: 0 0 0;
   --primary: 14 165 233;
   --primary-foreground: 255 255 255;
   --secondary: 236 254 255;
-  --secondary-foreground: 15 23 42;
+  --secondary-foreground: 0 0 0;
   --muted: 241 245 249;
-  --muted-foreground: 71 85 105; /* Improved contrast for better readability */
+  --muted-foreground: 71 85 105;
   --accent: 236 254 255;
-  --accent-foreground: 15 23 42;
+  --accent-foreground: 0 0 0;
   --destructive: 239 68 68;
   --destructive-foreground: 255 255 255;
   --border: 226 232 240;
   --input: 226 232 240;
   --ring: 14 165 233;
-  --radius: 1rem;
+  --radius: 0.5rem;
   --chart-1: hsl(200, 100%, 50%);
   --chart-2: hsl(280, 100%, 70%);
   --chart-3: hsl(160, 100%, 40%);
@@ -60,23 +60,23 @@
 
 .dark {
   --background: 15 23 42;
-  --foreground: 248 250 252;
+  --foreground: 255 255 255;
   --card: 30 41 59;
-  --card-foreground: 248 250 252;
+  --card-foreground: 255 255 255;
   --popover: 30 41 59;
-  --popover-foreground: 248 250 252;
+  --popover-foreground: 255 255 255;
   --primary: 56 189 248;
-  --primary-foreground: 15 23 42;
+  --primary-foreground: 0 0 0;
   --secondary: 30 41 59;
-  --secondary-foreground: 248 250 252;
+  --secondary-foreground: 255 255 255;
   --muted: 30 41 59;
-  --muted-foreground: 148 163 184;
+  --muted-foreground: 203 213 225;
   --accent: 30 41 59;
-  --accent-foreground: 248 250 252;
+  --accent-foreground: 255 255 255;
   --destructive: 185 28 28;
-  --destructive-foreground: 248 250 252;
-  --border: 30 41 59;
-  --input: 30 41 59;
+  --destructive-foreground: 255 255 255;
+  --border: 71 85 105;
+  --input: 71 85 105;
   --ring: 56 189 248;
   --sidebar: hsl(222.2, 84%, 4.9%);
   --sidebar-foreground: hsl(210, 40%, 98%);
@@ -213,14 +213,14 @@
 }
 
 .glass-morphism {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgb(255, 255, 255);
+  backdrop-filter: none;
+  border: 1px solid rgba(226, 232, 240, 1);
 }
 
 .dark .glass-morphism {
-  background: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 1);
+  border: 1px solid rgba(71, 85, 105, 0.3);
 }
 
 .hover-lift {
@@ -460,43 +460,29 @@
 
 /* Glassmorphism Effects */
 .glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: rgb(255, 255, 255);
+  backdrop-filter: none;
+  border: 1px solid rgba(226, 232, 240, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .dark .glass-card {
-  background: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: rgba(30, 41, 59, 1);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* Gradient Backgrounds */
 .futuristic-bg {
-  background: linear-gradient(
-    135deg,
-    #667eea 0%,
-    #764ba2 25%,
-    #f093fb 50%,
-    #4facfe 75%,
-    #00f2fe 100%
-  );
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
+  background: rgb(255, 255, 255);
+  background-size: 100% 100%;
+  animation: none;
 }
 
 .dark .futuristic-bg {
-  background: linear-gradient(
-    135deg,
-    #1e3a8a 0%,
-    #312e81 25%,
-    #4c1d95 50%,
-    #1e40af 75%,
-    #0c4a6e 100%
-  );
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
+  background: rgb(15, 23, 42);
+  background-size: 100% 100%;
+  animation: none;
 }
 
 /* Soft Glow Effects */
@@ -689,15 +675,15 @@
 
 /* Consistent Card Styling */
 .card-consistent {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border-radius: 1rem;
+  background: rgb(255, 255, 255);
+  backdrop-filter: none;
+  border: 1px solid rgba(226, 232, 240, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
 }
 
 .dark .card-consistent {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: rgba(30, 41, 59, 1);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }

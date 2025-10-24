@@ -292,12 +292,10 @@ export default function UploadReportForm() {
   };
 
   return (
-    <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
-      <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-        <CardTitle className="text-white drop-shadow-lg">
-          Upload Medical Report
-        </CardTitle>
-        <CardDescription className="text-white/80 drop-shadow-md">
+    <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+      <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+        <CardTitle>Upload Medical Report</CardTitle>
+        <CardDescription>
           Upload your medical report or prescription for AI-powered analysis and
           automatic doctor assignment
         </CardDescription>
@@ -369,10 +367,10 @@ export default function UploadReportForm() {
           {/* Success Message with Suggested Doctor */}
           {suggestedDoctor && (
             <Card
-              className={`glass-card backdrop-blur-sm border-2 rounded-2xl ${
+              className={`border-2 rounded-lg ${
                 approvalStatus === "approved"
-                  ? "bg-green-400/10 border-green-400/30"
-                  : "bg-blue-400/10 border-blue-400/30"
+                  ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                  : "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
               }`}
             >
               <CardContent className="p-4">
@@ -380,23 +378,23 @@ export default function UploadReportForm() {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                       approvalStatus === "approved"
-                        ? "bg-gradient-to-br from-green-400 to-green-500 soft-glow"
-                        : "bg-gradient-to-br from-blue-400 to-blue-500 soft-glow"
+                        ? "bg-green-500"
+                        : "bg-blue-500"
                     }`}
                   >
                     {approvalStatus === "approved" ? (
-                      <CheckCircle className="h-6 w-6 text-white drop-shadow-lg" />
+                      <CheckCircle className="h-6 w-6 text-white" />
                     ) : (
-                      <Stethoscope className="h-6 w-6 text-white drop-shadow-lg" />
+                      <Stethoscope className="h-6 w-6 text-white" />
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold mb-1 text-white drop-shadow-lg">
+                    <h4 className="font-semibold mb-1">
                       {approvalStatus === "approved"
                         ? "Doctor Approved!"
                         : "Doctor Suggested for Approval"}
                     </h4>
-                    <div className="flex items-center space-x-2 text-sm text-white/80 drop-shadow-md">
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <UserCheck className="h-4 w-4" />
                       <span>
                         <strong>
@@ -405,7 +403,7 @@ export default function UploadReportForm() {
                         </strong>
                       </span>
                     </div>
-                    <p className="text-sm mt-1 text-white/70 drop-shadow-md">
+                    <p className="text-sm mt-1 text-muted-foreground">
                       Specialization: {suggestedDoctor.specialization}
                     </p>
 

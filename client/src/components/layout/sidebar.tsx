@@ -57,7 +57,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   };
 
   const sidebarClasses = cn(
-    "fixed lg:static inset-y-0 left-0 z-50 w-72 sm:w-80 glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl transform transition-all duration-500 ease-in-out hover:shadow-sky-400/25",
+    "fixed lg:static inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 shadow-lg transform transition-all duration-500 ease-in-out",
     {
       "translate-x-0": isOpen || !isMobile,
       "-translate-x-full": !isOpen && isMobile,
@@ -71,9 +71,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex items-center justify-between h-20 px-6 border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
           <div className="flex items-center space-x-4">
             <div className="w-14 h-14 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center soft-glow shadow-2xl icon-static">
-              <Heart className="h-8 w-8 text-white drop-shadow-lg" />
+              <Heart className="h-8 w-8 text-primary" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-lg">
+            <span className="text-2xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
               MediCare
             </span>
           </div>
@@ -84,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               size="sm"
               onClick={onClose}
               data-testid="sidebar-close"
-              className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 backdrop-blur-sm transition-all duration-300 transform hover:scale-105"
+              className="text-sm"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -102,11 +102,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center px-3 sm:px-5 py-3 sm:py-4 text-sm sm:text-base font-semibold rounded-xl sm:rounded-2xl smooth-transition modern-card backdrop-blur-sm",
+                  "flex items-center px-3 sm:px-5 py-3 sm:py-4 text-sm sm:text-base font-semibold rounded-lg transition-all",
                   {
-                    "text-white bg-gradient-to-r from-sky-400/20 to-purple-600/20 border-2 border-sky-400/50 shadow-lg scale-105 soft-glow":
+                    "bg-primary text-primary-foreground border-2 border-primary/50 shadow-lg":
                       isActive,
-                    "text-white/80 hover:text-white hover:bg-white/10 hover:border-white/30 border-2 border-transparent":
+                    "text-muted-foreground hover:text-foreground hover:bg-muted border-2 border-transparent":
                       !isActive,
                   }
                 )}
@@ -118,15 +118,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               >
                 <div
                   className={cn(
-                    "w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center mr-3 sm:mr-4 shadow-lg",
+                    "w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-3 sm:mr-4",
                     {
-                      "bg-gradient-to-br from-sky-400 to-blue-500 soft-glow ai-thinking":
-                        isActive,
-                      "bg-white/10": !isActive,
+                      "bg-white text-primary": isActive,
+                      "bg-muted text-foreground": !isActive,
                     }
                   )}
                 >
-                  <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow-lg" />
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 <span className="hidden sm:inline">{item.name}</span>
                 <span className="sm:hidden text-xs">
@@ -138,25 +137,23 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* User Profile Section */}
-        <div className="border-t border-white/20 p-4 sm:p-6 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-          <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl glass-card backdrop-blur-sm bg-white/5 border border-white/20 hover:bg-white/10 smooth-transition modern-card">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl soft-glow ai-thinking">
-              <span className="text-sm sm:text-lg font-bold text-white drop-shadow-lg">
+        <div className="border-t border-gray-200 dark:border-slate-700 p-4 sm:p-6 bg-gray-50 dark:bg-slate-800">
+          <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4 p-3 sm:p-4 rounded-lg bg-muted border border-gray-200 dark:border-slate-700 hover:bg-muted/80 transition-all">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-sm sm:text-lg font-bold text-primary-foreground">
                 {user?.firstName?.[0]}
                 {user?.lastName?.[0]}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm sm:text-base font-bold text-white truncate drop-shadow-md">
+              <p className="text-sm sm:text-base font-bold truncate">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs sm:text-sm text-white/70 truncate drop-shadow-md">
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {user?.email}
               </p>
               {user?.role && (
-                <Badge className="mt-1 bg-white/20 border-white/30 text-white backdrop-blur-sm text-xs">
-                  {user.role}
-                </Badge>
+                <Badge className="mt-1 text-xs">{user.role}</Badge>
               )}
             </div>
           </div>
@@ -165,7 +162,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="w-full justify-start text-white/80 hover:text-white hover:bg-red-400/20 border-red-400/30 rounded-xl sm:rounded-2xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm"
+            className="w-full justify-start hover:bg-destructive/10 text-destructive rounded-lg transition-all text-xs sm:text-sm"
             data-testid="logout-button"
           >
             <LogOut className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />

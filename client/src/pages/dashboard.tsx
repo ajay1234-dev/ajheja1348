@@ -22,6 +22,7 @@ interface AssignedDoctor {
   lastName: string;
   email: string;
   specialization?: string;
+  profilePictureUrl?: string | null;
   assignedDate?: any;
   detectedSpecialization?: string;
   reportSummary?: string;
@@ -65,29 +66,21 @@ export default function Dashboard() {
   }, [stats, speak]);
 
   return (
-    <div className="min-h-screen futuristic-bg relative overflow-hidden">
-      {/* Floating Particles Background */}
-      <div className="absolute inset-0 opacity-20 dark:opacity-10">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-sky-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse floating-particles"></div>
-        <div className="absolute top-40 right-20 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-700 floating-particles"></div>
-        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000 floating-particles"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-500 floating-particles"></div>
-      </div>
-
-      <div className="relative z-10 space-y-6 page-transition p-6">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
+      <div className="space-y-6 page-transition p-6">
         {/* Hero Section with Image */}
-        <div className="relative mb-8">
+        <div className="relative mb-6">
           <HeroImage
             src={MEDICAL_IMAGES.dashboard}
             alt="Healthcare Dashboard"
-            className="h-64 w-full"
+            className="h-48 w-full rounded-lg"
           />
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">
+              <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
                 Your Health Dashboard
               </h1>
-              <p className="text-white/90 text-xl drop-shadow-md">
+              <p className="text-white/90 text-lg drop-shadow-md">
                 Monitor your health journey with AI-powered insights
               </p>
             </div>
@@ -101,11 +94,11 @@ export default function Dashboard() {
             {[...Array(4)].map((_, i) => (
               <Card
                 key={i}
-                className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition"
+                className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm"
               >
                 <CardContent className="p-6">
-                  <Skeleton className="h-4 w-20 mb-2 bg-white/20" />
-                  <Skeleton className="h-8 w-16 bg-white/20" />
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-8 w-16" />
                 </CardContent>
               </Card>
             ))}
@@ -116,14 +109,14 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {reportsLoading ? (
-            <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
-              <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-                <Skeleton className="h-6 w-40 bg-white/20" />
+            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+                <Skeleton className="h-6 w-40" />
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full bg-white/20" />
+                    <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
               </CardContent>
@@ -133,14 +126,14 @@ export default function Dashboard() {
           )}
 
           {medicationsLoading ? (
-            <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
-              <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-                <Skeleton className="h-6 w-40 bg-white/20" />
+            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+                <Skeleton className="h-6 w-40" />
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full bg-white/20" />
+                    <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
               </CardContent>
@@ -152,14 +145,14 @@ export default function Dashboard() {
 
         {/* Assigned Doctors Section */}
         {doctorsLoading ? (
-          <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
-            <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-              <Skeleton className="h-6 w-40 bg-white/20" />
+          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+              <Skeleton className="h-6 w-40" />
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
                 {[...Array(2)].map((_, i) => (
-                  <Skeleton key={i} className="h-20 w-full bg-white/20" />
+                  <Skeleton key={i} className="h-20 w-full" />
                 ))}
               </div>
             </CardContent>
@@ -167,12 +160,12 @@ export default function Dashboard() {
         ) : assignedDoctors && assignedDoctors.length > 0 ? (
           <Card
             data-testid="assigned-doctors-card"
-            className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition"
+            className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm"
           >
-            <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-              <CardTitle className="flex items-center gap-2 font-bold text-white drop-shadow-lg">
-                <div className="w-8 h-8 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl flex items-center justify-center soft-glow icon-static">
-                  <Stethoscope className="h-4 w-4 text-white drop-shadow-lg" />
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+              <CardTitle className="flex items-center gap-2 font-bold">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <Stethoscope className="h-4 w-4 text-primary-foreground" />
                 </div>
                 Your Doctors
               </CardTitle>
@@ -182,32 +175,37 @@ export default function Dashboard() {
                 {assignedDoctors.map((doctor) => (
                   <div
                     key={doctor.id}
-                    className="glass-card backdrop-blur-sm bg-white/5 border-2 border-white/20 rounded-2xl p-6 hover:shadow-xl hover:border-sky-400/30 smooth-transition modern-card"
+                    className="bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:shadow-md transition-shadow"
                     data-testid={`doctor-card-${doctor.id}`}
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center soft-glow icon-static">
-                        <UserIcon className="h-6 w-6 text-white drop-shadow-lg" />
-                      </div>
+                      {doctor.profilePictureUrl ? (
+                        <img
+                          src={doctor.profilePictureUrl}
+                          alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                          <UserIcon className="h-6 w-6 text-primary-foreground" />
+                        </div>
+                      )}
                       <div>
-                        <h3 className="font-semibold text-white drop-shadow-md">
+                        <h3 className="font-semibold">
                           Dr. {doctor.firstName} {doctor.lastName}
                         </h3>
                         {doctor.specialization && (
-                          <Badge
-                            variant="outline"
-                            className="mt-1 bg-white/20 border-white/30 text-white backdrop-blur-sm"
-                          >
+                          <Badge variant="outline" className="mt-1">
                             {doctor.specialization}
                           </Badge>
                         )}
-                        <div className="flex items-center gap-1 mt-1 text-sm text-white/70 drop-shadow-md">
+                        <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
                           <Mail className="h-3 w-3" />
                           {doctor.email}
                         </div>
                       </div>
                     </div>
-                    <div className="text-right text-sm text-white/60 drop-shadow-md">
+                    <div className="text-right text-sm text-muted-foreground">
                       {doctor.assignedDate && (
                         <p>
                           Assigned:{" "}

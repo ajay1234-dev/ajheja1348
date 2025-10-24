@@ -27,17 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Heart,
-  Loader2,
-  UserIcon,
-  Stethoscope,
-  Activity,
-  Pill,
-  FileText,
-} from "lucide-react";
+import { Heart, Loader2, UserIcon, Stethoscope } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
-import { HeroImage, MEDICAL_IMAGES } from "@/components/ui/hero-image";
 import { signInWithRedirect, getRedirectResult } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 
@@ -239,62 +230,21 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center futuristic-bg px-4 py-8 relative overflow-hidden">
-      {/* Hero Section with Image */}
-      <div className="absolute inset-0">
-        <HeroImage
-          src={MEDICAL_IMAGES.hero}
-          alt="Healthcare Registration"
-          className="w-full h-full"
-          overlay={true}
-        />
-      </div>
-
-      {/* Floating Particles Background */}
-      <div className="absolute inset-0 opacity-30 dark:opacity-20">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-sky-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse floating-particles"></div>
-        <div className="absolute top-40 right-20 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-700 floating-particles"></div>
-        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000 floating-particles"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-500 floating-particles"></div>
-      </div>
-
-      {/* Floating Icons */}
-      <div className="absolute top-10 left-10 floating-particles">
-        <Activity className="h-12 w-12 text-white/40 drop-shadow-lg" />
-      </div>
-      <div
-        className="absolute top-20 right-20 floating-particles"
-        style={{ animationDelay: "1s" }}
-      >
-        <Pill className="h-10 w-10 text-white/40 drop-shadow-lg" />
-      </div>
-      <div
-        className="absolute bottom-20 left-20 floating-particles"
-        style={{ animationDelay: "2s" }}
-      >
-        <FileText className="h-10 w-10 text-white/40 drop-shadow-lg" />
-      </div>
-      <div
-        className="absolute bottom-10 right-10 floating-particles"
-        style={{ animationDelay: "3s" }}
-      >
-        <Heart className="h-8 w-8 text-white/40 drop-shadow-lg" />
-      </div>
-
-      <Card className="w-full max-w-2xl glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 shadow-2xl relative z-10 page-transition border-2 border-white/20 dark:border-white/10">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800 px-4 py-8">
+      <Card className="w-full max-w-2xl bg-white dark:bg-slate-800 shadow-xl border border-gray-200 dark:border-slate-700">
         <CardHeader className="space-y-1 text-center p-8">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-3xl flex items-center justify-center soft-glow shadow-2xl">
-              <Heart className="h-9 w-9 text-white drop-shadow-lg" />
+            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center">
+              <Heart className="h-9 w-9 text-primary-foreground" />
             </div>
             <span className="text-4xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
               MediCare
             </span>
           </div>
-          <CardTitle className="text-3xl font-bold text-white drop-shadow-lg">
+          <CardTitle className="text-3xl font-bold text-foreground">
             Create your account
           </CardTitle>
-          <CardDescription className="text-lg text-white/80 drop-shadow-md">
+          <CardDescription className="text-lg text-muted-foreground">
             Join MediCare to start managing your health data effectively
           </CardDescription>
         </CardHeader>
@@ -303,10 +253,7 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
-                <Label
-                  htmlFor="firstName"
-                  className="text-sm font-semibold text-white/90 drop-shadow-md"
-                >
+                <Label htmlFor="firstName" className="text-sm font-semibold">
                   First Name
                 </Label>
                 <Input
@@ -317,15 +264,12 @@ export default function Register() {
                   onChange={handleInputChange}
                   required
                   data-testid="input-first-name"
-                  className="h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
+                  className="h-12"
                 />
               </div>
 
               <div className="space-y-3">
-                <Label
-                  htmlFor="lastName"
-                  className="text-sm font-semibold text-white/90 drop-shadow-md"
-                >
+                <Label htmlFor="lastName" className="text-sm font-semibold">
                   Last Name
                 </Label>
                 <Input
@@ -336,15 +280,13 @@ export default function Register() {
                   onChange={handleInputChange}
                   required
                   data-testid="input-last-name"
-                  className="h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
+                  className="h-12"
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label className="text-sm font-semibold text-white/90 drop-shadow-md">
-                I am a
-              </Label>
+              <Label className="text-sm font-semibold">I am a</Label>
               <RadioGroup
                 value={formData.role}
                 onValueChange={(value) =>
@@ -355,10 +297,10 @@ export default function Register() {
               >
                 <Label
                   htmlFor="patient"
-                  className={`flex flex-col items-center justify-between rounded-2xl border-2 bg-white/10 backdrop-blur-sm p-5 hover:bg-white/20 hover:border-sky-400/50 smooth-transition cursor-pointer modern-card ${
+                  className={`flex flex-col items-center justify-between rounded-lg border-2 bg-gray-50 dark:bg-slate-700 p-5 hover:bg-gray-100 dark:hover:bg-slate-600 transition-all cursor-pointer ${
                     formData.role === "patient"
-                      ? "border-sky-400 shadow-lg scale-105 bg-white/20"
-                      : "border-white/30"
+                      ? "border-primary shadow-lg bg-primary/10"
+                      : "border-gray-200 dark:border-slate-600"
                   }`}
                 >
                   <RadioGroupItem
@@ -368,29 +310,25 @@ export default function Register() {
                   />
                   <div
                     className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
-                      formData.role === "patient"
-                        ? "bg-sky-400/20"
-                        : "bg-white/10"
+                      formData.role === "patient" ? "bg-primary/20" : "bg-muted"
                     }`}
                   >
                     <UserIcon
                       className={`h-7 w-7 ${
                         formData.role === "patient"
-                          ? "text-sky-400"
-                          : "text-white/60"
+                          ? "text-primary"
+                          : "text-muted-foreground"
                       }`}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-white drop-shadow-md">
-                    Patient
-                  </span>
+                  <span className="text-sm font-semibold">Patient</span>
                 </Label>
                 <Label
                   htmlFor="doctor"
-                  className={`flex flex-col items-center justify-between rounded-2xl border-2 bg-white/10 backdrop-blur-sm p-5 hover:bg-white/20 hover:border-sky-400/50 smooth-transition cursor-pointer modern-card ${
+                  className={`flex flex-col items-center justify-between rounded-lg border-2 bg-gray-50 dark:bg-slate-700 p-5 hover:bg-gray-100 dark:hover:bg-slate-600 transition-all cursor-pointer ${
                     formData.role === "doctor"
-                      ? "border-sky-400 shadow-lg scale-105 bg-white/20"
-                      : "border-white/30"
+                      ? "border-primary shadow-lg bg-primary/10"
+                      : "border-gray-200 dark:border-slate-600"
                   }`}
                 >
                   <RadioGroupItem
@@ -400,22 +338,18 @@ export default function Register() {
                   />
                   <div
                     className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 ${
-                      formData.role === "doctor"
-                        ? "bg-sky-400/20"
-                        : "bg-white/10"
+                      formData.role === "doctor" ? "bg-primary/20" : "bg-muted"
                     }`}
                   >
                     <Stethoscope
                       className={`h-7 w-7 ${
                         formData.role === "doctor"
-                          ? "text-sky-400"
-                          : "text-white/60"
+                          ? "text-primary"
+                          : "text-muted-foreground"
                       }`}
                     />
                   </div>
-                  <span className="text-sm font-semibold text-white drop-shadow-md">
-                    Doctor
-                  </span>
+                  <span className="text-sm font-semibold">Doctor</span>
                 </Label>
               </RadioGroup>
             </div>
@@ -424,7 +358,7 @@ export default function Register() {
               <div className="space-y-3 slide-in-right">
                 <Label
                   htmlFor="specialization"
-                  className="text-sm font-semibold text-white/90 drop-shadow-md"
+                  className="text-sm font-semibold"
                 >
                   Specialization *
                 </Label>
@@ -436,7 +370,7 @@ export default function Register() {
                 >
                   <SelectTrigger
                     data-testid="select-specialization"
-                    className="h-12 bg-white/20 border-white/30 text-white focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
+                    className="h-12"
                   >
                     <SelectValue placeholder="Select your specialization" />
                   </SelectTrigger>
@@ -465,10 +399,7 @@ export default function Register() {
             {formData.role === "patient" && (
               <div className="grid grid-cols-2 gap-4 slide-in-right">
                 <div className="space-y-3">
-                  <Label
-                    htmlFor="age"
-                    className="text-sm font-semibold text-white/90 drop-shadow-md"
-                  >
+                  <Label htmlFor="age" className="text-sm font-semibold">
                     Age (optional)
                   </Label>
                   <Input
@@ -481,14 +412,11 @@ export default function Register() {
                     min="0"
                     max="120"
                     data-testid="input-age"
-                    className="h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
+                    className="h-12"
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label
-                    htmlFor="gender"
-                    className="text-sm font-semibold text-white/90 drop-shadow-md"
-                  >
+                  <Label htmlFor="gender" className="text-sm font-semibold">
                     Gender (optional)
                   </Label>
                   <Select
@@ -497,10 +425,7 @@ export default function Register() {
                       setFormData({ ...formData, gender: value })
                     }
                   >
-                    <SelectTrigger
-                      data-testid="select-gender"
-                      className="h-12 bg-white/20 border-white/30 text-white focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
-                    >
+                    <SelectTrigger data-testid="select-gender" className="h-12">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent className="glass-card backdrop-blur-xl bg-white/10 border-white/20">
@@ -514,10 +439,7 @@ export default function Register() {
             )}
 
             <div className="space-y-3">
-              <Label
-                htmlFor="email"
-                className="text-sm font-semibold text-white/90 drop-shadow-md"
-              >
+              <Label htmlFor="email" className="text-sm font-semibold">
                 Email
               </Label>
               <Input
@@ -529,15 +451,12 @@ export default function Register() {
                 onChange={handleInputChange}
                 required
                 data-testid="input-email"
-                className="h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
+                className="h-12"
               />
             </div>
 
             <div className="space-y-3">
-              <Label
-                htmlFor="password"
-                className="text-sm font-semibold text-white/90 drop-shadow-md"
-              >
+              <Label htmlFor="password" className="text-sm font-semibold">
                 Password
               </Label>
               <Input
@@ -549,14 +468,14 @@ export default function Register() {
                 onChange={handleInputChange}
                 required
                 data-testid="input-password"
-                className="h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
+                className="h-12"
               />
             </div>
 
             <div className="space-y-3">
               <Label
                 htmlFor="confirmPassword"
-                className="text-sm font-semibold text-white/90 drop-shadow-md"
+                className="text-sm font-semibold"
               >
                 Confirm Password
               </Label>
@@ -569,14 +488,14 @@ export default function Register() {
                 onChange={handleInputChange}
                 required
                 data-testid="input-confirm-password"
-                className="h-12 bg-white/20 border-white/30 text-white placeholder:text-white/60 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/50 backdrop-blur-sm"
+                className="h-12"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 hover:from-sky-500 hover:via-blue-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-sky-400/25 transition-all duration-300 transform hover:scale-105"
-              disabled={isLoading || isGoogleLoading}
+              className="w-full h-14 text-lg font-semibold"
+              disabled={isLoading}
               data-testid="button-register"
             >
               {isLoading ? (
@@ -627,11 +546,11 @@ export default function Register() {
           )}
 
           <div className="mt-8 text-center">
-            <p className="text-sm text-white/80">
+            <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="text-sky-400 hover:text-sky-300 font-semibold hover:underline smooth-transition drop-shadow-md"
+                className="text-primary hover:text-primary/80 font-semibold hover:underline transition-colors"
                 data-testid="link-login"
               >
                 Sign in

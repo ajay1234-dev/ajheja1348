@@ -49,55 +49,51 @@ export default function Share() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80 drop-shadow-md">
+                <p className="text-sm text-muted-foreground">
                   Available Reports
                 </p>
-                <p className="text-2xl font-bold text-white drop-shadow-lg">
+                <p className="text-2xl font-bold text-foreground">
                   {completedReports.length}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg flex items-center justify-center soft-glow icon-static">
-                <FileText className="h-6 w-6 text-white drop-shadow-lg" />
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                <FileText className="h-6 w-6 text-primary-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80 drop-shadow-md">
+                <p className="text-sm text-muted-foreground">
                   Selected Reports
                 </p>
-                <p className="text-2xl font-bold text-white drop-shadow-lg">
+                <p className="text-2xl font-bold text-foreground">
                   {selectedReports.length}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center soft-glow icon-static">
-                <Share2 className="h-6 w-6 text-white drop-shadow-lg" />
+              <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                <Share2 className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80 drop-shadow-md">
-                  Previous Shares
-                </p>
-                <p className="text-2xl font-bold text-white drop-shadow-lg">
-                  0
-                </p>
+                <p className="text-sm text-muted-foreground">Previous Shares</p>
+                <p className="text-2xl font-bold text-foreground">0</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center soft-glow icon-static">
-                <Users className="h-6 w-6 text-white drop-shadow-lg" />
+              <div className="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
@@ -106,11 +102,9 @@ export default function Share() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Report Selection */}
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
-          <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-            <CardTitle className="text-white drop-shadow-lg">
-              Select Reports to Share
-            </CardTitle>
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+          <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+            <CardTitle>Select Reports to Share</CardTitle>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="select-all"
@@ -121,10 +115,7 @@ export default function Share() {
                 onCheckedChange={handleSelectAll}
                 data-testid="select-all-reports"
               />
-              <Label
-                htmlFor="select-all"
-                className="text-sm text-white/80 drop-shadow-md"
-              >
+              <Label htmlFor="select-all" className="text-sm">
                 Select all reports
               </Label>
             </div>
@@ -188,11 +179,9 @@ export default function Share() {
         </Card>
 
         {/* Doctor Information */}
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
-          <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-            <CardTitle className="text-white drop-shadow-lg">
-              Healthcare Provider Information
-            </CardTitle>
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+          <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+            <CardTitle>Healthcare Provider Information</CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-4 p-6">
@@ -225,20 +214,18 @@ export default function Share() {
       </div>
 
       {/* Recent Shares */}
-      <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
-        <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-          <CardTitle className="text-white drop-shadow-lg">
-            Recent Shares
-          </CardTitle>
+      <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+        <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+          <CardTitle>Recent Shares</CardTitle>
         </CardHeader>
 
         <CardContent className="p-6">
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 soft-glow icon-static">
-              <Share2 className="h-8 w-8 text-white drop-shadow-lg" />
+            <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-6">
+              <Share2 className="h-8 w-8 text-primary-foreground" />
             </div>
-            <p className="text-white/80 drop-shadow-md">No recent shares</p>
-            <p className="text-sm text-white/60 mt-2 drop-shadow-md">
+            <p className="text-muted-foreground">No recent shares</p>
+            <p className="text-sm text-muted-foreground mt-2">
               Your shared reports will appear here
             </p>
           </div>

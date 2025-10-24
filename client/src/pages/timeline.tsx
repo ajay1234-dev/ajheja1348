@@ -126,32 +126,26 @@ export default function Timeline() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80 drop-shadow-md">
-                  Total Events
-                </p>
-                <p className="text-2xl font-bold text-white drop-shadow-lg">
-                  {filteredData.length}
-                </p>
+                <p className="text-sm text-muted-foreground">Total Events</p>
+                <p className="text-2xl font-bold">{filteredData.length}</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg flex items-center justify-center soft-glow icon-static">
-                <Calendar className="h-6 w-6 text-white drop-shadow-lg" />
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-primary-foreground" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80 drop-shadow-md">
-                  Lab Results
-                </p>
-                <p className="text-2xl font-bold text-white drop-shadow-lg">
+                <p className="text-sm text-muted-foreground">Lab Results</p>
+                <p className="text-2xl font-bold">
                   {
                     filteredData.filter(
                       (e: any) => e.eventType === "lab_result"
@@ -159,21 +153,21 @@ export default function Timeline() {
                   }
                 </p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center soft-glow icon-static">
-                <TrendingUp className="h-6 w-6 text-white drop-shadow-lg" />
+              <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80 drop-shadow-md">
+                <p className="text-sm text-muted-foreground">
                   Medication Changes
                 </p>
-                <p className="text-2xl font-bold text-white drop-shadow-lg">
+                <p className="text-2xl font-bold">
                   {
                     filteredData.filter(
                       (e: any) => e.eventType === "medication_change"
@@ -181,21 +175,19 @@ export default function Timeline() {
                   }
                 </p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center soft-glow icon-static">
-                <TrendingUp className="h-6 w-6 text-white drop-shadow-lg" />
+              <div className="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80 drop-shadow-md">
-                  Appointments
-                </p>
-                <p className="text-2xl font-bold text-white drop-shadow-lg">
+                <p className="text-sm text-muted-foreground">Appointments</p>
+                <p className="text-2xl font-bold">
                   {
                     filteredData.filter(
                       (e: any) => e.eventType === "appointment"
@@ -203,8 +195,8 @@ export default function Timeline() {
                   }
                 </p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center soft-glow icon-static">
-                <Calendar className="h-6 w-6 text-white drop-shadow-lg" />
+              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>

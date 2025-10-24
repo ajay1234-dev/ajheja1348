@@ -31,7 +31,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen futuristic-bg relative overflow-hidden">
+    <div className="flex h-screen bg-white dark:bg-slate-900">
       {/* Floating Particles Background */}
       <div className="absolute inset-0 opacity-10 dark:opacity-5">
         <div className="absolute top-20 left-20 w-96 h-96 bg-sky-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse floating-particles"></div>
@@ -61,7 +61,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       {/* Mobile sidebar overlay */}
       {isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden fade-in"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden fade-in"
           onClick={() => setSidebarOpen(false)}
         />
       )}

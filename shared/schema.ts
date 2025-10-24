@@ -6,15 +6,16 @@ export const insertUserSchema = z.object({
   password: z.string().optional().nullable(),
   firstName: z.string(),
   lastName: z.string(),
-  role: z.enum(['patient', 'doctor']).default('patient'),
+  role: z.enum(["patient", "doctor"]).default("patient"),
   dateOfBirth: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   language: z.string().optional().nullable(),
-  authProvider: z.enum(['email', 'google']).default('email').optional(),
+  authProvider: z.enum(["email", "google"]).default("email").optional(),
   firebaseUid: z.string().optional().nullable(),
   specialization: z.string().optional().nullable(),
   age: z.number().optional().nullable(),
   gender: z.string().optional().nullable(),
+  profilePictureUrl: z.string().optional().nullable(),
 });
 
 export const userSchema = insertUserSchema.extend({
@@ -33,7 +34,10 @@ export const insertReportSchema = z.object({
   extractedData: z.any().optional().nullable(),
   analysis: z.any().optional().nullable(),
   summary: z.string().optional().nullable(),
-  status: z.enum(['processing', 'completed', 'failed']).default('processing').optional(),
+  status: z
+    .enum(["processing", "completed", "failed"])
+    .default("processing")
+    .optional(),
   uploadedAt: z.date().or(z.any()).optional(),
 });
 
@@ -60,7 +64,10 @@ export const insertMedicationSchema = z.object({
   startDate: z.date().or(z.any()).optional().nullable(),
   endDate: z.date().or(z.any()).optional().nullable(),
   notes: z.string().optional().nullable(),
-  status: z.enum(['active', 'completed', 'expired']).default('active').optional(),
+  status: z
+    .enum(["active", "completed", "expired"])
+    .default("active")
+    .optional(),
 });
 
 export const medicationSchema = insertMedicationSchema.extend({
@@ -73,7 +80,7 @@ export const medicationSchema = insertMedicationSchema.extend({
 export const insertReminderSchema = z.object({
   userId: z.string(),
   medicationId: z.string().optional().nullable(),
-  type: z.enum(['medication', 'appointment', 'refill']),
+  type: z.enum(["medication", "appointment", "refill"]),
   title: z.string(),
   message: z.string().optional().nullable(),
   scheduledTime: z.date().or(z.any()),
@@ -169,7 +176,10 @@ export const insertSharedReportSchema = z.object({
   reportSummary: z.string().optional().nullable(),
   symptoms: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
-  approvalStatus: z.enum(['pending', 'approved', 'rejected']).default('pending').optional(),
+  approvalStatus: z
+    .enum(["pending", "approved", "rejected"])
+    .default("pending")
+    .optional(),
 });
 
 export const sharedReportSchema = insertSharedReportSchema.extend({
@@ -186,7 +196,9 @@ export type InsertMedication = z.infer<typeof insertMedicationSchema>;
 export type Medication = z.infer<typeof medicationSchema>;
 export type InsertReminder = z.infer<typeof insertReminderSchema>;
 export type Reminder = z.infer<typeof reminderSchema>;
-export type InsertDoctorConsultation = z.infer<typeof insertDoctorConsultationSchema>;
+export type InsertDoctorConsultation = z.infer<
+  typeof insertDoctorConsultationSchema
+>;
 export type DoctorConsultation = z.infer<typeof doctorConsultationSchema>;
 export type InsertHealthTimeline = z.infer<typeof insertHealthTimelineSchema>;
 export type HealthTimeline = z.infer<typeof healthTimelineSchema>;

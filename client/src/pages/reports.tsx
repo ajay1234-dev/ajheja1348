@@ -36,7 +36,7 @@ export default function Reports() {
   });
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-6 fade-in bg-white dark:bg-slate-900 min-h-screen p-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground mb-2">
           Medical Reports
@@ -47,7 +47,7 @@ export default function Reports() {
       </div>
 
       {/* Filters */}
-      <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+      <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -103,32 +103,30 @@ export default function Reports() {
           {[...Array(4)].map((_, i) => (
             <Card
               key={i}
-              className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition"
+              className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm"
             >
-              <CardHeader className="border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-                <Skeleton className="h-6 w-3/4 bg-white/20" />
-                <Skeleton className="h-4 w-1/2 bg-white/20" />
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-3">
-                  <Skeleton className="h-4 w-full bg-white/20" />
-                  <Skeleton className="h-4 w-2/3 bg-white/20" />
-                  <Skeleton className="h-8 w-24 bg-white/20" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-8 w-24" />
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : filteredReports.length === 0 ? (
-        <Card className="glass-card backdrop-blur-xl bg-white/10 dark:bg-slate-900/20 border-2 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-sky-400/25 modern-card page-transition">
+        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
           <CardContent className="text-center py-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 soft-glow icon-static">
-              <Filter className="h-8 w-8 text-white drop-shadow-lg" />
+            <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-6">
+              <Filter className="h-8 w-8 text-white" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2 drop-shadow-lg">
-              No reports found
-            </h3>
-            <p className="text-white/80 drop-shadow-md">
+            <h3 className="text-lg font-medium mb-2">No reports found</h3>
+            <p className="text-muted-foreground">
               {searchTerm || filterType !== "all" || filterStatus !== "all"
                 ? "Try adjusting your search or filter criteria"
                 : "Upload your first medical report to get started"}
