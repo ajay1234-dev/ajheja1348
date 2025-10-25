@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -11,13 +17,18 @@ interface User {
   role: string;
   language?: string;
   specialization?: string;
+  profilePictureUrl?: string | null;
 }
 
 interface AuthContext {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string, role: string) => Promise<void>;
-  loginWithFirebase: (idToken: string, role: string, additionalData?: any) => Promise<void>;
+  loginWithFirebase: (
+    idToken: string,
+    role: string,
+    additionalData?: any
+  ) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -46,22 +57,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/auth/me", {
         credentials: "include",
       });
-      
+
       if (res.status === 401) {
         return null;
       }
-      
+
       if (!res.ok) {
         throw new Error("Failed to fetch user");
       }
-      
+
       return await res.json();
     },
   });
 
   const loginMutation = useMutation({
-    mutationFn: async ({ email, password, role }: { email: string; password: string; role: string }) => {
-      const response = await apiRequest("POST", "/api/auth/login", { email, password, role });
+    mutationFn: async ({
+      email,
+      password,
+      role,
+    }: {
+      email: string;
+      password: string;
+      role: string;
+    }) => {
+      const response = await apiRequest("POST", "/api/auth/login", {
+        email,
+        password,
+        role,
+      });
       return response.json();
     },
     onSuccess: async () => {
@@ -72,9 +95,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const firebaseLoginMutation = useMutation({
-    mutationFn: async ({ idToken, role, additionalData }: { idToken: string; role: string; additionalData?: any }) => {
+    mutationFn: async ({
+      idToken,
+      role,
+      additionalData,
+    }: {
+      idToken: string;
+      role: string;
+      additionalData?: any;
+    }) => {
       const payload = { idToken, role, ...additionalData };
-      const response = await apiRequest("POST", "/api/auth/firebase-login", payload);
+      const response = await apiRequest(
+        "POST",
+        "/api/auth/firebase-login",
+        payload
+      );
       return response.json();
     },
     onSuccess: async () => {
@@ -110,7 +145,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loginMutation.mutateAsync({ email, password, role });
   };
 
-  const loginWithFirebase = async (idToken: string, role: string, additionalData?: any) => {
+  const loginWithFirebase = async (
+    idToken: string,
+    role: string,
+    additionalData?: any
+  ) => {
     await firebaseLoginMutation.mutateAsync({ idToken, role, additionalData });
   };
 
@@ -124,7 +163,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!isLoading && !user && !window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/register")) {
+    if (
+      !isLoading &&
+      !user &&
+      !window.location.pathname.startsWith("/login") &&
+      !window.location.pathname.startsWith("/register")
+    ) {
       setLocation("/login");
     }
   }, [user, isLoading, setLocation]);

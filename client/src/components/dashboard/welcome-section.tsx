@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HoverMotion, FloatingMotion } from "@/components/ui/motion-wrapper";
 import { UserRound } from "lucide-react";
 
@@ -27,9 +28,22 @@ export default function WelcomeSection() {
               </p>
             </div>
             <div className="hidden md:block">
-              <div className="w-24 h-24 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl soft-glow icon-static">
-                <UserRound className="h-12 w-12 text-primary-foreground" />
-              </div>
+              {user?.profilePictureUrl ? (
+                <Avatar className="w-24 h-24 border-4 border-primary shadow-2xl soft-glow">
+                  <AvatarImage
+                    src={user.profilePictureUrl}
+                    alt={`${user.firstName} ${user.lastName}`}
+                  />
+                  <AvatarFallback className="bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 text-white text-2xl font-bold">
+                    {user?.firstName?.[0]}
+                    {user?.lastName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <div className="w-24 h-24 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl soft-glow icon-static">
+                  <UserRound className="h-12 w-12 text-primary-foreground" />
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

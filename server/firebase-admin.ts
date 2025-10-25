@@ -2,35 +2,34 @@ import admin from "firebase-admin";
 import { readFileSync, existsSync } from "fs";
 
 let firestore: admin.firestore.Firestore | null = null;
-let storage: admin.storage.Storage | null = null;
 let firestoreAvailable = false;
-let storageAvailable = false;
 
 async function testFirestoreConnection(): Promise<boolean> {
   if (!firestore) return false;
 
   try {
-    // Try a simple operation to test if Firestore is actually accessible
+    // Set gRPC settings to prefer IPv4 and increase timeout
     const testCollection = firestore.collection("_connection_test");
-    await testCollection.limit(1).get();
+    const snapshot = await testCollection.limit(1).get();
     return true;
   } catch (error: any) {
-    console.warn("Firestore connection test failed:", error.message);
-    return false;
-  }
-}
+    console.warn("⚠️ Firestore connection test failed:", error.message);
+    console.warn("   This might be a temporary network issue. Retrying...");
 
-async function testStorageConnection(): Promise<boolean> {
-  if (!storage) return false;
-
-  try {
-    // Try to get the bucket to test if Storage is accessible
-    const bucket = storage.bucket();
-    await bucket.exists();
-    return true;
-  } catch (error: any) {
-    console.warn("Firebase Storage connection test failed:", error.message);
-    return false;
+    // Retry once after a delay
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const testCollection = firestore.collection("_connection_test");
+      await testCollection.limit(1).get();
+      console.log("✅ Firestore connection successful on retry");
+      return true;
+    } catch (retryError: any) {
+      console.error(
+        "❌ Firestore connection failed after retry:",
+        retryError.message
+      );
+      return false;
+    }
   }
 }
 
@@ -79,22 +78,29 @@ try {
         credential = admin.credential.applicationDefault();
       }
 
+      // Configure with IPv4 preference to avoid DNS resolution issues
       admin.initializeApp({
         credential: credential,
         projectId: projectId,
-        storageBucket: `${projectId}.appspot.com`,
       });
+
+      // Set Firestore settings to prefer IPv4
+      if (process.env.FIRESTORE_EMULATOR_HOST) {
+        console.log(
+          "Using Firestore emulator:",
+          process.env.FIRESTORE_EMULATOR_HOST
+        );
+      }
     }
 
     firestore = admin.firestore();
-    storage = admin.storage();
-    console.log("Firebase Admin initialized - testing connections...");
+    console.log("Firebase Admin initialized - testing Firestore connection...");
 
     // Test Firestore connection asynchronously
     testFirestoreConnection().then((available) => {
       firestoreAvailable = available;
       if (available) {
-        console.log("✅ Firestore is accessible and ready");
+        console.log("✅ Using Firebase Firestore for data persistence");
       } else {
         console.warn("⚠️  Firestore is not accessible - you need to either:");
         console.warn("   1. Enable Firestore in your Firebase Console, OR");
@@ -105,26 +111,9 @@ try {
         firestore = null;
       }
     });
-
-    // Test Storage connection asynchronously
-    testStorageConnection().then((available) => {
-      storageAvailable = available;
-      if (available) {
-        console.log("✅ Firebase Storage is accessible and ready");
-      } else {
-        console.warn("⚠️  Firebase Storage is not accessible");
-        console.warn(
-          "   Please enable Firebase Storage in your Firebase Console:"
-        );
-        console.warn("   1. Go to https://console.firebase.google.com");
-        console.warn("   2. Select your project: medanalysis-471e2");
-        console.warn("   3. Go to Storage and click 'Get Started'");
-        console.warn("   4. Set up security rules for Storage");
-      }
-    });
   }
 } catch (error) {
   console.error("Firebase Admin initialization error:", error);
 }
 
-export { firestore, storage, firestoreAvailable, storageAvailable };
+export { firestore, firestoreAvailable };

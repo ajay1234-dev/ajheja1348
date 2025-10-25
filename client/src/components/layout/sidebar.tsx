@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   LayoutDashboard,
@@ -139,12 +140,25 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* User Profile Section */}
         <div className="border-t border-gray-200 dark:border-slate-700 p-4 sm:p-6 bg-gray-50 dark:bg-slate-800">
           <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4 p-3 sm:p-4 rounded-lg bg-muted border border-gray-200 dark:border-slate-700 hover:bg-muted/80 transition-all">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-sm sm:text-lg font-bold text-primary-foreground">
-                {user?.firstName?.[0]}
-                {user?.lastName?.[0]}
-              </span>
-            </div>
+            {user?.profilePictureUrl ? (
+              <Avatar className="w-12 h-12 sm:w-16 sm:h-16 border-2 border-primary">
+                <AvatarImage
+                  src={user.profilePictureUrl}
+                  alt={`${user.firstName} ${user.lastName}`}
+                />
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm sm:text-lg font-bold">
+                  {user?.firstName?.[0]}
+                  {user?.lastName?.[0]}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-sm sm:text-lg font-bold text-primary-foreground">
+                  {user?.firstName?.[0]}
+                  {user?.lastName?.[0]}
+                </span>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm sm:text-base font-bold truncate">
                 {user?.firstName} {user?.lastName}

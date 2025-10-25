@@ -3,7 +3,10 @@ import WelcomeSection from "@/components/dashboard/welcome-section";
 import QuickStats from "@/components/dashboard/quick-stats";
 import RecentReports from "@/components/dashboard/recent-reports";
 import MedicationSchedule from "@/components/dashboard/medication-schedule";
-import { HeroImage, MEDICAL_IMAGES } from "@/components/ui/hero-image";
+import {
+  HeroCarousel,
+  PATIENT_CAROUSEL_IMAGES,
+} from "@/components/ui/hero-carousel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -68,23 +71,24 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900">
       <div className="space-y-6 page-transition p-6">
-        {/* Hero Section with Image */}
+        {/* Hero Section with Auto-Scrolling Carousel */}
         <div className="relative mb-6">
-          <HeroImage
-            src={MEDICAL_IMAGES.dashboard}
-            alt="Healthcare Dashboard"
-            className="h-48 w-full rounded-lg"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
+          <HeroCarousel
+            images={PATIENT_CAROUSEL_IMAGES}
+            className="h-64 md:h-80 lg:h-96 w-full"
+            autoPlayInterval={5000}
+            showControls={true}
+            showIndicators={true}
+          >
+            <div className="text-center px-4">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg">
                 Your Health Dashboard
               </h1>
-              <p className="text-white/90 text-lg drop-shadow-md">
+              <p className="text-white/90 text-base md:text-lg lg:text-xl drop-shadow-md">
                 Monitor your health journey with AI-powered insights
               </p>
             </div>
-          </div>
+          </HeroCarousel>
         </div>
 
         <WelcomeSection />

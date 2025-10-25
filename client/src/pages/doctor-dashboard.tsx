@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -26,7 +27,10 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
-import { HeroImage, MEDICAL_IMAGES } from "@/components/ui/hero-image";
+import {
+  HeroCarousel,
+  DOCTOR_CAROUSEL_IMAGES,
+} from "@/components/ui/hero-carousel";
 
 export default function DoctorDashboard() {
   const [, navigate] = useLocation();
@@ -97,36 +101,52 @@ export default function DoctorDashboard() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900">
       <div className="space-y-8 page-transition p-6">
-        {/* Hero Section with Image */}
+        {/* Hero Section with Auto-Scrolling Carousel */}
         <div className="relative mb-6">
-          <HeroImage
-            src={MEDICAL_IMAGES.doctor}
-            alt="Doctor Dashboard"
-            className="h-48 w-full rounded-lg"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg flex items-center justify-center gap-3">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <Stethoscope className="h-5 w-5 text-white" />
-                </div>
+          <HeroCarousel
+            images={DOCTOR_CAROUSEL_IMAGES}
+            className="h-64 md:h-80 lg:h-96 w-full"
+            autoPlayInterval={5000}
+            showControls={true}
+            showIndicators={true}
+          >
+            <div className="text-center px-4">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg flex items-center justify-center gap-3">
+                {user?.profilePictureUrl ? (
+                  <Avatar className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 border-2 border-white shadow-lg">
+                    <AvatarImage
+                      src={user.profilePictureUrl}
+                      alt={`Dr. ${user.firstName} ${user.lastName}`}
+                    />
+                    <AvatarFallback className="bg-primary text-white text-lg md:text-xl lg:text-2xl font-bold">
+                      {user?.firstName?.[0]}
+                      {user?.lastName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-primary rounded-lg flex items-center justify-center">
+                    <Stethoscope className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-white" />
+                  </div>
+                )}
                 Dr. {user?.firstName} {user?.lastName}
               </h1>
-              <p className="text-white/90 text-lg drop-shadow-md flex items-center justify-center gap-3">
+              <p className="text-white/90 text-base md:text-lg lg:text-xl drop-shadow-md flex items-center justify-center gap-2 md:gap-3 flex-wrap">
                 {user?.specialization && (
-                  <Badge className="bg-white/90 text-slate-900">
+                  <Badge className="bg-white/90 text-slate-900 text-sm md:text-base">
                     {user.specialization}
                   </Badge>
                 )}
-                View and manage your patients' health records and reports
+                <span className="hidden sm:inline">
+                  View and manage your patients' health records and reports
+                </span>
               </p>
             </div>
-          </div>
+          </HeroCarousel>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-primary/50 transition-all duration-300 hover:scale-105 cursor-pointer">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -135,14 +155,14 @@ export default function DoctorDashboard() {
                   </p>
                   <p className="text-3xl font-bold">{patients?.length || 0}</p>
                 </div>
-                <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center">
+                <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
                   <UserIcon className="h-8 w-8 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-purple-500/50 transition-all duration-300 hover:scale-105 cursor-pointer">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -153,14 +173,14 @@ export default function DoctorDashboard() {
                     {sharedReports?.length || 0}
                   </p>
                 </div>
-                <div className="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center">
+                <div className="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
                   <Share2 className="h-8 w-8 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-red-500/50 transition-all duration-300 hover:scale-105 cursor-pointer">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -172,7 +192,7 @@ export default function DoctorDashboard() {
                       0}
                   </p>
                 </div>
-                <div className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center">
+                <div className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
                   <Activity className="h-8 w-8 text-white" />
                 </div>
               </div>

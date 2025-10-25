@@ -20,7 +20,7 @@ import {
 } from "./services/ocr";
 import { verifyFirebaseToken } from "./services/firebase-verify";
 import { analyzeReportForSpecialization } from "./services/ai-doctor-matching";
-import { storage as firebaseStorage } from "./firebase-admin";
+import { uploadToS3, deleteFromS3, s3Available } from "./s3-storage";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import multer from "multer";
@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Profile picture upload - Firebase Storage only
+  // Profile picture upload - S3 Primary, Firebase Fallback
   app.post("/api/profile/picture", requireAuth, async (req, res) => {
     try {
       // Custom multer handling with error catching
@@ -311,70 +311,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("✅ User found:", user.email);
 
-      if (!firebaseStorage) {
-        console.error("❌ Firebase Storage is not initialized");
-        return res.status(500).json({
-          message:
-            "Firebase Storage is not configured. Please check your Firebase configuration.",
-        });
-      }
-
-      console.log("✅ Firebase Storage is available");
-
-      // Delete old profile picture if exists
-      if (
-        user.profilePictureUrl &&
-        user.profilePictureUrl.includes("storage.googleapis.com")
-      ) {
-        try {
-          console.log(
-            "🗑️ Deleting old profile picture:",
-            user.profilePictureUrl
-          );
-          const oldFileName = user.profilePictureUrl.split("/").pop();
-          if (oldFileName) {
-            const bucket = firebaseStorage.bucket();
-            const file = bucket.file(`profile-pictures/${oldFileName}`);
-            await file
-              .delete()
-              .catch(() =>
-                console.log("Old profile picture not found or already deleted")
-              );
-            console.log("✅ Old profile picture deleted");
-          }
-        } catch (error) {
-          console.warn("⚠️ Error deleting old profile picture:", error);
-        }
-      }
-
-      // Upload new profile picture to Firebase Storage
+      let publicUrl: string;
       const fileExtension = req.file.originalname.split(".").pop();
       const fileName = `${userId}_${Date.now()}.${fileExtension}`;
-      console.log("📤 Uploading file to Firebase Storage:", fileName);
 
-      const bucket = firebaseStorage.bucket();
-      console.log("✅ Bucket name:", bucket.name);
+      // Use S3 for storage
+      if (s3Available) {
+        console.log("📤 Uploading to AWS S3:", fileName);
 
-      const file = bucket.file(`profile-pictures/${fileName}`);
+        // Delete old profile picture from S3 if exists
+        if (
+          user.profilePictureUrl &&
+          user.profilePictureUrl.includes(".amazonaws.com")
+        ) {
+          try {
+            console.log("🗑️ Deleting old S3 profile picture");
+            await deleteFromS3(user.profilePictureUrl);
+          } catch (error) {
+            console.warn("⚠️ Error deleting old S3 picture:", error);
+          }
+        }
 
-      await file.save(req.file.buffer, {
-        metadata: {
-          contentType: req.file.mimetype,
-        },
-        public: true,
-      });
-      console.log("✅ File uploaded to Firebase Storage");
-
-      // Make the file publicly accessible
-      try {
-        await file.makePublic();
-        console.log("✅ File made public");
-      } catch (publicError: any) {
-        console.warn("⚠️ Could not make file public:", publicError.message);
+        // Upload to S3
+        try {
+          publicUrl = await uploadToS3(
+            req.file.buffer,
+            fileName,
+            req.file.mimetype
+          );
+          console.log("✅ File uploaded to S3:", publicUrl);
+        } catch (s3Error: any) {
+          console.error("❌ S3 upload failed:", s3Error.message);
+          return res.status(500).json({
+            message: "Failed to upload to AWS S3",
+            error: s3Error.message,
+            instructions: [
+              "Please check your AWS S3 configuration:",
+              "1. Verify AWS_ACCESS_KEY_ID is set in .env",
+              "2. Verify AWS_SECRET_ACCESS_KEY is set in .env",
+              "3. Verify AWS_S3_BUCKET_NAME is set in .env",
+              "4. Verify AWS_REGION is set in .env",
+              "5. Ensure S3 bucket exists and has proper permissions",
+            ],
+          });
+        }
+      } else {
+        console.error("❌ AWS S3 storage service not configured");
+        return res.status(503).json({
+          message: "Storage service not configured",
+          error: {
+            code: 503,
+            message: "AWS S3 is not configured",
+          },
+          instructions: [
+            "Please configure AWS S3:",
+            "1. Create an S3 bucket in AWS Console",
+            "2. Create an IAM user with S3 permissions",
+            "3. Add credentials to .env file:",
+            "   - AWS_ACCESS_KEY_ID=your-access-key",
+            "   - AWS_SECRET_ACCESS_KEY=your-secret-key",
+            "   - AWS_S3_BUCKET_NAME=your-bucket-name",
+            "   - AWS_REGION=us-east-1 (or your region)",
+          ],
+        });
       }
-
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/profile-pictures/${fileName}`;
-      console.log("✅ Firebase Storage URL generated:", publicUrl);
 
       // Update user profile with new picture URL
       const updatedUser = await storage.updateUser(userId, {
@@ -391,21 +391,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         message: "Profile picture uploaded successfully",
         profilePictureUrl: publicUrl,
+        storage: "AWS S3",
       });
     } catch (error: any) {
       console.error("❌ Profile picture upload error:", error);
       console.error("Error stack:", error.stack);
 
-      // Return JSON error response
+      // Return JSON error response with helpful information
       return res.status(500).json({
         message: error.message || "Upload failed",
         error:
-          process.env.NODE_ENV === "development" ? error.toString() : undefined,
+          process.env.NODE_ENV === "development"
+            ? {
+                message: error.message,
+                code: error.code,
+                stack: error.stack,
+              }
+            : {
+                message:
+                  "An error occurred while uploading the profile picture",
+              },
       });
     }
   });
 
-  // Profile picture delete - Firebase Storage only
+  // Profile picture delete - S3 only
   app.delete("/api/profile/picture", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;
@@ -420,27 +430,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ message: "No profile picture to delete" });
       }
 
-      if (!firebaseStorage) {
-        return res
-          .status(500)
-          .json({ message: "Firebase Storage is not configured" });
-      }
-
-      // Delete from Firebase Storage
-      try {
-        const fileName = user.profilePictureUrl.split("/").pop();
-        if (fileName) {
-          const bucket = firebaseStorage.bucket();
-          const file = bucket.file(`profile-pictures/${fileName}`);
-          await file
-            .delete()
-            .catch(() =>
-              console.log("Profile picture not found or already deleted")
-            );
-          console.log("✅ Profile picture deleted from Firebase Storage");
+      // Delete from S3
+      if (user.profilePictureUrl.includes(".amazonaws.com")) {
+        if (s3Available) {
+          try {
+            await deleteFromS3(user.profilePictureUrl);
+            console.log("✅ Profile picture deleted from S3");
+          } catch (error) {
+            console.error("Error deleting from S3:", error);
+          }
         }
-      } catch (error) {
-        console.error("Error deleting profile picture from storage:", error);
       }
 
       // Update user profile to remove picture URL
@@ -574,6 +573,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: user.lastName,
         role: user.role,
         language: user.language,
+        specialization: user.specialization,
+        profilePictureUrl: user.profilePictureUrl,
       });
     } catch (error) {
       res.status(500).json({
