@@ -58,7 +58,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   };
 
   const sidebarClasses = cn(
-    "fixed lg:static inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 shadow-lg transform transition-all duration-500 ease-in-out",
+    "fixed lg:static inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 shadow-lg transform transition-all duration-300 ease-in-out",
     {
       "translate-x-0": isOpen || !isMobile,
       "-translate-x-full": !isOpen && isMobile,
@@ -69,12 +69,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <div className={sidebarClasses}>
       <div className="flex flex-col h-full">
         {/* Logo Section */}
-        <div className="flex items-center justify-between h-20 px-6 border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
           <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center soft-glow shadow-2xl icon-static">
-              <Heart className="h-8 w-8 text-primary" />
+            <div className="w-10 h-10 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center soft-glow shadow-xl icon-static">
+              <Heart className="h-6 w-6 text-primary" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
               MediCare
             </span>
           </div>
@@ -93,7 +93,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 px-4 sm:px-6 py-6 sm:py-8 space-y-2 sm:space-y-3 smooth-scrollbar overflow-y-auto">
+        <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-2 sm:space-y-3 smooth-scrollbar overflow-y-auto">
           {navigation.map((item, index) => {
             const isActive = location === item.href;
             const Icon = item.icon;
@@ -103,7 +103,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center px-3 sm:px-5 py-3 sm:py-4 text-sm sm:text-base font-semibold rounded-lg transition-all",
+                  "flex items-center px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-semibold rounded-lg transition-all",
                   {
                     "bg-primary text-primary-foreground border-2 border-primary/50 shadow-lg":
                       isActive,
@@ -119,14 +119,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               >
                 <div
                   className={cn(
-                    "w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-3 sm:mr-4",
+                    "w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mr-2 sm:mr-3",
                     {
                       "bg-white text-primary": isActive,
                       "bg-muted text-foreground": !isActive,
                     }
                   )}
                 >
-                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
                 <span className="hidden sm:inline">{item.name}</span>
                 <span className="sm:hidden text-xs">
@@ -138,22 +138,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* User Profile Section */}
-        <div className="border-t border-gray-200 dark:border-slate-700 p-4 sm:p-6 bg-gray-50 dark:bg-slate-800">
-          <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4 p-3 sm:p-4 rounded-lg bg-muted border border-gray-200 dark:border-slate-700 hover:bg-muted/80 transition-all">
+        <div className="border-t border-gray-200 dark:border-slate-700 p-3 sm:p-4 bg-gray-50 dark:bg-slate-800">
+          <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3 p-2 sm:p-3 rounded-lg bg-muted border border-gray-200 dark:border-slate-700 hover:bg-muted/80 transition-all">
             {user?.profilePictureUrl ? (
-              <Avatar className="w-12 h-12 sm:w-16 sm:h-16 border-2 border-primary">
+              <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-primary">
                 <AvatarImage
                   src={user.profilePictureUrl}
                   alt={`${user.firstName} ${user.lastName}`}
                 />
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm sm:text-lg font-bold">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm font-bold">
                   {user?.firstName?.[0]}
                   {user?.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-sm sm:text-lg font-bold text-primary-foreground">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-xs sm:text-sm font-bold text-primary-foreground">
                   {user?.firstName?.[0]}
                   {user?.lastName?.[0]}
                 </span>

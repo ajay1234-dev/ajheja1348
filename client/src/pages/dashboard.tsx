@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import WelcomeSection from "@/components/dashboard/welcome-section";
 import QuickStats from "@/components/dashboard/quick-stats";
 import RecentReports from "@/components/dashboard/recent-reports";
@@ -14,9 +13,11 @@ import { Button } from "@/components/ui/button";
 import { useVoice } from "@/hooks/use-voice";
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { UserIcon, Stethoscope, Mail } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { UserIcon, Stethoscope, Mail, Bell, Trash } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
-import type { Report, Medication } from "@shared/schema";
+import type { Report, Medication, Reminder } from "@shared/schema";
 import type { DashboardStats } from "@/types/medical";
 
 interface AssignedDoctor {
@@ -29,6 +30,8 @@ interface AssignedDoctor {
   assignedDate?: any;
   detectedSpecialization?: string;
   reportSummary?: string;
+  approvalStatus?: string;
+  treatmentStatus?: string;
 }
 
 export default function Dashboard() {
@@ -56,8 +59,25 @@ export default function Dashboard() {
     queryKey: ["/api/patient/doctors"],
   });
 
+  const { data: reminders, isLoading: remindersLoading } = useQuery<Reminder[]>(
+    {
+      queryKey: ["/api/reminders"],
+    }
+  );
+
   const { data: healthTimeline, isLoading: timelineLoading } = useQuery({
     queryKey: ["/api/timeline"],
+  });
+
+  const deleteReminderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/reminders/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reminders/active"] });
+    },
   });
 
   // Voice announcement for dashboard
@@ -147,7 +167,68 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Assigned Doctors Section */}
+        {/* Reminders Section */}
+        {remindersLoading ? (
+          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+              <Skeleton className="h-6 w-40" />
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : reminders && reminders.length > 0 ? (
+          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+              <CardTitle className="flex items-center gap-2 font-bold">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <Bell className="h-4 w-4 text-primary-foreground" />
+                </div>
+                Reminders
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-3">
+                {reminders.slice(0, 4).map((reminder) => (
+                  <div
+                    key={reminder.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{reminder.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {safeFormatDate(
+                          reminder.scheduledTime,
+                          "MMM d, yyyy h:mm a"
+                        )}
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      type="button"
+                      onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                    >
+                      <Trash className="h-4 w-4" />
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              {reminders.length > 4 && (
+                <Link href="/reminders">
+                  <Button variant="ghost" size="sm" className="mt-3">
+                    View all reminders
+                  </Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        ) : null}
         {doctorsLoading ? (
           <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
@@ -172,6 +253,11 @@ export default function Dashboard() {
                   <Stethoscope className="h-4 w-4 text-primary-foreground" />
                 </div>
                 Your Doctors
+                {assignedDoctors.some(
+                  (d) => d.approvalStatus === "pending"
+                ) && (
+                  <Badge className="ml-2 bg-amber-500">Action Required</Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -179,7 +265,13 @@ export default function Dashboard() {
                 {assignedDoctors.map((doctor) => (
                   <div
                     key={doctor.id}
-                    className="bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:shadow-md transition-shadow"
+                    className={`border rounded-lg p-6 hover:shadow-md transition-shadow ${
+                      doctor.approvalStatus === "pending"
+                        ? "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700 border-2"
+                        : doctor.treatmentStatus === "completed"
+                        ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
+                        : "bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600"
+                    }`}
                     data-testid={`doctor-card-${doctor.id}`}
                   >
                     <div className="flex items-center space-x-4">
@@ -194,7 +286,7 @@ export default function Dashboard() {
                           <UserIcon className="h-6 w-6 text-primary-foreground" />
                         </div>
                       )}
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-semibold">
                           Dr. {doctor.firstName} {doctor.lastName}
                         </h3>
@@ -207,9 +299,33 @@ export default function Dashboard() {
                           <Mail className="h-3 w-3" />
                           {doctor.email}
                         </div>
+                        {doctor.approvalStatus === "pending" && (
+                          <div className="mt-2">
+                            <Badge className="bg-amber-500">
+                              <Bell className="h-3 w-3 mr-1" />
+                              Pending Your Approval
+                            </Badge>
+                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                              Go to Upload Report page to approve this doctor
+                            </p>
+                          </div>
+                        )}
+                        {doctor.approvalStatus === "approved" &&
+                          doctor.treatmentStatus === "active" && (
+                            <Badge className="mt-2 bg-blue-500">
+                              <Stethoscope className="h-3 w-3 mr-1" />
+                              Active Treatment
+                            </Badge>
+                          )}
+                        {doctor.treatmentStatus === "completed" && (
+                          <Badge className="mt-2 bg-green-500">
+                            <Bell className="h-3 w-3 mr-1" />
+                            Treatment Completed
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right text-sm text-muted-foreground">
+                    <div className="text-right text-sm text-muted-foreground mt-3">
                       {doctor.assignedDate && (
                         <p>
                           Assigned:{" "}

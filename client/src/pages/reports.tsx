@@ -99,7 +99,7 @@ export default function Reports() {
 
       {/* Reports List */}
       {isLoading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {[...Array(4)].map((_, i) => (
             <Card
               key={i}
@@ -134,7 +134,7 @@ export default function Reports() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {filteredReports.map((report: Report) => (
             <ReportCard key={report.id} report={report} />
           ))}

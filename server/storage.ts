@@ -1,7 +1,7 @@
-import { 
-  type User, 
-  type InsertUser, 
-  type Report, 
+import {
+  type User,
+  type InsertUser,
+  type Report,
   type InsertReport,
   type Medication,
   type InsertMedication,
@@ -14,7 +14,9 @@ import {
   type HealthProgress,
   type InsertHealthProgress,
   type SharedReport,
-  type InsertSharedReport
+  type InsertSharedReport,
+  type Notification,
+  type InsertNotification,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -32,7 +34,10 @@ export interface IStorage {
   getReport(id: string): Promise<Report | undefined>;
   getUserReports(userId: string): Promise<Report[]>;
   createReport(report: InsertReport): Promise<Report>;
-  updateReport(id: string, updates: Partial<Report>): Promise<Report | undefined>;
+  updateReport(
+    id: string,
+    updates: Partial<Report>
+  ): Promise<Report | undefined>;
   deleteReport(id: string): Promise<boolean>;
 
   // Medications
@@ -40,20 +45,30 @@ export interface IStorage {
   getUserMedications(userId: string): Promise<Medication[]>;
   getActiveMedications(userId: string): Promise<Medication[]>;
   createMedication(medication: InsertMedication): Promise<Medication>;
-  updateMedication(id: string, updates: Partial<Medication>): Promise<Medication | undefined>;
+  updateMedication(
+    id: string,
+    updates: Partial<Medication>
+  ): Promise<Medication | undefined>;
   deleteMedication(id: string): Promise<boolean>;
+  deleteAllMedicationsForUser(userId: string): Promise<number>;
 
   // Reminders
   getReminder(id: string): Promise<Reminder | undefined>;
   getUserReminders(userId: string): Promise<Reminder[]>;
   getActiveReminders(userId: string): Promise<Reminder[]>;
   createReminder(reminder: InsertReminder): Promise<Reminder>;
-  updateReminder(id: string, updates: Partial<Reminder>): Promise<Reminder | undefined>;
+  updateReminder(
+    id: string,
+    updates: Partial<Reminder>
+  ): Promise<Reminder | undefined>;
+  deleteReminder(id: string): Promise<boolean>;
 
   // Doctor Consultations
   getDoctorConsultation(id: string): Promise<DoctorConsultation | undefined>;
   getUserDoctorConsultations(userId: string): Promise<DoctorConsultation[]>;
-  createDoctorConsultation(consultation: InsertDoctorConsultation): Promise<DoctorConsultation>;
+  createDoctorConsultation(
+    consultation: InsertDoctorConsultation
+  ): Promise<DoctorConsultation>;
 
   // Health Progress
   getUserHealthProgress(userId: string): Promise<HealthProgress[]>;
@@ -61,7 +76,9 @@ export interface IStorage {
 
   // Health Timeline
   getUserHealthTimeline(userId: string): Promise<HealthTimeline[]>;
-  createHealthTimelineEntry(entry: InsertHealthTimeline): Promise<HealthTimeline>;
+  createHealthTimelineEntry(
+    entry: InsertHealthTimeline
+  ): Promise<HealthTimeline>;
 
   // Shared Reports
   getSharedReport(token: string): Promise<SharedReport | undefined>;
@@ -69,12 +86,24 @@ export interface IStorage {
   getSharedReportsByDoctorEmail(email: string): Promise<SharedReport[]>;
   getSharedReportsByPatientId(patientId: string): Promise<SharedReport[]>;
   createSharedReport(sharedReport: InsertSharedReport): Promise<SharedReport>;
-  updateSharedReport(id: string, updates: Partial<SharedReport>): Promise<SharedReport | undefined>;
+  updateSharedReport(
+    id: string,
+    updates: Partial<SharedReport>
+  ): Promise<SharedReport | undefined>;
+
+  // Notifications
+  getNotification(id: string): Promise<Notification | undefined>;
+  getUserNotifications(userId: string): Promise<Notification[]>;
+  getUnreadNotifications(userId: string): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(id: string): Promise<Notification | undefined>;
+  markAllNotificationsAsRead(userId: string): Promise<number>;
+  deleteNotification(id: string): Promise<boolean>;
 }
 
 // Use Firebase Firestore for persistent storage
 import { FirestoreStorage } from "./firestore-storage";
 const storage: IStorage = new FirestoreStorage();
-console.log('✅ Using Firebase Firestore for data persistence');
+console.log("✅ Using Firebase Firestore for data persistence");
 
 export { storage };

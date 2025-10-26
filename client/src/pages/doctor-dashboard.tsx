@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,12 +25,16 @@ import {
   Clock,
   TrendingUp,
   Stethoscope,
+  Bell,
+  CheckCircle,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import {
   HeroCarousel,
   DOCTOR_CAROUSEL_IMAGES,
 } from "@/components/ui/hero-carousel";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DoctorDashboard() {
   const [, navigate] = useLocation();
@@ -38,6 +42,7 @@ export default function DoctorDashboard() {
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [selectedSharedReport, setSelectedSharedReport] = useState<any>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const { data: patients, isLoading } = useQuery<any[]>({
     queryKey: ["/api/doctor/patients"],
@@ -73,6 +78,40 @@ export default function DoctorDashboard() {
       });
       if (!response.ok) throw new Error("Failed to fetch shared reports");
       return response.json();
+    },
+  });
+
+  // Get pending approvals (shared reports with approvalStatus === 'pending')
+  const pendingApprovals = (sharedReports || []).filter(
+    (report: any) => report.approvalStatus === "pending"
+  );
+
+  // Mutation to mark treatment as complete
+  const markCompleteMutation = useMutation({
+    mutationFn: async (sharedReportId: string) => {
+      const response = await apiRequest(
+        "PUT",
+        `/api/shared-reports/${sharedReportId}/complete`
+      );
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Treatment marked as complete. Patient has been notified.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/doctor/patients"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/doctor/shared-reports"],
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to mark as complete",
+        variant: "destructive",
+      });
     },
   });
 
@@ -202,10 +241,19 @@ export default function DoctorDashboard() {
 
         {/* Navigation Tabs */}
         <Tabs defaultValue="patients" className="space-y-6">
-          <TabsList className="bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 grid w-full max-w-md grid-cols-2">
+          <TabsList className="bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="patients" data-testid="tab-patients">
               <UserIcon className="h-4 w-4 mr-2" />
               My Patients
+            </TabsTrigger>
+            <TabsTrigger value="pending" data-testid="tab-pending">
+              <Bell className="h-4 w-4 mr-2" />
+              Pending Approvals
+              {pendingApprovals && pendingApprovals.length > 0 && (
+                <Badge className="ml-2 bg-amber-500">
+                  {pendingApprovals.length}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="shared" data-testid="tab-shared">
               <Share2 className="h-4 w-4 mr-2" />
@@ -295,16 +343,18 @@ export default function DoctorDashboard() {
                       return (
                         <div
                           key={patient.id}
-                          className={`bg-gray-50 dark:bg-slate-700 border rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer ${
+                          className={`bg-gray-50 dark:bg-slate-700 border rounded-lg p-6 hover:shadow-md transition-shadow ${
                             hasAbnormalities
                               ? "border-red-400 bg-red-50 dark:bg-red-900/20"
                               : "border-gray-200 dark:border-slate-600"
                           }`}
-                          onClick={() => setSelectedPatient(patient)}
                           data-testid={`patient-card-${patient.id}`}
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
+                            <div
+                              className="flex items-center space-x-4 flex-1 cursor-pointer"
+                              onClick={() => setSelectedPatient(patient)}
+                            >
                               {patient.profilePictureUrl ? (
                                 <img
                                   src={patient.profilePictureUrl}
@@ -341,9 +391,15 @@ export default function DoctorDashboard() {
                                     </span>
                                   </div>
                                 )}
+                                {patient.treatmentStatus === "completed" && (
+                                  <Badge className="mt-2 bg-green-500">
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Treatment Completed
+                                  </Badge>
+                                )}
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right space-y-2">
                               {patient.age && (
                                 <p className="text-sm font-medium">
                                   Age: {patient.age} years
@@ -363,11 +419,152 @@ export default function DoctorDashboard() {
                                   {patient.detectedSpecialization}
                                 </Badge>
                               )}
+                              {patient.treatmentStatus !== "completed" &&
+                                patient.sharedReportId && (
+                                  <Button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      markCompleteMutation.mutate(
+                                        patient.sharedReportId
+                                      );
+                                    }}
+                                    disabled={markCompleteMutation.isPending}
+                                    size="sm"
+                                    className="mt-2 bg-green-600 hover:bg-green-700"
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                    {markCompleteMutation.isPending
+                                      ? "Marking..."
+                                      : "Mark Complete"}
+                                  </Button>
+                                )}
                             </div>
                           </div>
                         </div>
                       );
                     })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="pending" className="space-y-6">
+            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-900/20">
+                <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
+                    <Bell className="h-5 w-5 text-white" />
+                  </div>
+                  Pending Patient Approvals
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {isLoadingShared ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-4"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gray-200 dark:bg-slate-600 rounded-full animate-pulse" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-gray-200 dark:bg-slate-600 rounded animate-pulse" />
+                            <div className="h-3 bg-gray-200 dark:bg-slate-600 rounded w-1/2 animate-pulse" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : !pendingApprovals || pendingApprovals.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 bg-amber-500 rounded-lg flex items-center justify-center mx-auto mb-6">
+                      <Bell className="h-10 w-10 text-white" />
+                    </div>
+                    <p className="text-muted-foreground text-lg mb-2">
+                      No pending approvals
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Patients who need to approve you as their doctor will
+                      appear here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingApprovals.map((share: any) => (
+                      <div
+                        key={share.id}
+                        className="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-700 rounded-lg p-6 hover:shadow-md transition-shadow"
+                        data-testid={`pending-approval-${share.id}`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center">
+                                <Bell className="h-6 w-6 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-lg">
+                                  {share.patient
+                                    ? `${share.patient.firstName} ${share.patient.lastName}`
+                                    : "Patient"}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {share.patient?.email}
+                                </p>
+                                <Badge className="mt-1 bg-amber-500">
+                                  Awaiting Patient Approval
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                              {share.detectedSpecialization && (
+                                <div className="flex items-center gap-2">
+                                  <Stethoscope className="h-4 w-4 text-amber-600" />
+                                  <span className="text-muted-foreground">
+                                    Detected Specialization:
+                                  </span>
+                                  <Badge variant="outline">
+                                    {share.detectedSpecialization}
+                                  </Badge>
+                                </div>
+                              )}
+                              {share.reportSummary && (
+                                <div className="flex items-start gap-2">
+                                  <FileText className="h-4 w-4 text-amber-600 mt-0.5" />
+                                  <div>
+                                    <span className="text-muted-foreground">
+                                      Report Summary:{" "}
+                                    </span>
+                                    <p className="text-sm mt-1">
+                                      {share.reportSummary}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-amber-600" />
+                                <span className="text-muted-foreground">
+                                  Assigned:{" "}
+                                  {safeFormatDate(
+                                    share.createdAt,
+                                    "MMM dd, yyyy"
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="mt-4 p-3 bg-amber-100 dark:bg-amber-900/30 rounded-md">
+                              <p className="text-xs text-amber-800 dark:text-amber-200">
+                                📋 This patient has been assigned to you based
+                                on AI analysis. They need to approve you before
+                                you can access their full medical records.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>

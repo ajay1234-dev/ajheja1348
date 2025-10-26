@@ -4,28 +4,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import ReminderSetup from "@/components/medications/reminder-setup";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Bell, Plus, Check, Clock, Pill, Calendar } from "lucide-react";
+import { Bell, Plus, Check, Clock, Pill, Calendar, Trash } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
+import type { Reminder } from "@shared/schema";
 
 export default function Reminders() {
   const [isAddingReminder, setIsAddingReminder] = useState(false);
   const { toast } = useToast();
 
-  const { data: reminders, isLoading } = useQuery({
+  const { data: reminders, isLoading } = useQuery<Reminder[]>({
     queryKey: ["/api/reminders"],
   });
 
-  const { data: activeReminders } = useQuery({
+  const { data: activeReminders } = useQuery<Reminder[]>({
     queryKey: ["/api/reminders/active"],
   });
 
   const toggleReminderMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const response = await apiRequest("PATCH", `/api/reminders/${id}`, { isActive });
+      const response = await apiRequest("PATCH", `/api/reminders/${id}`, {
+        isActive,
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -40,7 +50,9 @@ export default function Reminders() {
 
   const completeReminderMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("PATCH", `/api/reminders/${id}`, { isCompleted: true });
+      const response = await apiRequest("PATCH", `/api/reminders/${id}`, {
+        isCompleted: true,
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -61,11 +73,30 @@ export default function Reminders() {
     completeReminderMutation.mutate(id);
   };
 
+  const handleDeleteReminder = (id: string) => {
+    deleteReminderMutation.mutate(id);
+  };
+
+  const deleteReminderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/reminders/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reminders/active"] });
+      toast({
+        title: "Reminder Deleted",
+        description: "Reminder removed successfully",
+      });
+    },
+  });
+
   const getReminderIcon = (type: string) => {
     switch (type) {
-      case 'medication':
+      case "medication":
         return <Pill className="h-4 w-4" />;
-      case 'appointment':
+      case "appointment":
         return <Calendar className="h-4 w-4" />;
       default:
         return <Bell className="h-4 w-4" />;
@@ -74,14 +105,14 @@ export default function Reminders() {
 
   const getReminderColor = (type: string) => {
     switch (type) {
-      case 'medication':
-        return 'bg-blue-100 text-blue-800';
-      case 'appointment':
-        return 'bg-green-100 text-green-800';
-      case 'refill':
-        return 'bg-amber-100 text-amber-800';
+      case "medication":
+        return "bg-blue-100 text-blue-800";
+      case "appointment":
+        return "bg-green-100 text-green-800";
+      case "refill":
+        return "bg-amber-100 text-amber-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -89,14 +120,12 @@ export default function Reminders() {
     <div className="space-y-6 fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Reminders
-          </h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Reminders</h1>
           <p className="text-muted-foreground">
             Manage your medication and appointment reminders
           </p>
         </div>
-        
+
         <Dialog open={isAddingReminder} onOpenChange={setIsAddingReminder}>
           <DialogTrigger asChild>
             <Button data-testid="add-reminder-button">
@@ -111,9 +140,7 @@ export default function Reminders() {
                 Set up a new reminder for medications or appointments
               </DialogDescription>
             </DialogHeader>
-            <ReminderSetup 
-              onSuccess={() => setIsAddingReminder(false)}
-            />
+            <ReminderSetup onSuccess={() => setIsAddingReminder(false)} />
           </DialogContent>
         </Dialog>
       </div>
@@ -133,12 +160,14 @@ export default function Reminders() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Active Reminders</p>
+                <p className="text-sm text-muted-foreground">
+                  Active Reminders
+                </p>
                 <p className="text-2xl font-bold text-foreground">
                   {activeReminders?.length || 0}
                 </p>
@@ -147,7 +176,7 @@ export default function Reminders() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -156,7 +185,9 @@ export default function Reminders() {
                 <p className="text-2xl font-bold text-foreground">
                   {activeReminders?.filter((r: any) => {
                     const today = new Date().toDateString();
-                    const reminderDate = new Date(r.scheduledTime).toDateString();
+                    const reminderDate = new Date(
+                      r.scheduledTime
+                    ).toDateString();
                     return today === reminderDate;
                   }).length || 0}
                 </p>
@@ -176,7 +207,10 @@ export default function Reminders() {
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4 p-4 border border-border rounded-lg">
+                <div
+                  key={i}
+                  className="flex items-center space-x-4 p-4 border border-border rounded-lg"
+                >
                   <div className="w-8 h-8 bg-muted rounded-full animate-pulse" />
                   <div className="flex-1 space-y-2">
                     <div className="h-4 bg-muted rounded animate-pulse" />
@@ -192,7 +226,8 @@ export default function Reminders() {
                 No reminders set
               </h3>
               <p className="text-muted-foreground mb-4">
-                Create your first reminder to stay on top of your medications and appointments
+                Create your first reminder to stay on top of your medications
+                and appointments
               </p>
               <Button onClick={() => setIsAddingReminder(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -205,26 +240,34 @@ export default function Reminders() {
                 <div
                   key={reminder.id}
                   className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
-                    reminder.isCompleted ? 'bg-muted/50 border-muted' : 'border-border'
+                    reminder.isCompleted
+                      ? "bg-muted/50 border-muted"
+                      : "border-border"
                   }`}
                   data-testid={`reminder-${reminder.id}`}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      reminder.isCompleted ? 'bg-green-100' : 'bg-primary/10'
-                    }`}>
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        reminder.isCompleted ? "bg-green-100" : "bg-primary/10"
+                      }`}
+                    >
                       {reminder.isCompleted ? (
                         <Check className="h-5 w-5 text-green-600" />
                       ) : (
                         getReminderIcon(reminder.type)
                       )}
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className={`font-medium ${
-                          reminder.isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'
-                        }`}>
+                        <h4
+                          className={`font-medium ${
+                            reminder.isCompleted
+                              ? "text-muted-foreground line-through"
+                              : "text-foreground"
+                          }`}
+                        >
                           {reminder.title}
                         </h4>
                         <Badge className={getReminderColor(reminder.type)}>
@@ -234,17 +277,20 @@ export default function Reminders() {
                           <Badge variant="secondary">Inactive</Badge>
                         )}
                       </div>
-                      
+
                       <p className="text-sm text-muted-foreground mb-1">
                         {reminder.message}
                       </p>
-                      
+
                       <p className="text-xs text-muted-foreground">
-                        {safeFormatDate(reminder.scheduledTime, 'MMM d, yyyy h:mm a')}
+                        {safeFormatDate(
+                          reminder.scheduledTime,
+                          "MMM d, yyyy h:mm a"
+                        )}
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     {!reminder.isCompleted && (
                       <>
@@ -256,12 +302,23 @@ export default function Reminders() {
                         >
                           <Check className="h-4 w-4" />
                         </Button>
-                        
+
                         <Switch
                           checked={reminder.isActive}
-                          onCheckedChange={() => handleToggleReminder(reminder.id, reminder.isActive)}
+                          onCheckedChange={() =>
+                            handleToggleReminder(reminder.id, reminder.isActive)
+                          }
                           data-testid={`toggle-reminder-${reminder.id}`}
                         />
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          type="button"
+                          onClick={() => handleDeleteReminder(reminder.id)}
+                          data-testid={`delete-reminder-${reminder.id}`}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
                       </>
                     )}
                   </div>

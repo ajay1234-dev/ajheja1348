@@ -414,6 +414,7 @@ export default function UploadReportForm() {
                           specialist. Click below to approve.
                         </p>
                         <Button
+                          type="button"
                           onClick={handleApprove}
                           disabled={approveMutation.isPending}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white"

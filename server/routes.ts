@@ -1223,6 +1223,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("✅ Doctor suggested and awaiting patient approval");
 
+      // Create notification for patient about doctor assignment
+      await storage.createNotification({
+        userId: patientId,
+        type: "doctor_assignment",
+        title: "Doctor Assigned",
+        message: `Dr. ${assignedDoctor.firstName} ${assignedDoctor.lastName} (${assignedDoctor.specialization}) has been suggested for your care. Please approve to proceed.`,
+        relatedId: sharedReport.id,
+        relatedType: "shared_report",
+        actionUrl: `/upload`,
+        metadata: {
+          doctorId: assignedDoctor.id,
+          doctorName: `Dr. ${assignedDoctor.firstName} ${assignedDoctor.lastName}`,
+          specialization: assignedDoctor.specialization,
+        },
+      });
+
+      console.log("✅ Notification created for patient");
+
       // Return success response with suggested doctor info
       res.json({
         message: "Report analyzed - Doctor suggested for approval",
@@ -1296,6 +1314,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `✅ Patient approved doctor assignment for shared report ${sharedReportId}`
       );
 
+      // Get patient and doctor info for notifications
+      const patient = await storage.getUser(sharedReport.patientId!);
+      const doctor = await storage.getUser(sharedReport.doctorId!);
+
+      // Create notification for doctor about patient approval
+      if (doctor) {
+        await storage.createNotification({
+          userId: doctor.id,
+          type: "patient_approval",
+          title: "New Patient Approved",
+          message: `${patient?.firstName} ${patient?.lastName} has approved you as their ${sharedReport.detectedSpecialization}. You can now view their medical records.`,
+          relatedId: sharedReport.id,
+          relatedType: "shared_report",
+          actionUrl: `/doctor-dashboard`,
+          metadata: {
+            patientId: patient?.id,
+            patientName: `${patient?.firstName} ${patient?.lastName}`,
+            specialization: sharedReport.detectedSpecialization,
+          },
+        });
+
+        console.log(`✅ Notification created for doctor ${doctor.id}`);
+      }
+
       res.json({
         message: "Doctor approved successfully",
         sharedReport: updated,
@@ -1304,6 +1346,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("❌ Approve doctor error:", error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "Approval failed",
+      });
+    }
+  });
+
+  /**
+   * PUT /api/shared-reports/:id/complete - Mark treatment as complete
+   *
+   * Allows doctors to mark the treatment for a patient as complete.
+   */
+  app.put("/api/shared-reports/:id/complete", requireAuth, async (req, res) => {
+    try {
+      const sharedReportId = req.params.id;
+      const currentUser = await storage.getUser(req.session.userId!);
+
+      if (!currentUser || currentUser.role !== "doctor") {
+        return res
+          .status(403)
+          .json({ message: "Access denied. Doctor access required." });
+      }
+
+      // Get the shared report
+      const sharedReport = await storage.getSharedReportById(sharedReportId);
+
+      if (!sharedReport) {
+        return res.status(404).json({ message: "Shared report not found" });
+      }
+
+      // Verify the doctor owns this shared report
+      if (sharedReport.doctorId !== req.session.userId) {
+        return res
+          .status(403)
+          .json({ message: "Unauthorized to complete this treatment" });
+      }
+
+      // Update to completed
+      const updated = await storage.updateSharedReport(sharedReportId, {
+        treatmentStatus: "completed",
+      });
+
+      console.log(
+        `✅ Doctor marked treatment as complete for shared report ${sharedReportId}`
+      );
+
+      // Get patient info for notification
+      const patient = await storage.getUser(sharedReport.patientId!);
+
+      // Create notification for patient about treatment completion
+      if (patient) {
+        await storage.createNotification({
+          userId: patient.id,
+          type: "doctor_approval",
+          title: "Treatment Completed",
+          message: `Dr. ${currentUser.firstName} ${currentUser.lastName} has marked your treatment as complete.`,
+          relatedId: sharedReport.id,
+          relatedType: "shared_report",
+          actionUrl: `/dashboard`,
+          metadata: {
+            doctorId: currentUser.id,
+            doctorName: `Dr. ${currentUser.firstName} ${currentUser.lastName}`,
+            specialization: sharedReport.detectedSpecialization,
+          },
+        });
+
+        console.log(`✅ Notification created for patient ${patient.id}`);
+      }
+
+      res.json({
+        message: "Treatment marked as complete successfully",
+        sharedReport: updated,
+      });
+    } catch (error) {
+      console.error("❌ Complete treatment error:", error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
+  // Notification routes
+  app.get("/api/notifications", requireAuth, async (req, res) => {
+    try {
+      const notifications = await storage.getUserNotifications(
+        req.session.userId!
+      );
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
+  app.get("/api/notifications/unread", requireAuth, async (req, res) => {
+    try {
+      const notifications = await storage.getUnreadNotifications(
+        req.session.userId!
+      );
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
+  app.put("/api/notifications/:id/read", requireAuth, async (req, res) => {
+    try {
+      const notification = await storage.getNotification(req.params.id);
+      if (!notification || notification.userId !== req.session.userId) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+
+      const updated = await storage.markNotificationAsRead(req.params.id);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
+  app.put("/api/notifications/read-all", requireAuth, async (req, res) => {
+    try {
+      const count = await storage.markAllNotificationsAsRead(
+        req.session.userId!
+      );
+      res.json({ message: "All notifications marked as read", count });
+    } catch (error) {
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
+  app.delete("/api/notifications/:id", requireAuth, async (req, res) => {
+    try {
+      const notification = await storage.getNotification(req.params.id);
+      if (!notification || notification.userId !== req.session.userId) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+
+      const success = await storage.deleteNotification(req.params.id);
+      if (success) {
+        res.json({ message: "Notification deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete notification" });
+      }
+    } catch (error) {
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Operation failed",
       });
     }
   });
@@ -1368,30 +1560,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/medications/:id", requireAuth, async (req, res) => {
+  app.delete("/api/medications", requireAuth, async (req, res) => {
     try {
-      const id = req.params.id;
-      if (!id) {
-        return res.status(400).json({ message: "Medication ID is required" });
-      }
-
-      const medication = await storage.getMedication(id);
-      if (!medication) {
-        return res.status(404).json({ message: "Medication not found" });
-      }
-
-      if (medication.userId !== req.session.userId) {
-        return res
-          .status(403)
-          .json({ message: "Unauthorized to delete this medication" });
-      }
-
-      const success = await storage.deleteMedication(id);
-      if (success) {
-        res.json({ message: "Medication deleted successfully" });
-      } else {
-        res.status(500).json({ message: "Failed to delete medication" });
-      }
+      const deletedCount = await storage.deleteAllMedicationsForUser(
+        req.session.userId!
+      );
+      res.json({
+        message: "All medications deleted successfully",
+        deletedCount,
+      });
     } catch (error) {
       res.status(500).json({
         message: error instanceof Error ? error.message : "Operation failed",
@@ -1452,6 +1629,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedReminder);
     } catch (error) {
       res.status(400).json({
+        message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
+  app.delete("/api/reminders/:id", requireAuth, async (req, res) => {
+    try {
+      const reminder = await storage.getReminder(req.params.id);
+      if (!reminder || reminder.userId !== req.session.userId) {
+        return res.status(404).json({ message: "Reminder not found" });
+      }
+
+      const success = await storage.deleteReminder(req.params.id);
+      if (success) {
+        res.json({ message: "Reminder deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete reminder" });
+      }
+    } catch (error) {
+      res.status(500).json({
         message: error instanceof Error ? error.message : "Operation failed",
       });
     }
@@ -1577,6 +1774,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             description: latestShare?.description || null,
             reportURL: latestShare?.reportURL || null,
             approvalStatus: latestShare?.approvalStatus || "pending",
+            treatmentStatus: latestShare?.treatmentStatus || "active",
+            sharedReportId: latestShare?.id || null,
           };
         })
       );
@@ -1725,6 +1924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             detectedSpecialization: share.detectedSpecialization || null,
             reportSummary: share.reportSummary || null,
             approvalStatus: share.approvalStatus || "pending",
+            treatmentStatus: share.treatmentStatus || "active",
           };
         })
       );
@@ -1784,6 +1984,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           assignedDate: latestShare?.createdAt || null,
           detectedSpecialization: latestShare?.detectedSpecialization || null,
           reportSummary: latestShare?.reportSummary || null,
+          approvalStatus: latestShare?.approvalStatus || "pending",
+          treatmentStatus: latestShare?.treatmentStatus || "active",
         };
       });
 

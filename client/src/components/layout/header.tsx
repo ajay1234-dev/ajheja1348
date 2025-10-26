@@ -40,9 +40,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 py-2 shadow-sm">
+    <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-3 py-1 shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <Button
             variant="ghost"
             size="sm"
@@ -54,7 +54,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </Button>
 
           <div>
-            <h1 className="text-2xl font-bold text-foreground gradient-text">
+            <h1 className="text-xl font-bold text-foreground gradient-text">
               Health Dashboard
             </h1>
             <p className="text-sm text-muted-foreground font-medium">
@@ -63,7 +63,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
           <LanguageSelector />
 
           <VoiceControls />
@@ -76,12 +76,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
             onClick={toggleDarkMode}
             title="Toggle Dark Mode"
             data-testid="dark-mode-toggle"
-            className="hover-lift rounded-full w-10 h-10 p-0"
+            className="hover-lift rounded-full w-8 h-8 p-0"
           >
             {isDarkMode ? (
-              <Sun className="h-5 w-5 text-amber-500" />
+              <Sun className="h-4 w-4 text-amber-500" />
             ) : (
-              <Moon className="h-5 w-5 text-blue-600" />
+              <Moon className="h-4 w-4 text-blue-600" />
             )}
           </Button>
         </div>

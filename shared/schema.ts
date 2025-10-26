@@ -180,6 +180,10 @@ export const insertSharedReportSchema = z.object({
     .enum(["pending", "approved", "rejected"])
     .default("pending")
     .optional(),
+  treatmentStatus: z
+    .enum(["active", "completed", "cancelled"])
+    .default("active")
+    .optional(),
 });
 
 export const sharedReportSchema = insertSharedReportSchema.extend({
@@ -204,5 +208,36 @@ export type InsertHealthTimeline = z.infer<typeof insertHealthTimelineSchema>;
 export type HealthTimeline = z.infer<typeof healthTimelineSchema>;
 export type InsertHealthProgress = z.infer<typeof insertHealthProgressSchema>;
 export type HealthProgress = z.infer<typeof healthProgressSchema>;
+
+// Notification Schema
+export const insertNotificationSchema = z.object({
+  userId: z.string(),
+  type: z.enum([
+    "doctor_assignment",
+    "patient_approval",
+    "doctor_approval",
+    "medication",
+    "appointment",
+    "report",
+  ]),
+  title: z.string(),
+  message: z.string(),
+  relatedId: z.string().optional().nullable(), // sharedReportId, reportId, etc.
+  relatedType: z
+    .enum(["shared_report", "report", "medication", "appointment"])
+    .optional()
+    .nullable(),
+  isRead: z.boolean().default(false).optional(),
+  actionUrl: z.string().optional().nullable(),
+  metadata: z.any().optional().nullable(),
+});
+
+export const notificationSchema = insertNotificationSchema.extend({
+  id: z.string(),
+  createdAt: z.date().or(z.any()),
+});
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = z.infer<typeof notificationSchema>;
 export type InsertSharedReport = z.infer<typeof insertSharedReportSchema>;
 export type SharedReport = z.infer<typeof sharedReportSchema>;

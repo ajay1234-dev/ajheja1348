@@ -15,6 +15,8 @@ import {
   type InsertHealthProgress,
   type SharedReport,
   type InsertSharedReport,
+  type Notification,
+  type InsertNotification,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { firestore } from "./firebase-admin";
@@ -972,6 +974,7 @@ export class FirestoreStorage implements IStorage {
       symptoms: insertSharedReport.symptoms || null,
       description: insertSharedReport.description || null,
       approvalStatus: insertSharedReport.approvalStatus || "pending",
+      treatmentStatus: insertSharedReport.treatmentStatus || "active",
       createdAt: new Date(),
     };
 
@@ -992,6 +995,7 @@ export class FirestoreStorage implements IStorage {
       symptoms: sharedReport.symptoms,
       description: sharedReport.description,
       approvalStatus: sharedReport.approvalStatus,
+      treatmentStatus: sharedReport.treatmentStatus,
       createdAt: sharedReport.createdAt,
     });
 
@@ -1017,5 +1021,154 @@ export class FirestoreStorage implements IStorage {
       ...sharedReport.data(),
       ...updates,
     } as SharedReport;
+  }
+
+  async deleteReminder(id: string): Promise<boolean> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const reminder = await this.getReminder(id);
+    if (!reminder) return false;
+
+    await firestore.collection("reminders").doc(id).delete();
+    return true;
+  }
+
+  async deleteAllMedicationsForUser(userId: string): Promise<number> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const snapshot = await firestore
+      .collection("medications")
+      .where("userId", "==", userId)
+      .get();
+
+    let count = 0;
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        await doc.ref.delete();
+        count++;
+      })
+    );
+
+    return count;
+  }
+
+  // Notifications
+  async getNotification(id: string): Promise<Notification | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const doc = await firestore.collection("notifications").doc(id).get();
+    if (!doc.exists) return undefined;
+
+    return { id: doc.id, ...doc.data() } as Notification;
+  }
+
+  async getUserNotifications(userId: string): Promise<Notification[]> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const snapshot = await firestore
+      .collection("notifications")
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .get();
+
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Notification)
+    );
+  }
+
+  async getUnreadNotifications(userId: string): Promise<Notification[]> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const snapshot = await firestore
+      .collection("notifications")
+      .where("userId", "==", userId)
+      .where("isRead", "==", false)
+      .orderBy("createdAt", "desc")
+      .get();
+
+    return snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() } as Notification)
+    );
+  }
+
+  async createNotification(
+    insertNotification: InsertNotification
+  ): Promise<Notification> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const id = randomUUID();
+    const now = new Date();
+
+    const notification: Notification = {
+      id,
+      userId: insertNotification.userId,
+      type: insertNotification.type,
+      title: insertNotification.title,
+      message: insertNotification.message,
+      relatedId: insertNotification.relatedId || null,
+      relatedType: insertNotification.relatedType || null,
+      isRead: insertNotification.isRead || false,
+      actionUrl: insertNotification.actionUrl || null,
+      metadata: insertNotification.metadata || null,
+      createdAt: now,
+    };
+
+    await firestore.collection("notifications").doc(id).set({
+      userId: notification.userId,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      relatedId: notification.relatedId,
+      relatedType: notification.relatedType,
+      isRead: notification.isRead,
+      actionUrl: notification.actionUrl,
+      metadata: notification.metadata,
+      createdAt: notification.createdAt,
+    });
+
+    return notification;
+  }
+
+  async markNotificationAsRead(id: string): Promise<Notification | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const notification = await this.getNotification(id);
+    if (!notification) return undefined;
+
+    await firestore.collection("notifications").doc(id).update({
+      isRead: true,
+    });
+
+    return { ...notification, isRead: true };
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<number> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const snapshot = await firestore
+      .collection("notifications")
+      .where("userId", "==", userId)
+      .where("isRead", "==", false)
+      .get();
+
+    let count = 0;
+    await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        await doc.ref.update({ isRead: true });
+        count++;
+      })
+    );
+
+    return count;
+  }
+
+  async deleteNotification(id: string): Promise<boolean> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const notification = await this.getNotification(id);
+    if (!notification) return false;
+
+    await firestore.collection("notifications").doc(id).delete();
+    return true;
   }
 }

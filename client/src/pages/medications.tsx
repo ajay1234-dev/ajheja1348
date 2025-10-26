@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,17 +12,30 @@ import {
 } from "@/components/ui/dialog";
 import MedicationList from "@/components/medications/medication-list";
 import ReminderSetup from "@/components/medications/reminder-setup";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { Medication } from "@shared/schema";
 
 export default function Medications() {
   const [isAddingMedication, setIsAddingMedication] = useState(false);
 
-  const { data: medications, isLoading } = useQuery({
+  const { data: medications, isLoading } = useQuery<Medication[]>({
     queryKey: ["/api/medications"],
   });
 
-  const { data: activeMedications } = useQuery({
+  const { data: activeMedications } = useQuery<Medication[]>({
     queryKey: ["/api/medications/active"],
+  });
+
+  const deleteAllMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", "/api/medications");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/medications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/medications/active"] });
+    },
   });
 
   return (
@@ -54,6 +67,17 @@ export default function Medications() {
             <ReminderSetup onSuccess={() => setIsAddingMedication(false)} />
           </DialogContent>
         </Dialog>
+        <Button
+          variant="destructive"
+          type="button"
+          onClick={() => deleteAllMutation.mutate()}
+          disabled={deleteAllMutation.isPending}
+          className="ml-2"
+          data-testid="delete-all-medications"
+        >
+          <Trash className="h-4 w-4 mr-2" />
+          Delete All
+        </Button>
       </div>
 
       {/* Quick Stats */}
@@ -98,7 +122,7 @@ export default function Medications() {
               <div>
                 <p className="text-sm text-muted-foreground">Reminders Today</p>
                 <p className="text-2xl font-bold">
-                  {activeMedications?.filter((m) =>
+                  {(activeMedications || []).filter((m: Medication) =>
                     m.frequency?.includes("daily")
                   ).length || 0}
                 </p>
