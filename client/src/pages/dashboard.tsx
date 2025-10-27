@@ -306,7 +306,13 @@ export default function Dashboard() {
                               Pending Your Approval
                             </Badge>
                             <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                              Go to Upload Report page to approve this doctor
+                              <Link
+                                href="/doctor-approval"
+                                className="underline hover:text-amber-800 dark:hover:text-amber-200"
+                              >
+                                Go to Doctor Approval page to approve this
+                                doctor
+                              </Link>
                             </p>
                           </div>
                         )}

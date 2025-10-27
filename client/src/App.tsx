@@ -10,6 +10,7 @@ import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
 import Dashboard from "@/pages/dashboard";
 import DoctorDashboard from "@/pages/doctor-dashboard";
+import DoctorApproval from "@/pages/doctor-approval";
 import PatientTimeline from "@/pages/patient-timeline";
 import Upload from "@/pages/upload";
 import Reports from "@/pages/reports";
@@ -23,7 +24,7 @@ import MainLayout from "@/components/layout/main-layout";
 function DashboardRouter() {
   const { user } = useAuth();
 
-  if (user?.role === 'doctor') {
+  if (user?.role === "doctor") {
     return <DoctorDashboard />;
   }
 
@@ -40,7 +41,11 @@ function Router() {
           <Switch>
             <Route path="/" component={DashboardRouter} />
             <Route path="/doctor-dashboard" component={DoctorDashboard} />
-            <Route path="/doctor/patient/:patientId/timeline" component={PatientTimeline} />
+            <Route path="/doctor-approval" component={DoctorApproval} />
+            <Route
+              path="/doctor/patient/:patientId/timeline"
+              component={PatientTimeline}
+            />
             <Route path="/upload" component={Upload} />
             <Route path="/reports" component={Reports} />
             <Route path="/medications" component={Medications} />

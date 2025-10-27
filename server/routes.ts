@@ -1981,6 +1981,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           specialization: doctor.specialization,
           profilePictureUrl: doctor.profilePictureUrl || null,
           // Include assignment details
+          sharedReportId: latestShare?.id || null,
           assignedDate: latestShare?.createdAt || null,
           detectedSpecialization: latestShare?.detectedSpecialization || null,
           reportSummary: latestShare?.reportSummary || null,

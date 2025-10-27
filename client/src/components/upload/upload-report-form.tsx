@@ -432,6 +432,10 @@ export default function UploadReportForm() {
                             </>
                           )}
                         </Button>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Or go to the Doctor Approval page to manage all
+                          approvals
+                        </p>
                       </div>
                     )}
 

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Upload,
@@ -25,28 +26,63 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const patientNavigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Upload Report", href: "/upload", icon: Upload },
-  { name: "My Reports", href: "/reports", icon: FileText },
-  { name: "Medications", href: "/medications", icon: Pill },
-  { name: "Health Timeline", href: "/timeline", icon: Clock },
-  { name: "Reminders", href: "/reminders", icon: Bell },
-  { name: "Share with Doctor", href: "/share", icon: Share },
-  { name: "Profile", href: "/profile", icon: UserCircle },
-];
-
-const doctorNavigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Profile", href: "/profile", icon: UserCircle },
-];
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ForwardRefExoticComponent<
+    Omit<React.SVGProps<SVGSVGElement>, "ref"> &
+      React.RefAttributes<SVGSVGElement>
+  >;
+  badge?: number;
+}
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
 
-  const navigation =
+  // Fetch pending doctor approvals
+  const { data: pendingDoctors } = useQuery({
+    queryKey: ["/api/patient/doctors"],
+    queryFn: async () => {
+      const response = await fetch("/api/patient/doctors", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch doctors");
+      const doctors = await response.json();
+      return doctors.filter(
+        (doctor: any) => doctor.approvalStatus === "pending"
+      );
+    },
+    enabled: user?.role === "patient",
+  });
+
+  const patientNavigation: NavigationItem[] = [
+    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Upload Report", href: "/upload", icon: Upload },
+    {
+      name: "Doctor Approval",
+      href: "/doctor-approval",
+      icon: UserCircle,
+      badge:
+        pendingDoctors && pendingDoctors.length > 0
+          ? pendingDoctors.length
+          : undefined,
+    },
+    { name: "My Reports", href: "/reports", icon: FileText },
+    { name: "Medications", href: "/medications", icon: Pill },
+    { name: "Health Timeline", href: "/timeline", icon: Clock },
+    { name: "Reminders", href: "/reminders", icon: Bell },
+    { name: "Share with Doctor", href: "/share", icon: Share },
+    { name: "Profile", href: "/profile", icon: UserCircle },
+  ];
+
+  const doctorNavigation: NavigationItem[] = [
+    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Profile", href: "/profile", icon: UserCircle },
+  ];
+
+  const navigation: NavigationItem[] =
     user?.role === "doctor" ? doctorNavigation : patientNavigation;
 
   const handleLogout = async () => {
@@ -132,6 +168,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <span className="sm:hidden text-xs">
                   {item.name.split(" ")[0]}
                 </span>
+                {item.badge && (
+                  <Badge className="ml-2 bg-amber-500 text-white text-xs">
+                    {item.badge}
+                  </Badge>
+                )}
               </Link>
             );
           })}
