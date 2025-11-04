@@ -11,31 +11,44 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useVoice } from "@/hooks/use-voice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { UserIcon, Stethoscope, Mail, Bell, Trash } from "lucide-react";
+import { UserIcon, Stethoscope, Mail, Bell, Trash, FileText, Activity, Pill, Calendar, CheckCircle } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
-import type { Report, Medication, Reminder } from "@shared/schema";
+import type { Report, Medication, Reminder, SharedReport as SharedReportSchema } from "@shared/schema";
 import type { DashboardStats } from "@/types/medical";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-interface AssignedDoctor {
+interface Doctor {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   specialization?: string;
   profilePictureUrl?: string | null;
-  assignedDate?: any;
-  detectedSpecialization?: string;
-  reportSummary?: string;
+}
+
+interface AssignedDoctor extends Doctor {
+  assignedDate?: Date;
+  detectedSpecialization?: string | null;
+  reportSummary?: string | null;
   approvalStatus?: string;
   treatmentStatus?: string;
+  doctorId?: string;
 }
 
 export default function Dashboard() {
   const { speak } = useVoice();
+  const [selectedDoctor, setSelectedDoctor] = useState<AssignedDoctor | null>(null);
+  
+  // Debug log for doctor selection
+  useEffect(() => {
+    if (selectedDoctor) {
+      console.log("Selected doctor updated:", selectedDoctor);
+    }
+  }, [selectedDoctor]);
 
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
@@ -53,10 +66,47 @@ export default function Dashboard() {
     queryKey: ["/api/medications/active"],
   });
 
+  const { data: sharedReports, isLoading: sharedReportsLoading } = useQuery<
+    SharedReportSchema[]
+  >({
+    queryKey: ["/api/shared-reports"],
+  });
+  
+  // Fetch doctor details for approved shared reports
   const { data: assignedDoctors, isLoading: doctorsLoading } = useQuery<
     AssignedDoctor[]
   >({
-    queryKey: ["/api/patient/doctors"],
+    queryKey: ["/api/patient/doctors", sharedReports],
+    enabled: !!sharedReports,
+    queryFn: async () => {
+      if (!sharedReports || sharedReports.length === 0) return [];
+      
+      // Get unique doctor IDs from approved shared reports
+      const approvedDoctorIds = sharedReports
+        .filter(report => report.approvalStatus === "approved" && report.doctorId)
+        .map(report => report.doctorId) as string[];
+      
+      if (approvedDoctorIds.length === 0) return [];
+      
+      // Fetch doctor details
+      const doctorPromises = approvedDoctorIds.map(async (doctorId) => {
+        const report = sharedReports.find(r => r.doctorId === doctorId);
+        const response = await apiRequest("GET", `/api/doctors/${doctorId}`);
+        const doctorData = await response.json();
+        
+        return {
+          ...doctorData,
+          assignedDate: report?.createdAt ? new Date(report.createdAt) : undefined,
+          detectedSpecialization: report?.detectedSpecialization,
+          reportSummary: report?.reportSummary,
+          approvalStatus: report?.approvalStatus,
+          treatmentStatus: report?.treatmentStatus,
+          id: doctorId
+        };
+      });
+      
+      return Promise.all(doctorPromises);
+    }
   });
 
   const { data: reminders, isLoading: remindersLoading } = useQuery<Reminder[]>(
@@ -295,6 +345,13 @@ export default function Dashboard() {
                             {doctor.specialization}
                           </Badge>
                         )}
+                        <div className="mt-2">
+                          <Link href={`/doctor-details/${doctor.id}`}>
+                            <Button variant="outline" size="sm">
+                              View Details
+                            </Button>
+                          </Link>
+                        </div>
                         <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
                           <Mail className="h-3 w-3" />
                           {doctor.email}
@@ -352,6 +409,119 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         ) : null}
+
+        {/* Doctors Section */}
+        <Card
+          data-testid="doctors-card"
+          className="shadow-lg hover-lift border-2 border-transparent hover:border-primary/20 smooth-transition"
+        >
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 border-b">
+            <CardTitle className="flex items-center gap-2 font-bold">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Stethoscope className="h-4 w-4 text-primary-foreground" />
+              </div>
+              Doctors Who Accepted Your Report
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {doctorsLoading ? (
+              <div className="space-y-4">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="border rounded-lg p-6">
+                    <div className="flex items-center space-x-4">
+                      <Skeleton className="w-12 h-12 rounded-full" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-3 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : assignedDoctors && assignedDoctors.length > 0 ? (
+              <div className="space-y-4">
+                {assignedDoctors.map((doctor) => (
+                    <div
+                      key={doctor.id}
+                      className="bg-gray-50 dark:bg-slate-700 border rounded-lg p-6 hover:shadow-md transition-shadow border-gray-200 dark:border-slate-600"
+                      data-testid={`doctor-card-${doctor.id}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4 flex-1">
+                          {doctor.profilePictureUrl ? (
+                            <img
+                              src={doctor.profilePictureUrl}
+                              alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-primary"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                              <UserIcon className="h-6 w-6 text-primary-foreground" />
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="font-semibold">
+                              Dr. {doctor.firstName} {doctor.lastName}
+                            </h3>
+                            <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                              <Mail className="h-3 w-3" />
+                              {doctor.email}
+                            </div>
+                            {doctor.specialization && (
+                              <Badge variant="outline" className="mt-1">
+                                {doctor.specialization}
+                              </Badge>
+                            )}
+                            {doctor.detectedSpecialization && !doctor.specialization && (
+                              <Badge variant="outline" className="mt-1">
+                                {doctor.detectedSpecialization}
+                              </Badge>
+                            )}
+                            {doctor.treatmentStatus === "active" && (
+                              <Badge className="ml-2 mt-1 bg-blue-500">
+                                <Stethoscope className="h-3 w-3 mr-1" />
+                                Active Treatment
+                              </Badge>
+                            )}
+                            {doctor.treatmentStatus === "completed" && (
+                              <Badge className="ml-2 mt-1 bg-green-500">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Treatment Completed
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <Link href={`/doctor-details/${doctor.id}`}>
+                          <Button variant="outline" size="sm">
+                            View Details
+                          </Button>
+                        </Link>
+                      </div>
+                      <div className="text-right text-sm text-muted-foreground mt-3">
+                        {doctor.assignedDate && (
+                          <p>
+                            <Calendar className="h-3 w-3 inline mr-1" />
+                            Accepted on: {safeFormatDate(doctor.assignedDate, "MMM dd, yyyy")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Stethoscope className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">No Doctors Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  No doctors have accepted your medical reports yet.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Health Timeline Section */}
         <Card
@@ -491,6 +661,124 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Doctor Details Dialog */}
+      <Dialog 
+        open={!!selectedDoctor} 
+        onOpenChange={(open) => {
+          if (!open) setSelectedDoctor(null);
+          console.log("Dialog state changed:", open, selectedDoctor);
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+          <DialogHeader>
+            <div className="flex items-center gap-4">
+              {selectedDoctor?.profilePictureUrl ? (
+                <img
+                  src={selectedDoctor.profilePictureUrl}
+                  alt={`Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}`}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-primary"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
+                  <UserIcon className="h-8 w-8 text-white" />
+                </div>
+              )}
+              <DialogTitle className="text-2xl font-bold">
+                Dr. {selectedDoctor?.firstName} {selectedDoctor?.lastName}
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Doctor Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Doctor Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium">{selectedDoctor?.email}</p>
+                  </div>
+                  {selectedDoctor?.specialization && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Specialization</p>
+                      <p className="font-medium">{selectedDoctor?.specialization}</p>
+                    </div>
+                  )}
+                  {selectedDoctor?.assignedDate && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Assigned Date</p>
+                      <p className="font-medium">
+                        {safeFormatDate(selectedDoctor.assignedDate, "MMM dd, yyyy")}
+                      </p>
+                    </div>
+                  )}
+                  {selectedDoctor?.approvalStatus && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Status</p>
+                      <Badge className={`${
+                        selectedDoctor.approvalStatus === "pending" 
+                          ? "bg-amber-500" 
+                          : selectedDoctor.treatmentStatus === "completed"
+                          ? "bg-green-500"
+                          : "bg-blue-500"
+                      }`}>
+                        {selectedDoctor.approvalStatus === "pending" 
+                          ? "Pending Approval" 
+                          : selectedDoctor.treatmentStatus === "completed"
+                          ? "Treatment Completed"
+                          : "Active Treatment"}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Referral Details */}
+            {selectedDoctor?.detectedSpecialization && (
+              <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    Referral Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {selectedDoctor.detectedSpecialization && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">AI Detected Specialization</p>
+                      <Badge variant="default" className="mt-1">
+                        {selectedDoctor.detectedSpecialization}
+                      </Badge>
+                    </div>
+                  )}
+                  {selectedDoctor.reportSummary && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Report Summary</p>
+                      <p className="text-sm">{selectedDoctor.reportSummary}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Actions */}
+            {selectedDoctor?.approvalStatus === "pending" && (
+              <div className="flex justify-end">
+                <Link href="/doctor-approval">
+                  <Button>
+                    Go to Doctor Approval
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

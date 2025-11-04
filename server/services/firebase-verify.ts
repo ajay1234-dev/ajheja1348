@@ -80,7 +80,6 @@ export async function verifyFirebaseToken(idToken: string): Promise<DecodedToken
 
     // Return verified token data
     return {
-      uid: decoded.sub,
       email: decoded.email,
       name: decoded.name,
       ...decoded

@@ -16,7 +16,7 @@ export default function Share() {
     queryKey: ["/api/reports"],
   });
 
-  const completedReports = (reports || []).filter(
+  const completedReports = (reports as any[] || []).filter(
     (report: any) => report.status === "completed"
   );
 

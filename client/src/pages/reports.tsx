@@ -23,7 +23,7 @@ export default function Reports() {
     queryKey: ["/api/reports"],
   });
 
-  const filteredReports = (reports || []).filter((report: Report) => {
+  const filteredReports = (reports as Report[] || []).filter((report: Report) => {
     const matchesSearch =
       report.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.reportType.toLowerCase().includes(searchTerm.toLowerCase());

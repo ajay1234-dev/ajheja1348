@@ -1,4 +1,6 @@
 import { z } from "zod";
+// Add Drizzle table definitions for DatabaseStorage compatibility
+import { pgTable, varchar, text, timestamp, jsonb, boolean, integer } from "drizzle-orm/pg-core";
 
 // User Schema
 export const insertUserSchema = z.object({
@@ -241,3 +243,88 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = z.infer<typeof notificationSchema>;
 export type InsertSharedReport = z.infer<typeof insertSharedReportSchema>;
 export type SharedReport = z.infer<typeof sharedReportSchema>;
+
+// Drizzle table definitions (map camelCase properties to snake_case columns)
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey(),
+  email: text("email").notNull(),
+  password: text("password"),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  role: text("role").notNull(),
+  dateOfBirth: text("date_of_birth"),
+  phone: text("phone"),
+  language: text("language"),
+  authProvider: text("auth_provider"),
+  firebaseUid: text("firebase_uid"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const reports = pgTable("reports", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  reportType: text("report_type").notNull(),
+  originalText: text("original_text"),
+  extractedData: jsonb("extracted_data"),
+  summary: text("summary"),
+  status: text("status"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const medications = pgTable("medications", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  reportId: varchar("report_id"),
+  name: text("name").notNull(),
+  dosage: text("dosage").notNull(),
+  frequency: text("frequency").notNull(),
+  instructions: text("instructions"),
+  sideEffects: text("side_effects"),
+  isActive: boolean("is_active"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
+export const reminders = pgTable("reminders", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  medicationId: varchar("medication_id"),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message"),
+  scheduledTime: timestamp("scheduled_time").notNull(),
+  isCompleted: boolean("is_completed"),
+  isActive: boolean("is_active"),
+  createdAt: timestamp("created_at"),
+});
+
+export const healthTimeline = pgTable("health_timeline", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  reportId: varchar("report_id"),
+  date: timestamp("date").notNull(),
+  eventType: text("event_type").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  metrics: jsonb("metrics"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at"),
+});
+
+export const sharedReports = pgTable("shared_reports", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  reportIds: text("report_ids"),
+  shareToken: text("share_token").notNull(),
+  doctorEmail: text("doctor_email"),
+  expiresAt: timestamp("expires_at").notNull(),
+  isActive: boolean("is_active"),
+  viewCount: integer("view_count"),
+  createdAt: timestamp("created_at"),
+});

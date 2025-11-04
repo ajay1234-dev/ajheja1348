@@ -15,13 +15,20 @@ export interface OCRResult {
   }>;
 }
 
-let worker: Worker | null = null;
+interface TesseractWorker extends Worker {
+  loadLanguage: (lang: string) => Promise<any>;
+  initialize: (lang: string) => Promise<any>;
+  setParameters: (params: Record<string, string>) => Promise<any>;
+  recognize: (file: File) => Promise<any>;
+}
+
+let worker: TesseractWorker | null = null;
 
 // Initialize Tesseract worker
-export const initializeOCR = async (): Promise<Worker> => {
+export const initializeOCR = async (): Promise<TesseractWorker> => {
   if (worker) return worker;
 
-  worker = await createWorker();
+  worker = await createWorker() as TesseractWorker;
   await worker.loadLanguage('eng');
   await worker.initialize('eng');
   
@@ -44,14 +51,15 @@ export const extractTextFromImage = async (file: File): Promise<OCRResult> => {
     return {
       text: data.text,
       confidence: data.confidence,
-      words: data.words.map(word => ({
+      words: data.words.map((word: any) => ({
         text: word.text,
         confidence: word.confidence,
         bbox: word.bbox
       }))
     };
-  } catch (error) {
-    throw new Error(`OCR processing failed: ${error.message}`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`OCR processing failed: ${errorMessage}`);
   }
 };
 
@@ -64,8 +72,9 @@ export const extractTextFromPDF = async (file: File): Promise<string> => {
     
     // Convert first page to image and process with OCR
     return await convertPDFToImageAndOCR(file);
-  } catch (error) {
-    throw new Error(`PDF text extraction failed: ${error.message}`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`PDF text extraction failed: ${errorMessage}`);
   }
 };
 

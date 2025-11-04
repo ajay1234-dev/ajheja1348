@@ -1,5 +1,8 @@
 import { createWorker } from 'tesseract.js';
 
+// Define a timeout for OCR processing (in milliseconds)
+const OCR_TIMEOUT = 30000; // 30 seconds
+
 export interface OCRResult {
   text: string;
   confidence: number;
@@ -15,13 +18,19 @@ export interface OCRResult {
   }>;
 }
 
+interface TesseractWorker {
+  setParameters: (params: Record<string, string>) => Promise<any>;
+  recognize: (imageBuffer: Buffer) => Promise<any>;
+  terminate: () => Promise<any>;
+}
+
 export async function extractTextFromImage(imageBuffer: Buffer): Promise<OCRResult> {
-  let worker;
-  let timeoutId: NodeJS.Timeout;
+  let worker: TesseractWorker | null = null;
+  let timeoutId: NodeJS.Timeout | null = null;
   
   try {
     console.log('Creating Tesseract worker...');
-    worker = await createWorker('eng');
+    worker = await createWorker() as unknown as TesseractWorker;
     
     // Configure Tesseract for medical documents
     await worker.setParameters({
@@ -30,20 +39,25 @@ export async function extractTextFromImage(imageBuffer: Buffer): Promise<OCRResu
     });
 
     console.log('Running OCR recognition...');
+
+    // Ensure worker is initialized before use
+    if (!worker) {
+      throw new Error('Tesseract worker not initialized');
+    }
     
     // Add timeout with proper cleanup to prevent hanging
     const { data } = await new Promise<any>((resolve, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error('OCR timeout after 30 seconds'));
-      }, 30000);
+      }, OCR_TIMEOUT);
       
-      worker.recognize(imageBuffer)
-        .then((result) => {
-          clearTimeout(timeoutId);
+      worker!.recognize(imageBuffer)
+        .then((result: any) => {
+          if (timeoutId) clearTimeout(timeoutId);
           resolve(result);
         })
-        .catch((error) => {
-          clearTimeout(timeoutId);
+        .catch((error: Error) => {
+          if (timeoutId) clearTimeout(timeoutId);
           reject(error);
         });
     });
@@ -68,7 +82,7 @@ export async function extractTextFromImage(imageBuffer: Buffer): Promise<OCRResu
       clearTimeout(timeoutId);
     }
     
-    // Safely terminate worker if it exists
+    // Ensure worker is terminated
     if (worker) {
       try {
         await worker.terminate();
