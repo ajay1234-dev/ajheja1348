@@ -53,7 +53,19 @@ export default function NotificationCenter() {
     },
   });
 
+  // Delete all notifications mutation
+  const deleteAllNotificationsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", `/api/notifications/read`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    },
+  });
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const totalCount = notifications.length;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -123,27 +135,39 @@ export default function NotificationCenter() {
         </Button>
       </SheetTrigger>
 
-      <SheetContent>
+      <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             Notifications
-            {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => markAllAsReadMutation.mutate()}
-                disabled={markAllAsReadMutation.isPending}
-              >
-                Mark all as read
-              </Button>
-            )}
+            <div className="flex space-x-2">
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => markAllAsReadMutation.mutate()}
+                  disabled={markAllAsReadMutation.isPending}
+                >
+                  Mark all as read
+                </Button>
+              )}
+              {totalCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteAllNotificationsMutation.mutate()}
+                  disabled={deleteAllNotificationsMutation.isPending}
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
           </SheetTitle>
           <SheetDescription>
             Stay updated with your health reminders and reports
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-180px)] pr-2">
           {isLoading ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Loading notifications...</p>

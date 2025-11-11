@@ -97,8 +97,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware
   const requireAuth = (req: any, res: any, next: any) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Authentication required" });
+    // Debug logging
+    console.log("Auth check - Session:", {
+      hasSession: !!req.session,
+      userId: req.session?.userId,
+      sessionId: req.sessionID,
+    });
+
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({
+        message: "Authentication required",
+        code: "AUTH_REQUIRED",
+        session: {
+          hasSession: !!req.session,
+          sessionId: req.sessionID,
+        },
+      });
     }
     next();
   };
@@ -1432,8 +1446,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       res.json(notifications);
     } catch (error) {
+      console.error("Error fetching notifications:", error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "Operation failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch notifications",
       });
     }
   });
@@ -1445,8 +1463,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       res.json(notifications);
     } catch (error) {
+      console.error("Error fetching unread notifications:", error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "Operation failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch unread notifications",
       });
     }
   });
@@ -1474,6 +1496,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       res.json({ message: "All notifications marked as read", count });
     } catch (error) {
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
+  // Delete all read notifications
+  app.delete("/api/notifications/read", requireAuth, async (req, res) => {
+    try {
+      // Get all user notifications
+      const allNotifications = await storage.getUserNotifications(
+        req.session.userId!
+      );
+
+      // Delete each notification (both read and unread)
+      let deletedCount = 0;
+      for (const notification of allNotifications) {
+        const success = await storage.deleteNotification(notification.id);
+        if (success) deletedCount++;
+      }
+
+      res.json({
+        message: "All notifications deleted successfully",
+        deletedCount,
+      });
+    } catch (error) {
+      console.error("Error deleting notifications:", error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "Operation failed",
       });
@@ -1654,21 +1703,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Health timeline routes
+  // Health timeline routes with basic caching
   app.get("/api/timeline", requireAuth, async (req, res) => {
     try {
-      const timeline = await storage.getUserHealthTimeline(req.session.userId!);
-      res.json(timeline);
-    } catch (error) {
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Operation failed",
+      // Check if userId exists in session
+      if (!req.session.userId) {
+        return res.status(401).json({
+          message: "Authentication required",
+          code: "AUTH_REQUIRED",
+        });
+      }
+
+      console.log("Fetching timeline for user:", req.session.userId);
+
+      const timeline = await storage.getUserHealthTimeline(req.session.userId);
+
+      console.log("Raw timeline data:", timeline);
+      console.log(
+        "Raw timeline data length:",
+        Array.isArray(timeline) ? timeline.length : 0
+      );
+
+      // Ensure timeline is an array
+      const timelineArray = Array.isArray(timeline) ? timeline : [];
+
+      console.log("Timeline array length:", timelineArray.length);
+
+      // Sort by date descending (newest first)
+      const sortedTimeline = timelineArray.sort((a, b) => {
+        // Handle various date formats
+        const parseDate = (dateValue: any): Date => {
+          if (!dateValue) return new Date(0);
+
+          if (dateValue instanceof Date) {
+            return dateValue;
+          }
+
+          if (dateValue.toDate && typeof dateValue.toDate === "function") {
+            return dateValue.toDate();
+          }
+
+          if (typeof dateValue === "string") {
+            const parsed = new Date(dateValue);
+            return isNaN(parsed.getTime()) ? new Date(0) : parsed;
+          }
+
+          if (typeof dateValue === "number") {
+            return new Date(dateValue);
+          }
+
+          return new Date(0);
+        };
+
+        const dateA = parseDate(a.date);
+        const dateB = parseDate(b.date);
+        return dateB.getTime() - dateA.getTime();
       });
+
+      console.log("Sorted timeline length:", sortedTimeline.length);
+      console.log("Sample timeline data:", sortedTimeline.slice(0, 2));
+
+      // Set cache headers for 2 minutes
+      res.set("Cache-Control", "private, max-age=120");
+
+      res.json(sortedTimeline);
+    } catch (error) {
+      console.error("Error fetching timeline:", error);
+      // Return empty array instead of error to prevent UI crashes
+      res.status(200).json([]);
     }
   });
 
-  // Dashboard stats
+  // Dashboard stats with caching
   app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
     try {
+      // Set cache headers for 3 minutes
+      res.set("Cache-Control", "private, max-age=180");
+
       const reports = await storage.getUserReports(req.session.userId!);
       const activeMedications = await storage.getActiveMedications(
         req.session.userId!
@@ -1701,7 +1812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Doctor dashboard routes
   // GET /api/doctor/patients - Fetch patients mapped to this doctor via sharedReports (risk-based mapping)
-  // Only returns patients who have been approved by the patient (approvalStatus === 'approved')
+  // Returns patients who have been approved by the patient (approvalStatus === 'approved') or are pending approval
   app.get("/api/doctor/patients", requireAuth, async (req, res) => {
     try {
       const currentUser = await storage.getUser(req.session.userId!);
@@ -1716,12 +1827,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentUser.email
       );
 
-      // Filter for only approved shared reports
+      // Filter for only approved or pending shared reports that are not hidden
       const sharedReports = allSharedReports.filter(
-        (share: any) => share.approvalStatus === "approved"
+        (share: any) =>
+          (share.approvalStatus === "approved" ||
+            share.approvalStatus === "pending") &&
+          !share.hideFromDashboard
       );
 
-      // Extract unique patient IDs from approved sharedReports
+      // Extract unique patient IDs from sharedReports
       const patientIds = new Set<string>();
       sharedReports.forEach((share: any) => {
         if (share.userId || share.patientId) {
@@ -1740,7 +1854,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             (share: any) =>
               share.userId === patientId || share.patientId === patientId
           );
-          const latestShare = patientShares[0]; // Already sorted by date in storage
+          // Sort by createdAt to get the most recent assignment
+          patientShares.sort((a: any, b: any) => {
+            const dateA =
+              a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+            const dateB =
+              b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+            return dateB.getTime() - dateA.getTime();
+          });
+          const latestShare = patientShares[0]; // Most recent assignment
 
           // Calculate patient age if dateOfBirth is available
           let age = null;
@@ -1766,7 +1888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phone: patient.phone,
             dateOfBirth: patient.dateOfBirth,
             profilePictureUrl: patient.profilePictureUrl || null,
-            // Include report details from the latest approved sharedReport
+            // Include report details from the latest sharedReport
             lastReportSummary: latestShare?.reportSummary || null,
             lastReportDate: latestShare?.createdAt || null,
             detectedSpecialization: latestShare?.detectedSpecialization || null,
@@ -1937,6 +2059,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  /**
+   * PUT /api/doctor/patients/:sharedReportId/hide - Hide/unhide a patient from doctor dashboard
+   *
+   * Allows doctors to hide patients from their main dashboard view while keeping them in history.
+   */
+  app.put(
+    "/api/doctor/patients/:sharedReportId/hide",
+    requireAuth,
+    async (req, res) => {
+      try {
+        const currentUser = await storage.getUser(req.session.userId!);
+        if (!currentUser || currentUser.role !== "doctor") {
+          return res
+            .status(403)
+            .json({ message: "Access denied. Doctor access required." });
+        }
+
+        const sharedReportId = req.params.sharedReportId;
+        const { hide } = req.body; // true to hide, false to unhide
+
+        // Get the shared report
+        const sharedReport = await storage.getSharedReportById(sharedReportId);
+
+        if (!sharedReport) {
+          return res.status(404).json({ message: "Shared report not found" });
+        }
+
+        // Verify the doctor owns this shared report
+        if (sharedReport.doctorEmail !== currentUser.email) {
+          return res
+            .status(403)
+            .json({ message: "Unauthorized to modify this patient mapping" });
+        }
+
+        // Update the hideFromDashboard field
+        const updated = await storage.updateSharedReport(sharedReportId, {
+          hideFromDashboard: hide === true,
+        });
+
+        res.json({
+          message: hide
+            ? "Patient hidden from dashboard"
+            : "Patient visible on dashboard",
+          sharedReport: updated,
+        });
+      } catch (error) {
+        console.error("❌ Hide patient error:", error);
+        res.status(500).json({
+          message: error instanceof Error ? error.message : "Operation failed",
+        });
+      }
+    }
+  );
+
+  /**
+   * GET /api/doctor/patients/history - Fetch all patients (including hidden ones) for doctor history
+   *
+   * Returns all patients mapped to this doctor, regardless of hide status.
+   */
+  app.get("/api/doctor/patients/history", requireAuth, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.session.userId!);
+      if (!currentUser || currentUser.role !== "doctor") {
+        return res
+          .status(403)
+          .json({ message: "Access denied. Doctor access required." });
+      }
+
+      // Fetch all sharedReports where this doctor is assigned
+      const allSharedReports = await storage.getSharedReportsByDoctorEmail(
+        currentUser.email
+      );
+
+      // Filter for only approved shared reports
+      const sharedReports = allSharedReports.filter(
+        (share: any) => share.approvalStatus === "approved"
+      );
+
+      // Extract unique patient IDs from approved sharedReports
+      const patientIds = new Set<string>();
+      sharedReports.forEach((share: any) => {
+        if (share.userId || share.patientId) {
+          patientIds.add(share.userId || share.patientId);
+        }
+      });
+
+      // Fetch patient details for each unique patient
+      const patients = await Promise.all(
+        Array.from(patientIds).map(async (patientId) => {
+          const patient = await storage.getUser(patientId);
+          if (!patient) return null;
+
+          // Get the most recent report shared with this doctor for this patient
+          const patientShares = sharedReports.filter(
+            (share: any) =>
+              share.userId === patientId || share.patientId === patientId
+          );
+          const latestShare = patientShares[0]; // Already sorted by date in storage
+
+          // Calculate patient age if dateOfBirth is available
+          let age = null;
+          if (patient.dateOfBirth) {
+            const birthDate = new Date(patient.dateOfBirth);
+            const today = new Date();
+            age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (
+              monthDiff < 0 ||
+              (monthDiff === 0 && today.getDate() < birthDate.getDate())
+            ) {
+              age--;
+            }
+          }
+
+          return {
+            id: patient.id,
+            firstName: patient.firstName,
+            lastName: patient.lastName,
+            email: patient.email,
+            age: age,
+            phone: patient.phone,
+            dateOfBirth: patient.dateOfBirth,
+            profilePictureUrl: patient.profilePictureUrl || null,
+            // Include report details from the latest approved sharedReport
+            lastReportSummary: latestShare?.reportSummary || null,
+            lastReportDate: latestShare?.createdAt || null,
+            detectedSpecialization: latestShare?.detectedSpecialization || null,
+            symptoms: latestShare?.symptoms || null,
+            description: latestShare?.description || null,
+            reportURL: latestShare?.reportURL || null,
+            approvalStatus: latestShare?.approvalStatus || "pending",
+            treatmentStatus: latestShare?.treatmentStatus || "active",
+            sharedReportId: latestShare?.id || null,
+            hideFromDashboard: latestShare?.hideFromDashboard || false,
+          };
+        })
+      );
+
+      // Filter out null values (patients that couldn't be found)
+      const validPatients = patients.filter(
+        (p): p is NonNullable<typeof p> => p !== null
+      );
+
+      res.json(validPatients);
+    } catch (error) {
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
   // Patient dashboard routes
   // GET /api/patient/doctors - Fetch all doctors currently treating this patient
   // Returns doctors assigned based on risk detection in patient's reports via sharedReports
@@ -1947,18 +2220,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      console.log("Fetching doctors for patient:", req.session.userId);
+
       // Get all sharedReports for this patient (userId matches)
       const patientShares = await storage.getSharedReportsByPatientId(
         req.session.userId!
       );
 
+      console.log("Found patient shares:", patientShares.length);
+
+      // Filter for only approved or pending shared reports
+      const relevantShares = patientShares.filter(
+        (share: any) =>
+          share.approvalStatus === "approved" ||
+          share.approvalStatus === "pending"
+      );
+
+      console.log("Relevant shares:", relevantShares.length);
+
       // Extract unique doctor emails and fetch doctor details
       const doctorEmails = new Set<string>();
-      patientShares.forEach((share: any) => {
+      relevantShares.forEach((share: any) => {
         if (share.doctorEmail) {
           doctorEmails.add(share.doctorEmail);
         }
       });
+
+      console.log("Doctor emails found:", Array.from(doctorEmails));
 
       // Fetch all doctors and filter by email
       const allDoctors = await storage.getAllDoctors();
@@ -1966,12 +2254,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doctorEmails.has(doctor.email)
       );
 
+      console.log("Assigned doctors found:", assignedDoctors.length);
+
       // Enrich doctor data with assignment details
       const enrichedDoctors = assignedDoctors.map((doctor) => {
-        const doctorShares = patientShares.filter(
+        const doctorShares = relevantShares.filter(
           (share: any) => share.doctorEmail === doctor.email
         );
+        // Sort by createdAt to get the most recent assignment
+        doctorShares.sort((a: any, b: any) => {
+          const dateA =
+            a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+          const dateB =
+            b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        });
         const latestShare = doctorShares[0]; // Most recent assignment
+
+        console.log("Latest share for doctor:", doctor.email, latestShare);
 
         return {
           id: doctor.id,
@@ -1990,8 +2290,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
+      console.log("Enriched doctors:", enrichedDoctors);
       res.json(enrichedDoctors);
     } catch (error) {
+      console.error("Error fetching patient doctors:", error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "Operation failed",
       });
@@ -2056,6 +2358,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       res.status(500).json({
         message: error instanceof Error ? error.message : "Operation failed",
+      });
+    }
+  });
+
+  // Health Summary and Prescription routes
+  app.get("/api/health-summary", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+
+      // Get user reports and medications
+      const reports = await storage.getUserReports(userId);
+      const medications = await storage.getUserMedications(userId);
+
+      // Generate health summary using AI
+      let summaryText = "";
+      let recommendations: string[] = [];
+
+      if (reports.length > 0) {
+        try {
+          const healthSummary = await generateHealthSummary(
+            reports,
+            medications
+          );
+          summaryText = healthSummary;
+
+          // Extract recommendations from the summary (simplified approach)
+          // In a real implementation, this would be parsed from the AI response
+          recommendations = [
+            "Continue with current medication regimen",
+            "Schedule follow-up appointment in 30 days",
+            "Monitor blood pressure and glucose levels",
+            "Maintain healthy diet and exercise routine",
+          ];
+        } catch (error) {
+          console.error("Failed to generate AI summary:", error);
+          // Fallback to a basic summary with clean formatting
+          summaryText = `Health Summary for ${new Date().toLocaleDateString()}
+
+Total Reports Analyzed: ${reports.length}
+Active Medications: ${medications.filter((m) => m.isActive).length}
+
+Based on your recent medical reports and current medications, here is your health overview:
+
+Key Points:
+- Reports analyzed: ${reports.length}
+- Active medications: ${medications.filter((m) => m.isActive).length}
+- Continue with current medication regimen
+- Schedule follow-up appointment in 30 days
+- Monitor blood pressure and glucose levels
+- Maintain healthy diet and exercise routine`;
+
+          recommendations = [
+            "Continue with current medication regimen",
+            "Schedule follow-up appointment in 30 days",
+            "Monitor blood pressure and glucose levels",
+            "Maintain healthy diet and exercise routine",
+          ];
+        }
+      } else {
+        summaryText = "No medical reports available for summary generation.";
+        recommendations = [
+          "Upload medical reports to generate personalized health insights",
+        ];
+      }
+
+      // Calculate health score (same as in dashboard stats)
+      const completedReports = reports.filter(
+        (r) => r.status === "completed"
+      ).length;
+      const healthScore = Math.min(
+        100,
+        completedReports * 10 +
+          medications.filter((m) => m.isActive).length * 5 +
+          50
+      );
+
+      res.json({
+        summaryText,
+        healthScore: `${healthScore}%`,
+        recommendations,
+        medications: medications.filter((m) => m.isActive).map((m) => m.name),
+        createdAt: new Date(),
+      });
+    } catch (error) {
+      console.error("Health summary error:", error);
+      res.status(500).json({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to generate health summary",
+      });
+    }
+  });
+
+  app.get("/api/monthly-prescription", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+
+      // Get user medications
+      const medications = await storage.getUserMedications(userId);
+
+      // Filter active medications
+      const activeMedications = medications.filter((m) => m.isActive);
+
+      // Generate prescription details
+      const prescriptionDetails = activeMedications.map((med) => ({
+        name: med.name,
+        dosage: med.dosage,
+        frequency: med.frequency,
+        duration: med.duration || "As prescribed",
+        instructions: med.instructions || "Take as directed",
+        prescribedDate: med.prescriptionDate || med.createdAt,
+      }));
+
+      res.json({
+        medications: prescriptionDetails,
+        notes:
+          "This is a monthly prescription summary. Please consult your doctor before making any changes to your medication regimen.",
+        validityPeriod: new Date(
+          new Date().setMonth(new Date().getMonth() + 1)
+        ), // Valid for 1 month
+        createdAt: new Date(),
+      });
+    } catch (error) {
+      console.error("Prescription error:", error);
+      res.status(500).json({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to generate prescription",
       });
     }
   });

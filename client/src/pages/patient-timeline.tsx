@@ -2,7 +2,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import HealthChart from "@/components/timeline/health-chart";
@@ -18,46 +24,61 @@ export default function PatientTimeline() {
 
   const patientId = params?.patientId;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["/api/doctor/patient", patientId, "timeline"],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: [`/api/doctor/patient/${patientId}/timeline`],
     enabled: !!patientId,
     queryFn: async () => {
-      const response = await fetch(`/api/doctor/patient/${patientId}/timeline`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Failed to fetch patient timeline');
+      const response = await fetch(
+        `/api/doctor/patient/${patientId}/timeline`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication required. Please log in.");
+        }
+        if (response.status === 404) {
+          throw new Error("Patient not found");
+        }
+        throw new Error(
+          `Failed to fetch patient timeline: ${response.status} ${response.statusText}`
+        );
+      }
       return response.json();
     },
+    retry: 1,
+    refetchOnWindowFocus: true,
   });
 
   const parseEventDate = (dateValue: any): Date => {
     if (!dateValue) return new Date();
-    
+
     if (dateValue instanceof Date) {
       return dateValue;
     }
-    
-    if (dateValue && typeof dateValue.toDate === 'function') {
+
+    if (dateValue && typeof dateValue.toDate === "function") {
       return dateValue.toDate();
     }
-    
-    if (typeof dateValue === 'number') {
+
+    if (typeof dateValue === "number") {
       return new Date(dateValue);
     }
-    
-    if (typeof dateValue === 'string') {
+
+    if (typeof dateValue === "string") {
       return new Date(dateValue);
     }
-    
+
     return new Date();
   };
 
   const getFilteredData = () => {
     if (!data?.timeline || !Array.isArray(data.timeline)) return [];
-    
+
     const now = new Date();
     const cutoffDate = new Date();
-    
+
     switch (timeRange) {
       case "1m":
         cutoffDate.setMonth(now.getMonth() - 1);
@@ -74,11 +95,18 @@ export default function PatientTimeline() {
       default:
         return data.timeline;
     }
-    
-    return data.timeline.filter((event: any) => parseEventDate(event.date) >= cutoffDate);
+
+    return data.timeline.filter(
+      (event: any) => parseEventDate(event.date) >= cutoffDate
+    );
   };
 
   const filteredData = getFilteredData();
+
+  // Handle retry
+  const handleRetry = () => {
+    refetch();
+  };
 
   if (isLoading) {
     return (
@@ -94,13 +122,31 @@ export default function PatientTimeline() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="space-y-6 fade-in">
+        <div className="text-center py-12">
+          <p className="text-red-500 mb-4">Error: {error.message}</p>
+          <Button onClick={handleRetry}>Retry</Button>
+          <Button
+            onClick={() => navigate("/doctor-dashboard")}
+            className="ml-4"
+            data-testid="back-to-dashboard"
+          >
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!data?.patient) {
     return (
       <div className="space-y-6 fade-in">
         <div className="text-center py-12">
           <p className="text-muted-foreground">Patient not found</p>
-          <Button 
-            onClick={() => navigate("/doctor-dashboard")} 
+          <Button
+            onClick={() => navigate("/doctor-dashboard")}
             className="mt-4"
             data-testid="back-to-dashboard"
           >
@@ -145,19 +191,23 @@ export default function PatientTimeline() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium" data-testid="patient-email">{data.patient.email}</p>
+              <p className="font-medium" data-testid="patient-email">
+                {data.patient.email}
+              </p>
             </div>
             {data.patient.phone && (
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium" data-testid="patient-phone">{data.patient.phone}</p>
+                <p className="font-medium" data-testid="patient-phone">
+                  {data.patient.phone}
+                </p>
               </div>
             )}
             {data.patient.dateOfBirth && (
               <div>
                 <p className="text-sm text-muted-foreground">Date of Birth</p>
                 <p className="font-medium" data-testid="patient-dob">
-                  {safeFormatDate(data.patient.dateOfBirth, 'MMM dd, yyyy')}
+                  {safeFormatDate(data.patient.dateOfBirth, "MMM dd, yyyy")}
                 </p>
               </div>
             )}
@@ -172,7 +222,9 @@ export default function PatientTimeline() {
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Time Range</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Time Range
+                </label>
                 <Select value={timeRange} onValueChange={setTimeRange}>
                   <SelectTrigger data-testid="time-range-select">
                     <SelectValue />
@@ -195,15 +247,20 @@ export default function PatientTimeline() {
             <div className="flex items-center gap-3">
               <TrendingUp className="h-5 w-5 text-muted-foreground" />
               <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Metric Type</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Metric Type
+                </label>
                 <Select value={metricType} onValueChange={setMetricType}>
                   <SelectTrigger data-testid="metric-type-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Metrics</SelectItem>
-                    <SelectItem value="blood_pressure">Blood Pressure</SelectItem>
+                    <SelectItem value="blood_pressure">
+                      Blood Pressure
+                    </SelectItem>
                     <SelectItem value="blood_sugar">Blood Sugar</SelectItem>
+                    <SelectItem value="cholesterol">Cholesterol</SelectItem>
                     <SelectItem value="heart_rate">Heart Rate</SelectItem>
                     <SelectItem value="weight">Weight</SelectItem>
                   </SelectContent>
@@ -215,15 +272,15 @@ export default function PatientTimeline() {
       </div>
 
       {/* Health Chart */}
-      <HealthChart 
-        data={filteredData} 
-        timeRange={timeRange} 
+      <HealthChart
+        data={filteredData}
+        timeRange={timeRange}
         metricType={metricType}
-        isLoading={false}
+        isLoading={isLoading}
       />
 
       {/* Timeline Events */}
-      <TimelineEvents events={filteredData} isLoading={false} />
+      <TimelineEvents events={filteredData} isLoading={isLoading} />
     </div>
   );
 }

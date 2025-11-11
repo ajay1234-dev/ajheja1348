@@ -787,33 +787,90 @@ export class FirestoreStorage implements IStorage {
     return obj;
   }
 
-  // Health Timeline
+  // Health Timeline with limit for performance
   async getUserHealthTimeline(userId: string): Promise<HealthTimeline[]> {
     if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore
-      .collection("healthTimeline")
-      .where("userId", "==", userId)
-      .get();
+    try {
+      console.log("Fetching health timeline for user:", userId);
 
-    const timeline = snapshot.docs.map((doc) => {
-      const data = this.convertFirestoreTimestamps(doc.data());
-      return { id: doc.id, ...data } as HealthTimeline;
-    });
+      // First, let's try to fetch without orderBy to see if there are any documents
+      const allSnapshot = await firestore
+        .collection("healthTimeline")
+        .where("userId", "==", userId)
+        .limit(100)
+        .get();
 
-    // Sort in memory to avoid composite index requirement
-    return timeline.sort((a, b) => {
-      // Handle Date objects, strings, and null
-      const getTime = (value: any): number => {
-        if (!value) return 0;
-        if (value instanceof Date) return value.getTime();
-        if (typeof value === "string" || typeof value === "number")
-          return new Date(value).getTime();
-        return 0;
-      };
+      console.log(
+        "Health timeline all documents snapshot size:",
+        allSnapshot.size
+      );
 
-      return getTime(b.date) - getTime(a.date);
-    });
+      if (allSnapshot.size === 0) {
+        console.log("No health timeline documents found for user:", userId);
+        return [];
+      }
+
+      // Try to fetch with orderBy, but handle potential index errors
+      try {
+        const snapshot = await firestore
+          .collection("healthTimeline")
+          .where("userId", "==", userId)
+          .orderBy("date", "desc")
+          .limit(100)
+          .get();
+
+        console.log("Health timeline ordered snapshot size:", snapshot.size);
+
+        const timeline = snapshot.docs.map((doc) => {
+          const data = this.convertFirestoreTimestamps(doc.data());
+          console.log("Document data:", data);
+          return { id: doc.id, ...data } as HealthTimeline;
+        });
+
+        console.log("Processed timeline entries:", timeline.length);
+        return timeline;
+      } catch (orderByError) {
+        console.warn(
+          "OrderBy query failed, falling back to manual sorting:",
+          orderByError
+        );
+
+        // Fallback: fetch all documents and sort manually
+        const timeline = allSnapshot.docs.map((doc) => {
+          const data = this.convertFirestoreTimestamps(doc.data());
+          return { id: doc.id, ...data } as HealthTimeline;
+        });
+
+        // Sort manually by date
+        const sortedTimeline = timeline.sort((a, b) => {
+          const parseDate = (dateValue: any): Date => {
+            if (!dateValue) return new Date(0);
+            if (dateValue instanceof Date) return dateValue;
+            if (dateValue.toDate && typeof dateValue.toDate === "function") {
+              return dateValue.toDate();
+            }
+            if (typeof dateValue === "string") {
+              const parsed = new Date(dateValue);
+              return isNaN(parsed.getTime()) ? new Date(0) : parsed;
+            }
+            if (typeof dateValue === "number") return new Date(dateValue);
+            return new Date(0);
+          };
+
+          const dateA = parseDate(a.date);
+          const dateB = parseDate(b.date);
+          return dateB.getTime() - dateA.getTime();
+        });
+
+        console.log("Manually sorted timeline entries:", sortedTimeline.length);
+        return sortedTimeline.slice(0, 100); // Limit to 100 entries
+      }
+    } catch (error) {
+      console.error("Error fetching health timeline from Firestore:", error);
+      // Return empty array instead of throwing to prevent API failures
+      return [];
+    }
   }
 
   async createHealthTimelineEntry(
@@ -925,17 +982,37 @@ export class FirestoreStorage implements IStorage {
   ): Promise<SharedReport[]> {
     if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore
+    console.log("Fetching shared reports for patient:", patientId);
+
+    // Query by both userId and patientId to ensure we get all relevant records
+    const snapshot1 = await firestore
       .collection("sharedReports")
       .where("userId", "==", patientId)
       .get();
 
-    const reports = snapshot.docs.map(
+    console.log("Snapshot 1 size (userId):", snapshot1.size);
+
+    const snapshot2 = await firestore
+      .collection("sharedReports")
+      .where("patientId", "==", patientId)
+      .get();
+
+    console.log("Snapshot 2 size (patientId):", snapshot2.size);
+
+    // Combine results and deduplicate
+    const allDocs = [...snapshot1.docs, ...snapshot2.docs];
+    const uniqueDocs = allDocs.filter(
+      (doc, index, self) => index === self.findIndex((d) => d.id === doc.id)
+    );
+
+    console.log("Unique docs count:", uniqueDocs.length);
+
+    const reports = uniqueDocs.map(
       (doc) => ({ id: doc.id, ...doc.data() } as SharedReport)
     );
 
     // Sort in memory to avoid composite index requirement
-    return reports.sort((a, b) => {
+    const sortedReports = reports.sort((a, b) => {
       const getTime = (date: any): number => {
         if (!date) return 0;
         if (date instanceof Date) return date.getTime();
@@ -945,6 +1022,9 @@ export class FirestoreStorage implements IStorage {
       };
       return getTime(b.createdAt) - getTime(a.createdAt);
     });
+
+    console.log("Sorted reports count:", sortedReports.length);
+    return sortedReports;
   }
 
   async createSharedReport(
@@ -975,6 +1055,7 @@ export class FirestoreStorage implements IStorage {
       description: insertSharedReport.description || null,
       approvalStatus: insertSharedReport.approvalStatus || "pending",
       treatmentStatus: insertSharedReport.treatmentStatus || "active",
+      hideFromDashboard: insertSharedReport.hideFromDashboard || false,
       createdAt: new Date(),
     };
 
@@ -996,6 +1077,7 @@ export class FirestoreStorage implements IStorage {
       description: sharedReport.description,
       approvalStatus: sharedReport.approvalStatus,
       treatmentStatus: sharedReport.treatmentStatus,
+      hideFromDashboard: sharedReport.hideFromDashboard,
       createdAt: sharedReport.createdAt,
     });
 
@@ -1065,30 +1147,93 @@ export class FirestoreStorage implements IStorage {
   async getUserNotifications(userId: string): Promise<Notification[]> {
     if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore
-      .collection("notifications")
-      .where("userId", "==", userId)
-      .orderBy("createdAt", "desc")
-      .get();
+    try {
+      const snapshot = await firestore
+        .collection("notifications")
+        .where("userId", "==", userId)
+        .orderBy("createdAt", "desc")
+        .get();
 
-    return snapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as Notification)
-    );
+      return snapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() } as Notification)
+      );
+    } catch (error) {
+      console.error("Error fetching user notifications:", error);
+
+      // Fallback: try without orderBy if the composite index is missing
+      try {
+        const snapshot = await firestore
+          .collection("notifications")
+          .where("userId", "==", userId)
+          .get();
+
+        const notifications = snapshot.docs.map(
+          (doc) => ({ id: doc.id, ...doc.data() } as Notification)
+        );
+
+        // Sort in memory as fallback
+        return notifications.sort((a, b) => {
+          const dateA =
+            a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+          const dateB =
+            b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        });
+      } catch (fallbackError) {
+        console.error(
+          "Fallback error fetching user notifications:",
+          fallbackError
+        );
+        return [];
+      }
+    }
   }
 
   async getUnreadNotifications(userId: string): Promise<Notification[]> {
     if (!firestore) throw new Error("Firestore is not initialized");
 
-    const snapshot = await firestore
-      .collection("notifications")
-      .where("userId", "==", userId)
-      .where("isRead", "==", false)
-      .orderBy("createdAt", "desc")
-      .get();
+    try {
+      const snapshot = await firestore
+        .collection("notifications")
+        .where("userId", "==", userId)
+        .where("isRead", "==", false)
+        .orderBy("createdAt", "desc")
+        .get();
 
-    return snapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as Notification)
-    );
+      return snapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() } as Notification)
+      );
+    } catch (error) {
+      console.error("Error fetching unread notifications:", error);
+
+      // Fallback: try without orderBy if the composite index is missing
+      try {
+        const snapshot = await firestore
+          .collection("notifications")
+          .where("userId", "==", userId)
+          .where("isRead", "==", false)
+          .get();
+
+        const notifications = snapshot.docs.map(
+          (doc) => ({ id: doc.id, ...doc.data() } as Notification)
+        );
+
+        // Sort in memory as fallback
+        return notifications.sort((a, b) => {
+          const dateA =
+            a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+          const dateB =
+            b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        });
+      } catch (fallbackError) {
+        console.error(
+          "Fallback error fetching unread notifications:",
+          fallbackError
+        );
+        return [];
+      }
+    }
   }
 
   async createNotification(

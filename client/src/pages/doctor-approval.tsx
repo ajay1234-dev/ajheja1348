@@ -34,11 +34,21 @@ export default function DoctorApproval() {
       const response = await fetch("/api/patient/doctors", {
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Failed to fetch doctors");
+      if (!response.ok) {
+        console.error(
+          "Failed to fetch doctors:",
+          response.status,
+          response.statusText
+        );
+        throw new Error("Failed to fetch doctors");
+      }
       const doctors = await response.json();
-      return doctors.filter(
+      console.log("All doctors fetched:", doctors);
+      const pending = doctors.filter(
         (doctor: any) => doctor.approvalStatus === "pending"
       );
+      console.log("Pending doctors:", pending);
+      return pending;
     },
   });
 

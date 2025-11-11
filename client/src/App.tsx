@@ -12,6 +12,7 @@ import Dashboard from "@/pages/dashboard";
 import DoctorDashboard from "@/pages/doctor-dashboard";
 import DoctorApproval from "@/pages/doctor-approval";
 import PatientTimeline from "@/pages/patient-timeline";
+import PatientHistory from "@/pages/patient-history";
 import Upload from "@/pages/upload";
 import Reports from "@/pages/reports";
 import Medications from "@/pages/medications";
@@ -41,6 +42,7 @@ function Router() {
           <Switch>
             <Route path="/" component={DashboardRouter} />
             <Route path="/doctor-dashboard" component={DoctorDashboard} />
+            <Route path="/patient-history" component={PatientHistory} />
             <Route path="/doctor-approval" component={DoctorApproval} />
             <Route
               path="/doctor/patient/:patientId/timeline"

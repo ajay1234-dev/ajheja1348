@@ -1,6 +1,14 @@
 import { z } from "zod";
 // Add Drizzle table definitions for DatabaseStorage compatibility
-import { pgTable, varchar, text, timestamp, jsonb, boolean, integer } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  varchar,
+  text,
+  timestamp,
+  jsonb,
+  boolean,
+  integer,
+} from "drizzle-orm/pg-core";
 
 // User Schema
 export const insertUserSchema = z.object({
@@ -183,9 +191,10 @@ export const insertSharedReportSchema = z.object({
     .default("pending")
     .optional(),
   treatmentStatus: z
-    .enum(["active", "completed", "cancelled"])
+    .enum(["active", "completed", "discontinued"])
     .default("active")
     .optional(),
+  hideFromDashboard: z.boolean().default(false).optional(),
 });
 
 export const sharedReportSchema = insertSharedReportSchema.extend({
@@ -193,7 +202,6 @@ export const sharedReportSchema = insertSharedReportSchema.extend({
   createdAt: z.date().or(z.any()),
 });
 
-// Type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = z.infer<typeof userSchema>;
 export type InsertReport = z.infer<typeof insertReportSchema>;
@@ -243,6 +251,42 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = z.infer<typeof notificationSchema>;
 export type InsertSharedReport = z.infer<typeof insertSharedReportSchema>;
 export type SharedReport = z.infer<typeof sharedReportSchema>;
+
+// Health Summary Schema
+export const healthSummarySchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  reportIds: z.array(z.string()).optional().nullable(),
+  summaryText: z.string(),
+  healthScore: z.string(),
+  recommendations: z.array(z.string()),
+  medications: z.array(z.string()),
+  createdAt: z.date().or(z.any()),
+});
+
+export type HealthSummary = z.infer<typeof healthSummarySchema>;
+
+// Prescription Schema
+export const prescriptionSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  doctorId: z.string().optional().nullable(),
+  medications: z.array(
+    z.object({
+      name: z.string(),
+      dosage: z.string(),
+      frequency: z.string(),
+      duration: z.string().optional().nullable(),
+      instructions: z.string().optional().nullable(),
+      prescribedDate: z.date().or(z.any()),
+    })
+  ),
+  notes: z.string().optional().nullable(),
+  validityPeriod: z.date().or(z.any()),
+  createdAt: z.date().or(z.any()),
+});
+
+export type Prescription = z.infer<typeof prescriptionSchema>;
 
 // Drizzle table definitions (map camelCase properties to snake_case columns)
 export const users = pgTable("users", {

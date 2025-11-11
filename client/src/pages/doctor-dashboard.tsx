@@ -27,6 +27,7 @@ import {
   Stethoscope,
   Bell,
   CheckCircle,
+  Eye,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import {
@@ -115,12 +116,51 @@ export default function DoctorDashboard() {
     },
   });
 
+  // Mutation to hide/unhide patients from dashboard
+  const hidePatientMutation = useMutation({
+    mutationFn: async ({
+      sharedReportId,
+      hide,
+    }: {
+      sharedReportId: string;
+      hide: boolean;
+    }) => {
+      const response = await apiRequest(
+        "PUT",
+        `/api/doctor/patients/${sharedReportId}/hide`,
+        { hide }
+      );
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Patient visibility updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/doctor/patients"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/doctor/patients/history"],
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update patient visibility",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredPatients = (patients || []).filter((patient: any) => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      patient.firstName?.toLowerCase().includes(searchLower) ||
-      patient.lastName?.toLowerCase().includes(searchLower) ||
-      patient.email?.toLowerCase().includes(searchLower)
+      !patient.hideFromDashboard &&
+      (patient.firstName?.toLowerCase().includes(searchLower) ||
+        patient.lastName?.toLowerCase().includes(searchLower) ||
+        patient.email?.toLowerCase().includes(searchLower))
     );
   });
 
@@ -192,7 +232,10 @@ export default function DoctorDashboard() {
                   <p className="text-sm text-muted-foreground">
                     Total Patients
                   </p>
-                  <p className="text-3xl font-bold">{patients?.length || 0}</p>
+                  <p className="text-3xl font-bold">
+                    {patients?.filter((p: any) => !p.hideFromDashboard)
+                      .length || 0}
+                  </p>
                 </div>
                 <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
                   <UserIcon className="h-8 w-8 text-white" />
@@ -227,8 +270,9 @@ export default function DoctorDashboard() {
                     Patients at Risk
                   </p>
                   <p className="text-3xl font-bold">
-                    {patients?.filter((p: any) => p.lastReportSummary).length ||
-                      0}
+                    {patients?.filter(
+                      (p: any) => p.lastReportSummary && !p.hideFromDashboard
+                    ).length || 0}
                   </p>
                 </div>
                 <div className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
@@ -438,6 +482,31 @@ export default function DoctorDashboard() {
                                       : "Mark Complete"}
                                   </Button>
                                 )}
+                              {patient.sharedReportId && (
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (
+                                      confirm(
+                                        "Are you sure you want to remove this patient from your dashboard? They will still be visible in your patient history."
+                                      )
+                                    ) {
+                                      hidePatientMutation.mutate({
+                                        sharedReportId: patient.sharedReportId,
+                                        hide: true,
+                                      });
+                                    }
+                                  }}
+                                  disabled={hidePatientMutation.isPending}
+                                  size="sm"
+                                  variant="outline"
+                                  className="mt-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                                >
+                                  {hidePatientMutation.isPending
+                                    ? "Removing..."
+                                    : "Remove"}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>

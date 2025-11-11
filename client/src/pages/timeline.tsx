@@ -16,12 +16,55 @@ export default function Timeline() {
   const [timeRange, setTimeRange] = useState("3m");
   const [metricType, setMetricType] = useState("all");
 
-  const { data: timeline, isLoading } = useQuery({
+  const {
+    data: timeline,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["/api/timeline"],
+    queryFn: async () => {
+      const response = await fetch("/api/timeline", {
+        credentials: "include",
+      });
+
+      console.log(
+        "Timeline API response:",
+        response.status,
+        response.statusText
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication required. Please log in.");
+        }
+        // For other errors, still return empty array to prevent UI crashes
+        console.error(
+          `Failed to fetch timeline: ${response.status} ${response.statusText}`
+        );
+        return [];
+      }
+
+      const data = await response.json();
+      console.log(
+        "Timeline data received:",
+        Array.isArray(data) ? data.length : "Not an array"
+      );
+      return Array.isArray(data) ? data : [];
+    },
+    retry: 1,
+    refetchOnWindowFocus: true,
   });
 
   const { data: reports } = useQuery({
     queryKey: ["/api/reports"],
+    queryFn: async () => {
+      const response = await fetch("/api/reports", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch reports");
+      return response.json();
+    },
   });
 
   // Helper function to convert various date formats to Date object
@@ -38,6 +81,11 @@ export default function Timeline() {
       return dateValue.toDate();
     }
 
+    // If it's a Firestore Timestamp object (with seconds and nanoseconds)
+    if (dateValue && typeof dateValue === "object" && "seconds" in dateValue) {
+      return new Date(dateValue.seconds * 1000);
+    }
+
     // If it's a number (Unix timestamp)
     if (typeof dateValue === "number") {
       return new Date(dateValue);
@@ -45,7 +93,8 @@ export default function Timeline() {
 
     // If it's a string (ISO format)
     if (typeof dateValue === "string") {
-      return new Date(dateValue);
+      const parsed = new Date(dateValue);
+      return isNaN(parsed.getTime()) ? new Date() : parsed;
     }
 
     // Fallback
@@ -76,12 +125,46 @@ export default function Timeline() {
         return timeline;
     }
 
-    return timeline.filter(
-      (event: any) => parseEventDate(event.date) >= cutoffDate
-    );
+    console.log("Time range filter:", { timeRange, now, cutoffDate });
+
+    const filtered = timeline.filter((event: any) => {
+      const eventDate = parseEventDate(event.date);
+      const included = eventDate >= cutoffDate;
+      console.log("Event date check:", {
+        eventId: event.id,
+        eventTitle: event.title,
+        eventDate,
+        cutoffDate,
+        included,
+      });
+      return included;
+    });
+
+    return filtered;
   };
 
   const filteredData = getFilteredData();
+
+  // Handle retry
+  const handleRetry = () => {
+    refetch();
+  };
+
+  if (error) {
+    return (
+      <div className="space-y-6 fade-in">
+        <div className="text-center py-12">
+          <p className="text-red-500 mb-4">Error: {error.message}</p>
+          <button
+            onClick={handleRetry}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 fade-in">

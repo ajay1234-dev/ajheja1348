@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   UserCircle,
+  Eye,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -79,6 +80,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const doctorNavigation: NavigationItem[] = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Patient History", href: "/patient-history", icon: Eye },
     { name: "Profile", href: "/profile", icon: UserCircle },
   ];
 

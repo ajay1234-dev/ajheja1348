@@ -10,7 +10,7 @@ async function throwIfResNotOk(res: Response) {
 export async function apiRequest(
   method: string,
   url: string,
-  data?: unknown | undefined,
+  data?: unknown | undefined
 ): Promise<Response> {
   const res = await fetch(url, {
     method,
@@ -45,13 +45,25 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
+      // Enable background refetching for better UX
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      // Cache data for 5 minutes to reduce API calls
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (replaces cacheTime)
+      // Retry failed queries up to 2 times
+      retry: 2,
+      // Retry delay increases exponentially
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      // Enable placeholder data for smoother transitions
+      placeholderData: (previousData: any) => previousData,
     },
     mutations: {
-      retry: false,
+      // Retry mutations up to 1 time
+      retry: 1,
+      // Retry delay increases exponentially
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
   },
 });
