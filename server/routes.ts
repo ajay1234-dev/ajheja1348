@@ -102,6 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       hasSession: !!req.session,
       userId: req.session?.userId,
       sessionId: req.sessionID,
+      url: req.url,
     });
 
     if (!req.session || !req.session.userId) {
@@ -177,12 +178,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      // Check if user is using Firebase authentication
+      if (user.authProvider === "google" && user.firebaseUid) {
+        return res
+          .status(401)
+          .json({ message: "Please use Google sign-in for this account" });
+      }
+
       if (user.role !== role) {
         return res
           .status(401)
           .json({ message: "Invalid credentials or role mismatch" });
       }
 
+      // For email/password users, verify password
       if (!user.password) {
         return res
           .status(401)
@@ -196,6 +205,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       req.session.userId = user.id;
 
+      console.log("Traditional login successful:", {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        sessionId: req.sessionID,
+      });
+
       res.json({
         message: "Login successful",
         user: {
@@ -207,6 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
     } catch (error) {
+      console.error("Login error:", error);
       res.status(400).json({
         message: error instanceof Error ? error.message : "Operation failed",
       });
@@ -528,11 +545,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         user = await storage.createUser(userData);
-      } else if (user.firebaseUid !== verifiedToken.uid) {
-        await storage.updateUser(user.id, {
-          firebaseUid: verifiedToken.uid,
-          authProvider: "google",
-        });
+        console.log(`✅ New user created via Firebase: ${user.email} (${user.role})`);
+      } else {
+        // Update existing user with Firebase UID if not already set
+        if (!user.firebaseUid || user.firebaseUid !== verifiedToken.uid) {
+          await storage.updateUser(user.id, {
+            firebaseUid: verifiedToken.uid,
+            authProvider: "google",
+          });
+          console.log(`✅ Updated user with Firebase UID: ${user.email}`);
+        }
+        
+        // Update user role if provided and different
+        if (role && user.role !== role) {
+          await storage.updateUser(user.id, {
+            role: role,
+          });
+          user.role = role;
+          console.log(`✅ Updated user role: ${user.email} -> ${role}`);
+        }
       }
 
       req.session.userId = user.id;
@@ -540,6 +571,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Debug logging
       console.log("Firebase login successful:", {
         userId: user.id,
+        email: user.email,
+        role: user.role,
         sessionId: req.sessionID,
         hasSession: !!req.session,
       });

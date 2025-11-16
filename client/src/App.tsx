@@ -20,12 +20,51 @@ import Timeline from "@/pages/timeline";
 import Reminders from "@/pages/reminders";
 import Share from "@/pages/share";
 import ProfilePage from "@/pages/profile";
+import HealthTimelineDemo from "@/pages/health-timeline-demo";
+import HealthTimelineProductionDemo from "@/pages/health-timeline-production-demo";
 import MainLayout from "@/components/layout/main-layout";
+
+function ProtectedRoute({
+  children,
+  allowedRoles,
+}: {
+  children: React.ReactNode;
+  allowedRoles?: string[];
+}) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Redirect to="/login" />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Redirect to appropriate dashboard based on user role
+    return (
+      <Redirect
+        to={user.role === "doctor" ? "/doctor-dashboard" : "/dashboard"}
+      />
+    );
+  }
+
+  return <MainLayout>{children}</MainLayout>;
+}
 
 function DashboardRouter() {
   const { user } = useAuth();
 
-  if (user?.role === "doctor") {
+  if (!user) {
+    return <Redirect to="/login" />;
+  }
+
+  if (user.role === "doctor") {
     return <DoctorDashboard />;
   }
 
@@ -37,29 +76,102 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/" nest>
-        <MainLayout>
-          <Switch>
-            <Route path="/" component={DashboardRouter} />
-            <Route path="/doctor-dashboard" component={DoctorDashboard} />
-            <Route path="/patient-history" component={PatientHistory} />
-            <Route path="/doctor-approval" component={DoctorApproval} />
-            <Route
-              path="/doctor/patient/:patientId/timeline"
-              component={PatientTimeline}
-            />
-            <Route path="/upload" component={Upload} />
-            <Route path="/reports" component={Reports} />
-            <Route path="/medications" component={Medications} />
-            <Route path="/timeline" component={Timeline} />
-            <Route path="/reminders" component={Reminders} />
-            <Route path="/share" component={Share} />
-            <Route path="/profile" component={ProfilePage} />
-            <Route component={NotFound} />
-          </Switch>
-        </MainLayout>
+
+      {/* Protected routes for both patients and doctors */}
+      <Route path="/">
+        <ProtectedRoute>
+          <DashboardRouter />
+        </ProtectedRoute>
       </Route>
-      <Route component={NotFound} />
+
+      <Route path="/dashboard">
+        <ProtectedRoute allowedRoles={["patient"]}>
+          <Dashboard />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/doctor-dashboard">
+        <ProtectedRoute allowedRoles={["doctor"]}>
+          <DoctorDashboard />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/doctor-approval">
+        <ProtectedRoute allowedRoles={["patient"]}>
+          <DoctorApproval />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/timeline">
+        <ProtectedRoute>
+          <Timeline />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/patient-timeline">
+        <ProtectedRoute allowedRoles={["doctor"]}>
+          <PatientTimeline />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/patient-history">
+        <ProtectedRoute allowedRoles={["doctor"]}>
+          <PatientHistory />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/upload">
+        <ProtectedRoute>
+          <Upload />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/reports">
+        <ProtectedRoute>
+          <Reports />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/medications">
+        <ProtectedRoute>
+          <Medications />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/reminders">
+        <ProtectedRoute>
+          <Reminders />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/share">
+        <ProtectedRoute>
+          <Share />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/profile">
+        <ProtectedRoute>
+          <ProfilePage />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/health-timeline-demo">
+        <ProtectedRoute>
+          <HealthTimelineDemo />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/health-timeline-production-demo">
+        <ProtectedRoute>
+          <HealthTimelineProductionDemo />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/404" component={NotFound} />
+      <Route>
+        <NotFound />
+      </Route>
     </Switch>
   );
 }
@@ -67,14 +179,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <VoiceProvider>
-            <Toaster />
+      <AuthProvider>
+        <VoiceProvider>
+          <TooltipProvider>
             <Router />
-          </VoiceProvider>
-        </AuthProvider>
-      </TooltipProvider>
+            <Toaster />
+          </TooltipProvider>
+        </VoiceProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

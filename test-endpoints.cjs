@@ -4,7 +4,7 @@ const cookies = [];
 // First, get the session cookie
 const authOptions = {
   hostname: "localhost",
-  port: 5000,
+  port: 5003,
   path: "/api/auth/debug",
   method: "GET",
   headers: {
@@ -45,7 +45,7 @@ authReq.end();
 function testEndpoint(endpoint) {
   const options = {
     hostname: "localhost",
-    port: 5000,
+    port: 5003,
     path: endpoint,
     method: "GET",
     headers: {

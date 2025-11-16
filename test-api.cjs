@@ -3,7 +3,7 @@ const http = require("http");
 // Test the timeline API endpoint
 const options = {
   hostname: "localhost",
-  port: 5000,
+  port: 5003,
   path: "/api/timeline",
   method: "GET",
   headers: {

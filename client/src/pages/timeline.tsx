@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import HealthChart from "@/components/timeline/health-chart";
+import HealthChart from "@/components/timeline/health-chart-chartjs";
 import TimelineEvents from "@/components/timeline/timeline-events";
 import { Calendar, TrendingUp } from "lucide-react";
 
@@ -168,7 +168,7 @@ export default function Timeline() {
 
   return (
     <div className="space-y-6 fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Health Timeline
@@ -178,57 +178,65 @@ export default function Timeline() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <Select value={metricType} onValueChange={setMetricType}>
-            <SelectTrigger className="w-48" data-testid="metric-filter">
-              <SelectValue placeholder="Metric Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Metrics</SelectItem>
-              <SelectItem value="blood_pressure">Blood Pressure</SelectItem>
-              <SelectItem value="blood_sugar">Blood Sugar</SelectItem>
-              <SelectItem value="cholesterol">Cholesterol</SelectItem>
-              <SelectItem value="weight">Weight</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="w-full sm:w-48">
+            <Select value={metricType} onValueChange={setMetricType}>
+              <SelectTrigger className="w-full" data-testid="metric-filter">
+                <SelectValue placeholder="Metric Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Metrics</SelectItem>
+                <SelectItem value="blood_pressure">Blood Pressure</SelectItem>
+                <SelectItem value="blood_sugar">Blood Sugar</SelectItem>
+                <SelectItem value="cholesterol">Cholesterol</SelectItem>
+                <SelectItem value="weight">Weight</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-48" data-testid="time-range-filter">
-              <SelectValue placeholder="Time Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1m">Last Month</SelectItem>
-              <SelectItem value="3m">Last 3 Months</SelectItem>
-              <SelectItem value="6m">Last 6 Months</SelectItem>
-              <SelectItem value="1y">Last Year</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-full sm:w-48">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-full" data-testid="time-range-filter">
+                <SelectValue placeholder="Time Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1m">Last Month</SelectItem>
+                <SelectItem value="3m">Last 3 Months</SelectItem>
+                <SelectItem value="6m">Last 6 Months</SelectItem>
+                <SelectItem value="1y">Last Year</SelectItem>
+                <SelectItem value="all">All Time</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
-          <CardContent className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 border border-border shadow-sm hover:shadow-md transition-shadow rounded-xl">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Events</p>
-                <p className="text-2xl font-bold">{filteredData.length}</p>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Total Events
+                </p>
+                <p className="text-2xl font-bold mt-1">{filteredData.length}</p>
               </div>
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-primary-foreground" />
+              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
-          <CardContent className="p-6">
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-800 border border-border shadow-sm hover:shadow-md transition-shadow rounded-xl">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Lab Results</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm text-muted-foreground font-medium">
+                  Lab Results
+                </p>
+                <p className="text-2xl font-bold mt-1">
                   {
                     filteredData.filter(
                       (e: any) => e.eventType === "lab_result"
@@ -243,14 +251,14 @@ export default function Timeline() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
-          <CardContent className="p-6">
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-800 dark:to-slate-800 border border-border shadow-sm hover:shadow-md transition-shadow rounded-xl">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground font-medium">
                   Medication Changes
                 </p>
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-bold mt-1">
                   {
                     filteredData.filter(
                       (e: any) => e.eventType === "medication_change"
@@ -265,12 +273,14 @@ export default function Timeline() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
-          <CardContent className="p-6">
+        <Card className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-slate-800 dark:to-slate-800 border border-border shadow-sm hover:shadow-md transition-shadow rounded-xl">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Appointments</p>
-                <p className="text-2xl font-bold">
+                <p className="text-sm text-muted-foreground font-medium">
+                  Appointments
+                </p>
+                <p className="text-2xl font-bold mt-1">
                   {
                     filteredData.filter(
                       (e: any) => e.eventType === "appointment"
@@ -278,7 +288,7 @@ export default function Timeline() {
                   }
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
                 <Calendar className="h-6 w-6 text-white" />
               </div>
             </div>

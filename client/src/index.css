@@ -571,89 +571,7 @@
   }
 }
 
-/* Responsive Design Enhancements */
-@media (max-width: 768px) {
-  .glass-card {
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-
-  .futuristic-bg {
-    background-size: 200% 200%;
-  }
-
-  .floating-particles {
-    animation-duration: 8s;
-  }
-
-  .ai-thinking {
-    animation-duration: 2s;
-  }
-
-  .modern-card:hover {
-    transform: translateY(-1px) scale(1.005);
-  }
-
-  .soft-glow {
-    box-shadow: 0 0 8px rgba(14, 165, 233, 0.15);
-  }
-
-  .soft-glow:hover {
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.25);
-  }
-}
-
-@media (max-width: 640px) {
-  .glass-card {
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .futuristic-bg {
-    background-size: 150% 150%;
-  }
-
-  .floating-particles {
-    animation-duration: 10s;
-  }
-
-  .ai-thinking {
-    animation-duration: 2.5s;
-  }
-
-  .modern-card:hover {
-    transform: translateY(-0.5px) scale(1.003);
-  }
-
-  .soft-glow {
-    box-shadow: 0 0 5px rgba(14, 165, 233, 0.1);
-  }
-
-  .soft-glow:hover {
-    box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
-  }
-}
-
-/* Touch-friendly interactions */
-@media (hover: none) and (pointer: coarse) {
-  .modern-card:hover {
-    transform: none;
-  }
-
-  .modern-card:active {
-    transform: scale(0.98);
-  }
-
-  .soft-glow:hover {
-    box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
-  }
-
-  .soft-glow:active {
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.3);
-  }
-}
-
-/* Improved Text Visibility */
+/* Enhanced Text Visibility */
 .text-readable {
   color: rgb(15, 23, 42);
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
@@ -698,4 +616,277 @@
   background: rgba(30, 41, 59, 1);
   border: 1px solid rgba(71, 85, 105, 0.3);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced Chart Styling */
+.chart-container {
+  @apply rounded-lg p-2;
+}
+
+.chart-grid {
+  @apply opacity-70;
+}
+
+.chart-axis {
+  @apply text-muted-foreground;
+}
+
+.chart-tooltip {
+  @apply bg-card border border-border rounded-lg p-3 shadow-lg;
+}
+
+/* Improved Timeline Styling */
+.timeline-event {
+  @apply rounded-xl border border-border shadow-sm;
+}
+
+.timeline-header {
+  @apply font-bold text-xl;
+}
+
+.timeline-content {
+  @apply text-lg leading-relaxed;
+}
+
+.timeline-metric {
+  @apply font-bold text-2xl;
+}
+
+.timeline-date {
+  @apply text-base text-muted-foreground;
+}
+
+/* Better Badge Visibility */
+.badge-improved {
+  @apply px-3 py-1 text-sm font-medium rounded-full;
+}
+
+/* Enhanced Card Styling */
+.enhanced-card {
+  @apply bg-card border border-border rounded-xl shadow-sm overflow-hidden;
+}
+
+.enhanced-card-header {
+  @apply bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 pb-5;
+}
+
+.enhanced-card-title {
+  @apply text-2xl font-bold;
+}
+
+/* Spacious Timeline Events */
+.spacious-timeline {
+  @apply space-y-10 p-8;
+}
+
+.spacious-timeline-event {
+  @apply flex items-start space-x-6;
+}
+
+.spacious-timeline-line {
+  @apply flex flex-col items-center;
+}
+
+.spacious-timeline-icon {
+  @apply w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 border-2 border-primary/20;
+}
+
+.spacious-timeline-content {
+  @apply flex-1 pb-10;
+}
+
+.spacious-timeline-header {
+  @apply flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5;
+}
+
+.spacious-timeline-title {
+  @apply font-bold text-xl text-foreground;
+}
+
+.spacious-timeline-date {
+  @apply text-base text-muted-foreground flex items-center gap-2;
+}
+
+.spacious-section {
+  @apply bg-slate-50 dark:bg-slate-900/20 rounded-xl p-6 mb-6 border border-slate-200 dark:border-slate-800;
+}
+
+.spacious-section-header {
+  @apply text-lg font-semibold text-foreground mb-4;
+}
+
+.spacious-section-content {
+  @apply text-base leading-relaxed;
+}
+
+/* Larger Chart Container */
+.large-chart-container {
+  @apply h-96 p-4;
+}
+
+.large-chart-empty {
+  @apply h-96 flex flex-col items-center justify-center p-8 text-center;
+}
+
+.large-chart-empty-icon {
+  @apply bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full mb-4;
+}
+
+.large-chart-empty-title {
+  @apply text-xl font-semibold text-foreground mb-3;
+}
+
+.large-chart-empty-text {
+  @apply text-muted-foreground max-w-md text-base;
+}
+
+/* Improved Spacing for All Components */
+.spacious-card {
+  @apply p-6;
+}
+
+.spacious-card-title {
+  @apply text-2xl font-bold mb-2;
+}
+
+.spacious-card-content {
+  @apply text-lg;
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .futuristic-bg {
+    background-size: 200% 200%;
+  }
+
+  .floating-particles {
+    animation-duration: 8s;
+  }
+
+  .ai-thinking {
+    animation-duration: 2s;
+  }
+
+  .modern-card:hover {
+    transform: translateY(-1px) scale(1.005);
+  }
+
+  .soft-glow {
+    box-shadow: 0 0 8px rgba(14, 165, 233, 0.15);
+  }
+
+  .soft-glow:hover {
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.25);
+  }
+
+  /* Improved mobile text visibility */
+  .mobile-readable {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .mobile-readable-lg {
+    font-size: 1.25rem;
+    line-height: 1.7;
+  }
+
+  /* Spacious timeline for mobile */
+  .spacious-timeline {
+    @apply space-y-8 p-6;
+  }
+
+  .spacious-timeline-event {
+    @apply space-x-4;
+  }
+
+  .spacious-timeline-icon {
+    @apply w-10 h-10;
+  }
+
+  .spacious-timeline-content {
+    @apply pb-8;
+  }
+}
+
+@media (max-width: 640px) {
+  .glass-card {
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .futuristic-bg {
+    background-size: 150% 150%;
+  }
+
+  .floating-particles {
+    animation-duration: 10s;
+  }
+
+  .ai-thinking {
+    animation-duration: 2.5s;
+  }
+
+  .modern-card:hover {
+    transform: translateY(-0.5px) scale(1.003);
+  }
+
+  .soft-glow {
+    box-shadow: 0 0 5px rgba(14, 165, 233, 0.1);
+  }
+
+  .soft-glow:hover {
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+  }
+
+  /* Enhanced mobile text visibility */
+  .mobile-readable {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .mobile-readable-lg {
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+
+  /* Spacious timeline for small screens */
+  .spacious-timeline {
+    @apply space-y-6 p-4;
+  }
+
+  .spacious-timeline-event {
+    @apply space-x-3;
+  }
+
+  .spacious-timeline-icon {
+    @apply w-8 h-8;
+  }
+
+  .spacious-timeline-content {
+    @apply pb-6;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .modern-card:hover {
+    transform: none;
+  }
+
+  .modern-card:active {
+    transform: scale(0.98);
+  }
+
+  .soft-glow:hover {
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+  }
+
+  .soft-glow:active {
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.3);
+  }
 }

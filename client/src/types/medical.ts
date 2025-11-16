@@ -3,12 +3,12 @@ export interface MedicalAnalysis {
     parameter: string;
     value: string;
     normalRange: string;
-    status: 'normal' | 'abnormal' | 'borderline';
+    status: "normal" | "abnormal" | "borderline";
     explanation: string;
   }>;
   summary: string;
   recommendations: string[];
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: "low" | "medium" | "high";
   nextSteps: string[];
 }
 
@@ -19,13 +19,25 @@ export interface DashboardStats {
   healthScore: string;
 }
 
+// Medical data types for the healthcare application
+
 export interface TimelineEvent {
-  id: string;
   date: string;
-  eventType: 'lab_result' | 'medication_change' | 'appointment';
-  title: string;
-  description: string;
-  metrics?: any;
+  metrics: Record<string, number | string>;
+  reportName: string;
+  prescriptions?: string[];
+  eventType?: string;
+}
+
+export interface ChartDataPoint {
+  date: string;
+  [key: string]: number | string;
+}
+
+export interface FilterCategory {
+  id: string;
+  name: string;
+  metrics: string[];
 }
 
 export interface MedicationReminder {

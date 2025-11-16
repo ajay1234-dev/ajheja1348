@@ -15,7 +15,7 @@ import {
   CheckCircle,
   TrendingUp,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { safeFormatDate, formatRelativeTime } from "@/lib/date-utils";
 
 interface TimelineEventsProps {
@@ -27,8 +27,10 @@ export default function TimelineEvents({
   events,
   isLoading,
 }: TimelineEventsProps) {
-  // Ensure events is always an array
-  const safeEvents = Array.isArray(events) ? events : [];
+  // Ensure events is always an array and filter out null/undefined events
+  const safeEvents = Array.isArray(events)
+    ? events.filter((event) => event != null)
+    : [];
 
   const parseEventDate = (dateValue: any): Date => {
     if (!dateValue) return new Date();
@@ -117,7 +119,9 @@ export default function TimelineEvents({
       health_metric: "Health Metrics",
     };
 
-    return typeMap[eventType] || eventType.replace(/_/g, " ");
+    return (
+      typeMap[eventType] || eventType?.replace(/_/g, " ") || "Unknown Event"
+    );
   };
 
   const getRiskLevelBadge = (riskLevel?: string) => {
@@ -169,7 +173,7 @@ export default function TimelineEvents({
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Health Timeline</CardTitle>
         </CardHeader>
@@ -192,28 +196,28 @@ export default function TimelineEvents({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="shadow-lg border border-border rounded-xl overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 pb-4">
+        <CardTitle className="flex items-center gap-2 text-xl font-bold">
           <Activity className="h-5 w-5" />
           Health Timeline
         </CardTitle>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-0">
         {safeEvents && safeEvents.length === 0 ? (
           <div className="text-center py-12">
             <Activity className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-medium text-foreground mb-2">
               No events in timeline
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground max-w-md mx-auto">
               Your health events will appear here as you upload reports,
               prescriptions, and medical records
             </p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-8 p-6">
             {safeEvents
               .filter((event) => event !== null && event !== undefined) // Filter out null/undefined events
               .map((event, index) => {
@@ -239,7 +243,7 @@ export default function TimelineEvents({
                   >
                     {/* Timeline line */}
                     <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 border-2 border-primary/20">
                         {getEventIcon(
                           safeEvent.eventType,
                           safeEvent.reportType
@@ -254,11 +258,11 @@ export default function TimelineEvents({
                     </div>
 
                     {/* Event content */}
-                    <div className="flex-1 pb-4">
+                    <div className="flex-1 pb-8">
                       {/* Header */}
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             <h4 className="font-semibold text-lg text-foreground">
                               {safeEvent.title}
                             </h4>
@@ -278,8 +282,8 @@ export default function TimelineEvents({
                             {safeEvent.severityLevel &&
                               getSeverityBadge(safeEvent.severityLevel)}
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            <Calendar className="h-3 w-3 inline mr-1" />
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
                             {format(
                               parseEventDate(safeEvent.date),
                               "MMMM d, yyyy • h:mm a"
@@ -290,8 +294,8 @@ export default function TimelineEvents({
 
                       {/* Summary */}
                       {safeEvent.summary && (
-                        <div className="mb-4">
-                          <p className="text-sm text-foreground leading-relaxed">
+                        <div className="mb-5">
+                          <p className="text-base text-foreground leading-relaxed">
                             {typeof safeEvent.summary === "string"
                               ? safeEvent.summary
                               : JSON.stringify(safeEvent.summary)}
@@ -300,49 +304,45 @@ export default function TimelineEvents({
                       )}
 
                       {/* Upload Info - Date and Type */}
-                      {safeEvent.eventType === "uploaded_report" ||
-                        (safeEvent.reportType && (
-                          <div className="bg-slate-50 dark:bg-slate-950/20 rounded-lg p-3 mb-4 border border-slate-200 dark:border-slate-800">
-                            <div className="grid grid-cols-2 gap-3 text-sm">
-                              <div>
-                                <span className="text-muted-foreground font-medium">
-                                  Upload Date:
+                      {(safeEvent.eventType === "uploaded_report" ||
+                        safeEvent.reportType) && (
+                        <div className="bg-slate-50 dark:bg-slate-900/20 rounded-lg p-4 mb-5 border border-slate-200 dark:border-slate-800">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <span className="text-muted-foreground text-sm font-medium">
+                                Upload Date:
+                              </span>
+                              <p className="font-semibold text-foreground mt-1">
+                                {format(parseEventDate(safeEvent.date), "PPP")}{" "}
+                                at {format(parseEventDate(safeEvent.date), "p")}
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  ({formatRelativeTime(safeEvent.date)})
                                 </span>
-                                <p className="font-semibold text-foreground mt-1">
-                                  {format(
-                                    parseEventDate(safeEvent.date),
-                                    "PPP"
-                                  )}{" "}
-                                  at{" "}
-                                  {format(parseEventDate(safeEvent.date), "p")}
-                                  <span className="text-xs text-muted-foreground ml-2">
-                                    ({formatRelativeTime(safeEvent.date)})
-                                  </span>
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground font-medium">
-                                  Report Type:
-                                </span>
-                                <p className="font-semibold text-foreground mt-1">
-                                  {getEventTypeDisplay(
-                                    safeEvent.eventType,
-                                    safeEvent.reportType
-                                  )}
-                                </p>
-                              </div>
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground text-sm font-medium">
+                                Report Type:
+                              </span>
+                              <p className="font-semibold text-foreground mt-1">
+                                {getEventTypeDisplay(
+                                  safeEvent.eventType,
+                                  safeEvent.reportType
+                                )}
+                              </p>
                             </div>
                           </div>
-                        ))}
+                        </div>
+                      )}
 
                       {/* Analysis Section - for Lab Results and Scans */}
                       {safeEvent.analysis &&
                         safeEvent.analysis.keyFindings &&
                         Array.isArray(safeEvent.analysis.keyFindings) && (
-                          <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 mb-4 border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center justify-between mb-3">
-                              <h5 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-blue-600" />
+                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-5 mb-5 border border-blue-200 dark:border-blue-800">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                              <h5 className="font-semibold text-base text-foreground flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-blue-600" />
                                 🔬 AI Analysis Results
                               </h5>
                               {safeEvent.severityLevel && (
@@ -367,11 +367,11 @@ export default function TimelineEvents({
                               safeEvent.reportType === "mri" ||
                               safeEvent.reportType === "ct_scan" ||
                               safeEvent.eventType === "scan") && (
-                              <div className="mb-3 pb-3 border-b border-blue-200 dark:border-blue-800 text-xs">
-                                <span className="text-muted-foreground">
+                              <div className="mb-4 pb-4 border-b border-blue-200 dark:border-blue-800">
+                                <span className="text-muted-foreground text-sm font-medium">
                                   Diagnostic Result:
                                 </span>
-                                <p className="font-medium text-foreground mt-1">
+                                <p className="font-medium text-foreground mt-1 text-base">
                                   {safeEvent.analysis.diagnosis ||
                                     safeEvent.analysis.summary ||
                                     "AI analysis completed"}
@@ -379,34 +379,34 @@ export default function TimelineEvents({
                               </div>
                             )}
 
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               {safeEvent.analysis.keyFindings.map(
                                 (finding: any, idx: number) => (
                                   <div
                                     key={idx}
-                                    className="flex items-start justify-between p-2 bg-white/10 dark:bg-slate-900/20 backdrop-blur-sm border-white/20 dark:border-white/10 rounded border border-blue-400/30 dark:border-blue-400/20"
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/80 dark:bg-slate-900/40 backdrop-blur-sm border border-blue-400/30 dark:border-blue-400/20 rounded-lg"
                                   >
-                                    <div className="flex-1">
-                                      <span className="font-medium text-sm">
+                                    <div className="flex-1 mb-2 sm:mb-0">
+                                      <span className="font-medium text-base">
                                         {typeof finding.parameter === "string"
                                           ? finding.parameter
                                           : "Finding " + (idx + 1)}
                                       </span>
-                                      <p className="text-xs text-muted-foreground mt-1">
+                                      <p className="text-sm text-muted-foreground mt-1">
                                         {typeof finding.explanation === "string"
                                           ? finding.explanation
                                           : ""}
                                       </p>
                                     </div>
-                                    <div className="text-right ml-4">
-                                      <span className="font-bold text-sm">
+                                    <div className="text-right">
+                                      <span className="font-bold text-lg">
                                         {typeof finding.value === "string" ||
                                         typeof finding.value === "number"
                                           ? finding.value
                                           : ""}
                                       </span>
                                       {finding.normalRange && (
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm text-muted-foreground">
                                           {typeof finding.normalRange ===
                                           "string"
                                             ? finding.normalRange
@@ -421,12 +421,12 @@ export default function TimelineEvents({
 
                             {/* Comparison to previous scans */}
                             {safeEvent.comparisonData && (
-                              <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
-                                <h6 className="font-semibold text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                                  <TrendingUp className="h-3 w-3" />
+                              <div className="mt-5 pt-5 border-t border-blue-200 dark:border-blue-800">
+                                <h6 className="font-semibold text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                                  <TrendingUp className="h-4 w-4" />
                                   COMPARISON TO PREVIOUS SCAN
                                 </h6>
-                                <div className="bg-white/10 dark:bg-slate-900/20 backdrop-blur-sm border-white/20 dark:border-white/10 rounded p-3 text-xs">
+                                <div className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-sm border border-blue-400/30 dark:border-blue-400/20 rounded-lg p-4">
                                   {typeof safeEvent.comparisonData ===
                                   "string" ? (
                                     <p className="text-foreground">
@@ -434,7 +434,7 @@ export default function TimelineEvents({
                                     </p>
                                   ) : safeEvent.comparisonData.trend ? (
                                     <>
-                                      <div className="flex items-center gap-2 mb-2">
+                                      <div className="flex items-center gap-3 mb-3">
                                         <span className="font-medium">
                                           Trend:
                                         </span>
@@ -472,18 +472,18 @@ export default function TimelineEvents({
                                 safeEvent.analysis.recommendations
                               ) &&
                               safeEvent.analysis.recommendations.length > 0 && (
-                                <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
-                                  <h6 className="font-semibold text-xs text-muted-foreground mb-2">
+                                <div className="mt-5 pt-5 border-t border-blue-200 dark:border-blue-800">
+                                  <h6 className="font-semibold text-sm text-muted-foreground mb-3">
                                     💡 RECOMMENDATIONS
                                   </h6>
-                                  <ul className="space-y-1">
+                                  <ul className="space-y-2">
                                     {safeEvent.analysis.recommendations.map(
                                       (rec: any, idx: number) => (
                                         <li
                                           key={idx}
-                                          className="text-xs text-foreground flex items-start gap-2"
+                                          className="text-base text-foreground flex items-start gap-2"
                                         >
-                                          <span className="text-blue-600 mt-0.5">
+                                          <span className="text-blue-600 mt-1">
                                             •
                                           </span>
                                           <span>
@@ -504,36 +504,36 @@ export default function TimelineEvents({
                       {safeEvent.medications &&
                         Array.isArray(safeEvent.medications) &&
                         safeEvent.medications.length > 0 && (
-                          <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 mb-4 border border-green-200 dark:border-green-800">
-                            <h5 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
-                              <Pill className="h-4 w-4 text-green-600" />
+                          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-5 mb-5 border border-green-200 dark:border-green-800">
+                            <h5 className="font-semibold text-base text-foreground mb-4 flex items-center gap-2">
+                              <Pill className="h-5 w-5 text-green-600" />
                               💊 Prescribed Medications
                             </h5>
 
                             {/* Doctor & Prescription Info */}
                             {(safeEvent.doctorInfo?.name || safeEvent.date) && (
-                              <div className="mb-3 pb-3 border-b border-green-200 dark:border-green-800">
-                                <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="mb-4 pb-4 border-b border-green-200 dark:border-green-800">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {safeEvent.doctorInfo?.name && (
                                     <div>
-                                      <span className="text-muted-foreground">
+                                      <span className="text-muted-foreground text-sm font-medium">
                                         Prescribed by:
                                       </span>
-                                      <p className="font-medium text-foreground">
+                                      <p className="font-medium text-foreground mt-1">
                                         {safeEvent.doctorInfo.name}
                                       </p>
                                       {safeEvent.doctorInfo.specialization && (
-                                        <p className="text-muted-foreground text-xs">
+                                        <p className="text-muted-foreground text-sm">
                                           {safeEvent.doctorInfo.specialization}
                                         </p>
                                       )}
                                     </div>
                                   )}
                                   <div>
-                                    <span className="text-muted-foreground">
+                                    <span className="text-muted-foreground text-sm font-medium">
                                       Date Prescribed:
                                     </span>
-                                    <p className="font-medium text-foreground">
+                                    <p className="font-medium text-foreground mt-1">
                                       {format(
                                         parseEventDate(safeEvent.date),
                                         "MMM d, yyyy"
@@ -547,7 +547,7 @@ export default function TimelineEvents({
                               </div>
                             )}
 
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                               {safeEvent.medications.map(
                                 (med: any, idx: number) => {
                                   // Calculate status based on dates
@@ -578,15 +578,15 @@ export default function TimelineEvents({
                                   return (
                                     <div
                                       key={idx}
-                                      className="bg-white/10 dark:bg-slate-900/20 backdrop-blur-sm border-white/20 dark:border-white/10 rounded-lg p-3 border border-green-400/30 dark:border-green-400/20"
+                                      className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-sm border border-green-400/30 dark:border-green-400/20 rounded-lg p-4"
                                     >
-                                      <div className="flex items-start justify-between mb-2">
-                                        <h6 className="font-semibold text-sm text-foreground">
+                                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                                        <h6 className="font-semibold text-base text-foreground">
                                           {typeof med.name === "string"
                                             ? med.name
                                             : "Medication"}
                                         </h6>
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-wrap gap-2">
                                           <Badge
                                             className={
                                               statusColors[
@@ -600,18 +600,18 @@ export default function TimelineEvents({
                                           </Badge>
                                           <Badge
                                             variant="outline"
-                                            className="text-xs"
+                                            className="text-sm"
                                           >
                                             {med.frequency || "As directed"}
                                           </Badge>
                                         </div>
                                       </div>
-                                      <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                         <div>
-                                          <span className="text-muted-foreground">
+                                          <span className="text-muted-foreground text-sm">
                                             Dosage:
                                           </span>
-                                          <span className="ml-2 font-medium">
+                                          <span className="ml-2 font-medium text-base">
                                             {typeof med.dosage === "string"
                                               ? med.dosage
                                               : "See prescription"}
@@ -619,10 +619,10 @@ export default function TimelineEvents({
                                         </div>
                                         {med.duration && (
                                           <div>
-                                            <span className="text-muted-foreground">
+                                            <span className="text-muted-foreground text-sm">
                                               Duration:
                                             </span>
-                                            <span className="ml-2 font-medium">
+                                            <span className="ml-2 font-medium text-base">
                                               {typeof med.duration === "string"
                                                 ? med.duration
                                                 : ""}
@@ -631,7 +631,7 @@ export default function TimelineEvents({
                                         )}
                                       </div>
                                       {med.instructions && (
-                                        <p className="text-xs text-muted-foreground mt-2 p-2 bg-green-50 dark:bg-green-950/30 rounded italic">
+                                        <p className="text-sm text-muted-foreground mt-2 p-3 bg-green-100 dark:bg-green-900/30 rounded italic">
                                           📋{" "}
                                           {typeof med.instructions === "string"
                                             ? med.instructions
@@ -639,7 +639,7 @@ export default function TimelineEvents({
                                         </p>
                                       )}
                                       {med.sideEffects && (
-                                        <div className="mt-2 text-xs p-2 bg-orange-50 dark:bg-orange-950/30 rounded">
+                                        <div className="mt-3 text-sm p-3 bg-orange-50 dark:bg-orange-900/30 rounded">
                                           <span className="text-muted-foreground font-medium">
                                             ⚠️ Possible side effects:
                                           </span>
@@ -661,11 +661,11 @@ export default function TimelineEvents({
 
                             {/* Notes section for prescriptions */}
                             {safeEvent.doctorInfo?.notes && (
-                              <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800 text-xs">
-                                <span className="text-muted-foreground font-medium">
+                              <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-800">
+                                <span className="text-muted-foreground font-medium text-sm">
                                   Notes:
                                 </span>
-                                <p className="text-foreground mt-1">
+                                <p className="text-foreground mt-1 text-base">
                                   {safeEvent.doctorInfo.notes}
                                 </p>
                               </div>
@@ -676,17 +676,17 @@ export default function TimelineEvents({
                       {/* Doctor Information - for Consultations */}
                       {safeEvent.doctorInfo &&
                         safeEvent.eventType === "consultation" && (
-                          <div className="bg-purple-50 dark:bg-purple-950/20 rounded-lg p-4 mb-4 border border-purple-200 dark:border-purple-800">
-                            <h5 className="font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
-                              <Stethoscope className="h-4 w-4 text-purple-600" />
+                          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-5 mb-5 border border-purple-200 dark:border-purple-800">
+                            <h5 className="font-semibold text-base text-foreground mb-4 flex items-center gap-2">
+                              <Stethoscope className="h-5 w-5 text-purple-600" />
                               🩺 Doctor Consultation
                             </h5>
 
                             {/* Consultation Date & Time */}
-                            <div className="mb-3 pb-3 border-b border-purple-200 dark:border-purple-800">
-                              <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div className="mb-4 pb-4 border-b border-purple-200 dark:border-purple-800">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                  <span className="text-muted-foreground">
+                                  <span className="text-muted-foreground text-sm font-medium">
                                     Date & Time:
                                   </span>
                                   <p className="font-medium text-foreground mt-1">
@@ -705,7 +705,7 @@ export default function TimelineEvents({
                                   </p>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">
+                                  <span className="text-muted-foreground text-sm font-medium">
                                     Doctor:
                                   </span>
                                   <p className="font-medium text-foreground mt-1">
@@ -715,7 +715,7 @@ export default function TimelineEvents({
                                       : "Doctor"}
                                   </p>
                                   {safeEvent.doctorInfo.specialization && (
-                                    <p className="text-muted-foreground text-xs">
+                                    <p className="text-muted-foreground text-sm">
                                       {typeof safeEvent.doctorInfo
                                         .specialization === "string"
                                         ? safeEvent.doctorInfo.specialization
@@ -726,13 +726,13 @@ export default function TimelineEvents({
                               </div>
                             </div>
 
-                            <div className="space-y-3 text-sm">
+                            <div className="space-y-4">
                               {safeEvent.doctorInfo.diagnosis && (
-                                <div className="bg-white/10 dark:bg-slate-900/20 backdrop-blur-sm border-white/20 dark:border-white/10 rounded-lg p-3 border border-purple-400/30 dark:border-purple-400/20">
-                                  <span className="text-muted-foreground font-medium text-xs">
+                                <div className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-sm border border-purple-400/30 dark:border-purple-400/20 rounded-lg p-4">
+                                  <span className="text-muted-foreground font-medium text-sm">
                                     DIAGNOSIS:
                                   </span>
-                                  <p className="mt-1 text-foreground">
+                                  <p className="mt-1 text-foreground text-base">
                                     {typeof safeEvent.doctorInfo.diagnosis ===
                                     "string"
                                       ? safeEvent.doctorInfo.diagnosis
@@ -743,11 +743,11 @@ export default function TimelineEvents({
                                 </div>
                               )}
                               {safeEvent.doctorInfo.treatmentPlan && (
-                                <div className="bg-white/10 dark:bg-slate-900/20 backdrop-blur-sm border-white/20 dark:border-white/10 rounded-lg p-3 border border-purple-400/30 dark:border-purple-400/20">
-                                  <span className="text-muted-foreground font-medium text-xs">
+                                <div className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-sm border border-purple-400/30 dark:border-purple-400/20 rounded-lg p-4">
+                                  <span className="text-muted-foreground font-medium text-sm">
                                     TREATMENT PLAN:
                                   </span>
-                                  <p className="mt-1 text-foreground">
+                                  <p className="mt-1 text-foreground text-base">
                                     {typeof safeEvent.doctorInfo
                                       .treatmentPlan === "string"
                                       ? safeEvent.doctorInfo.treatmentPlan
@@ -758,11 +758,11 @@ export default function TimelineEvents({
                                 </div>
                               )}
                               {safeEvent.doctorInfo.notes && (
-                                <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3 border border-amber-100 dark:border-amber-900">
-                                  <span className="text-muted-foreground font-medium text-xs">
+                                <div className="bg-amber-50 dark:bg-amber-900/30 rounded-lg p-4 border border-amber-100 dark:border-amber-900">
+                                  <span className="text-muted-foreground font-medium text-sm">
                                     📝 DOCTOR'S NOTES:
                                   </span>
-                                  <p className="mt-1 text-foreground text-xs">
+                                  <p className="mt-1 text-foreground text-base">
                                     {typeof safeEvent.doctorInfo.notes ===
                                     "string"
                                       ? safeEvent.doctorInfo.notes
@@ -773,13 +773,13 @@ export default function TimelineEvents({
                                 </div>
                               )}
                               {safeEvent.doctorInfo.nextConsultation && (
-                                <div className="flex items-center gap-2 p-3 bg-purple-100 dark:bg-purple-950/50 rounded-lg">
-                                  <Calendar className="h-4 w-4 text-purple-600" />
+                                <div className="flex items-center gap-3 p-4 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+                                  <Calendar className="h-5 w-5 text-purple-600" />
                                   <div>
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-sm text-muted-foreground">
                                       Next Consultation:
                                     </span>
-                                    <span className="ml-2 font-medium text-purple-700 dark:text-purple-400">
+                                    <span className="ml-2 font-medium text-purple-700 dark:text-purple-400 text-base">
                                       {format(
                                         parseEventDate(
                                           safeEvent.doctorInfo.nextConsultation
@@ -805,12 +805,12 @@ export default function TimelineEvents({
                       {safeEvent.metrics &&
                         typeof safeEvent.metrics === "object" &&
                         Object.keys(safeEvent.metrics).length > 0 && (
-                          <div className="bg-teal-50 dark:bg-teal-950/20 rounded-lg p-4 mb-4 border border-teal-200 dark:border-teal-800">
-                            <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                              <Activity className="h-4 w-4 text-teal-600" />
+                          <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-5 mb-5 border border-teal-200 dark:border-teal-800">
+                            <h5 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+                              <Activity className="h-5 w-5 text-teal-600" />
                               📈 Health Progress Indicators
                             </h5>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                               {Object.entries(safeEvent.metrics).map(
                                 ([key, value]) => {
                                   // Define units and normal ranges for common metrics
@@ -862,31 +862,31 @@ export default function TimelineEvents({
                                   return (
                                     <div
                                       key={key}
-                                      className="bg-white/10 dark:bg-slate-900/20 backdrop-blur-sm border-white/20 dark:border-white/10 p-3 rounded-lg border border-teal-400/30 dark:border-teal-400/20 hover:shadow-md transition-shadow"
+                                      className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-sm border border-teal-400/30 dark:border-teal-400/20 p-4 rounded-lg hover:shadow-md transition-shadow"
                                     >
-                                      <div className="flex items-center gap-1 mb-1">
-                                        <span className="text-base">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-lg">
                                           {info.icon}
                                         </span>
-                                        <span className="text-xs text-muted-foreground">
+                                        <span className="text-sm text-muted-foreground">
                                           {displayName}
                                         </span>
                                       </div>
-                                      <div className="flex items-baseline gap-1">
-                                        <span className="text-xl font-bold text-foreground">
+                                      <div className="flex items-baseline gap-2">
+                                        <span className="text-2xl font-bold text-foreground">
                                           {typeof value === "string" ||
                                           typeof value === "number"
                                             ? value
                                             : JSON.stringify(value)}
                                         </span>
                                         {info.unit && (
-                                          <span className="text-xs text-muted-foreground">
+                                          <span className="text-sm text-muted-foreground">
                                             {info.unit}
                                           </span>
                                         )}
                                       </div>
                                       {info.normal && (
-                                        <span className="text-xs text-muted-foreground">
+                                        <span className="text-xs text-muted-foreground mt-1 block">
                                           Normal: {info.normal}
                                         </span>
                                       )}
@@ -898,9 +898,9 @@ export default function TimelineEvents({
 
                             {/* Trend indicator if available */}
                             {safeEvent.riskLevel && (
-                              <div className="mt-3 pt-3 border-t border-teal-200 dark:border-teal-800 flex items-center gap-2">
+                              <div className="mt-4 pt-4 border-t border-teal-200 dark:border-teal-800 flex items-center gap-2">
                                 <TrendingUp
-                                  className={`h-4 w-4 ${
+                                  className={`h-5 w-5 ${
                                     safeEvent.riskLevel === "low"
                                       ? "text-green-600"
                                       : safeEvent.riskLevel === "medium"
@@ -908,7 +908,7 @@ export default function TimelineEvents({
                                       : "text-red-600"
                                   }`}
                                 />
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-sm text-muted-foreground">
                                   Risk Level Changes:
                                   <Badge
                                     className={`ml-2 ${
@@ -932,8 +932,8 @@ export default function TimelineEvents({
 
                       {/* Notes */}
                       {safeEvent.notes && (
-                        <div className="bg-accent/50 rounded-lg p-3 mb-4">
-                          <p className="text-sm text-foreground">
+                        <div className="bg-accent/50 rounded-lg p-4 mb-5">
+                          <p className="text-base text-foreground">
                             <strong className="text-muted-foreground">
                               Notes:
                             </strong>{" "}
@@ -947,8 +947,8 @@ export default function TimelineEvents({
                       {/* Description */}
                       {safeEvent.description &&
                         safeEvent.description !== safeEvent.summary && (
-                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 mb-4">
-                            <p className="text-sm text-foreground">
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 mb-5">
+                            <p className="text-base text-foreground">
                               {typeof safeEvent.description === "string"
                                 ? safeEvent.description
                                 : JSON.stringify(safeEvent.description)}
@@ -957,14 +957,15 @@ export default function TimelineEvents({
                         )}
 
                       {/* Action Buttons */}
-                      <div className="flex items-center gap-2 mt-4">
+                      <div className="flex items-center gap-3 mt-5">
                         {safeEvent.fileUrl && (
                           <Button
                             variant="outline"
                             size="sm"
                             data-testid={`view-report-${index}`}
+                            className="flex items-center gap-2"
                           >
-                            <Eye className="h-4 w-4 mr-2" />
+                            <Eye className="h-4 w-4" />
                             View Report
                           </Button>
                         )}
@@ -973,8 +974,9 @@ export default function TimelineEvents({
                             variant="outline"
                             size="sm"
                             data-testid={`download-report-${index}`}
+                            className="flex items-center gap-2"
                           >
-                            <Download className="h-4 w-4 mr-2" />
+                            <Download className="h-4 w-4" />
                             Download
                           </Button>
                         )}

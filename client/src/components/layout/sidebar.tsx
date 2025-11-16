@@ -73,6 +73,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: "My Reports", href: "/reports", icon: FileText },
     { name: "Medications", href: "/medications", icon: Pill },
     { name: "Health Timeline", href: "/timeline", icon: Clock },
+    { name: "Timeline Demo", href: "/health-timeline-demo", icon: Heart },
+    {
+      name: "Production Demo",
+      href: "/health-timeline-production-demo",
+      icon: Heart,
+    },
     { name: "Reminders", href: "/reminders", icon: Bell },
     { name: "Share with Doctor", href: "/share", icon: Share },
     { name: "Profile", href: "/profile", icon: UserCircle },

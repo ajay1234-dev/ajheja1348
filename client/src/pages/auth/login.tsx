@@ -26,6 +26,8 @@ import {
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 
@@ -42,6 +44,30 @@ export default function Login() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Listen for auth state changes
+    if (!auth) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in, get ID token and proceed
+        try {
+          const idToken = await user.getIdToken();
+          setPendingIdToken(idToken);
+          setShowRoleDialog(true);
+          setIsGoogleLoading(false);
+        } catch (error) {
+          console.error("Error getting ID token:", error);
+          toast({
+            title: "Authentication error",
+            description: "Failed to authenticate. Please try again.",
+            variant: "destructive",
+          });
+          setIsGoogleLoading(false);
+        }
+      }
+    });
+
+    // Handle redirect result
     const handleRedirectResult = async () => {
       if (!auth) return;
 
@@ -51,7 +77,6 @@ export default function Login() {
           setIsGoogleLoading(true);
 
           const idToken = await result.user.getIdToken();
-
           setPendingIdToken(idToken);
           setShowRoleDialog(true);
           setIsGoogleLoading(false);
@@ -68,6 +93,9 @@ export default function Login() {
     };
 
     handleRedirectResult();
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,17 +103,82 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password, role);
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
-      });
-    } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Invalid email, password, or role. Please try again.",
-        variant: "destructive",
-      });
+      // Try to sign in with email and password using Firebase
+      if (auth) {
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          const idToken = await userCredential.user.getIdToken();
+
+          // Use Firebase login instead of traditional login
+          await loginWithFirebase(idToken, role);
+
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully logged in.",
+          });
+        } catch (firebaseError: any) {
+          // If Firebase authentication fails, fall back to traditional login
+          // This handles cases where user has a traditional account but Firebase is configured
+          console.log(
+            "Firebase auth failed, trying traditional login:",
+            firebaseError
+          );
+          await login(email, password, role);
+
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully logged in.",
+          });
+        }
+      } else {
+        // Fallback to traditional login if Firebase is not configured
+        await login(email, password, role);
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully logged in.",
+        });
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      // Check if it's a Firebase error
+      if (error.code) {
+        let errorMessage =
+          "Invalid email, password, or role. Please try again.";
+
+        switch (error.code) {
+          case "auth/user-not-found":
+            errorMessage =
+              "No user found with this email. Please check your email or register.";
+            break;
+          case "auth/wrong-password":
+            errorMessage = "Incorrect password. Please try again.";
+            break;
+          case "auth/invalid-email":
+            errorMessage = "Invalid email format. Please check your email.";
+            break;
+          case "auth/user-disabled":
+            errorMessage =
+              "This account has been disabled. Please contact support.";
+            break;
+        }
+
+        toast({
+          title: "Login failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login failed",
+          description: "Invalid email, password, or role. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +220,7 @@ export default function Login() {
 
       toast({
         title: "Welcome!",
-        description: "You have successfully signed in with Google.",
+        description: "You have successfully signed in.",
       });
     } catch (error) {
       console.error("Firebase login error:", error);

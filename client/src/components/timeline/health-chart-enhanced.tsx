@@ -38,7 +38,7 @@ const isNumeric = (value: any): value is number => {
 const parseNumericValue = (value: any): number | null => {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
-    const num = parseFloat(value.replace(/[^\d.-]/g, ""));
+    const num = parseFloat(value.replace(/[^\\d.-]/g, ""));
     return isNaN(num) ? null : num;
   }
   return null;
@@ -54,6 +54,30 @@ const formatValue = (value: number | string): string => {
   } else {
     return value.toString();
   }
+};
+
+// Calculate Y-axis domain with 10% padding
+const calculateYAxisDomain = (values: number[]): [number, number] => {
+  // Filter out any NaN or invalid values
+  const validValues = values.filter((val) => !isNaN(val) && isFinite(val));
+
+  if (validValues.length === 0) {
+    return [0, 1];
+  }
+
+  // If all values are the same, create a small range around that value
+  const minValue = Math.min(...validValues);
+  const maxValue = Math.max(...validValues);
+
+  if (minValue === maxValue) {
+    const value = minValue;
+    const range = Math.abs(value) * 0.1 || 1; // 10% of value or 1 if value is 0
+    return [value - range, value + range];
+  }
+
+  // Otherwise create a 10% buffer around min/max
+  const range = (maxValue - minValue) * 0.1;
+  return [minValue - range, maxValue + range];
 };
 
 // Metric category definitions
@@ -131,7 +155,9 @@ const CombinedChartTooltip = ({ active, payload, label }: any) => {
               />
               <span className="text-sm text-foreground">{entry.dataKey}</span>
             </div>
-            <span className="font-medium text-foreground">{entry.value}</span>
+            <span className="font-medium text-foreground">
+              {isNumeric(entry.value) ? formatValue(entry.value) : entry.value}
+            </span>
           </div>
         ))}
       </div>
@@ -147,7 +173,11 @@ const MiniChartTooltip = ({ active, payload, label }: any) => {
       <div className="bg-card border border-border rounded-lg p-3 shadow-lg dark:bg-slate-800">
         <p className="font-medium text-foreground text-sm">{label}</p>
         <p className="text-xs text-foreground mt-1">
-          {`${payload[0].dataKey}: ${payload[0].value}`}
+          {`${payload[0].dataKey}: ${
+            isNumeric(payload[0].value)
+              ? formatValue(payload[0].value)
+              : payload[0].value
+          }`}
         </p>
       </div>
     );
@@ -206,25 +236,12 @@ const MiniChart = ({
 
   // Calculate Y-axis domain for auto-scaling
   const yAxisDomain = useMemo(() => {
-    const numericValues = metricData.map((d) => d.value).filter(isNumeric);
+    const numericValues = metricData
+      .map((d) => d.value)
+      .filter(isNumeric)
+      .filter((val) => !isNaN(val as number));
 
-    if (numericValues.length === 0) {
-      return [0, 1];
-    }
-
-    // If all values are the same, create a small range around that value
-    const minValue = Math.min(...numericValues);
-    const maxValue = Math.max(...numericValues);
-
-    if (minValue === maxValue) {
-      const value = minValue;
-      const range = Math.abs(value) * 0.1 || 1; // 10% of value or 1 if value is 0
-      return [value - range, value + range];
-    }
-
-    // Otherwise create a 10% buffer around min/max
-    const range = (maxValue - minValue) * 0.1;
-    return [minValue - range, maxValue + range];
+    return calculateYAxisDomain(numericValues);
   }, [metricData]);
 
   // Format display name
@@ -253,7 +270,13 @@ const MiniChart = ({
         <div className="h-32">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={metricData}
+              data={metricData.filter((d) => {
+                // Filter out data points with NaN values
+                if (isNumeric(d.value)) {
+                  return !isNaN(d.value as number);
+                }
+                return true; // Keep non-numeric values (text)
+              })}
               margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
             >
               <CartesianGrid
@@ -408,10 +431,17 @@ export default function HealthChart({
             };
           }
 
+          // Filter out NaN values
+          const finalValue = numericValue !== null ? numericValue : metricValue;
+          if (isNumeric(finalValue) && isNaN(finalValue as number)) {
+            // Skip NaN values
+            return;
+          }
+
           // Add data point
           metricMap[metricKey].data.push({
             date: event.date,
-            value: numericValue !== null ? numericValue : metricValue,
+            value: finalValue,
             eventType: eventType,
           });
         });
@@ -478,7 +508,13 @@ export default function HealthChart({
         eventType: point.eventType,
       };
       filteredMetrics.forEach((metric) => {
-        filteredPoint[metric] = point[metric];
+        const value = point[metric];
+        // Filter out NaN values
+        if (isNumeric(value) && isNaN(value as number)) {
+          filteredPoint[metric] = null;
+        } else {
+          filteredPoint[metric] = value;
+        }
       });
       return filteredPoint;
     });
@@ -607,7 +643,20 @@ export default function HealthChart({
         <div className="h-80 mb-8 rounded-xl border border-border p-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={filteredChartData}
+              data={filteredChartData.map((point) => {
+                // Filter out NaN values from the data point
+                const filteredPoint: Record<string, any> = {};
+                Object.entries(point).forEach(([key, value]) => {
+                  if (key === "date" || key === "eventType") {
+                    filteredPoint[key] = value;
+                  } else if (isNumeric(value)) {
+                    filteredPoint[key] = isNaN(value as number) ? null : value;
+                  } else {
+                    filteredPoint[key] = value;
+                  }
+                });
+                return filteredPoint;
+              })}
               margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
               <CartesianGrid
@@ -632,7 +681,8 @@ export default function HealthChart({
               {filteredMetrics.map((metric) => {
                 const numericValues = filteredChartData
                   .map((d) => d[metric])
-                  .filter(isNumeric);
+                  .filter(isNumeric)
+                  .filter((val) => !isNaN(val as number));
 
                 if (numericValues.length === 0) return null;
 
@@ -663,40 +713,51 @@ export default function HealthChart({
               })}
 
               {/* Event markers */}
-              {filteredChartData.map((point, index) => (
-                <ReferenceDot
-                  key={`marker-${index}`}
-                  x={point.date}
-                  y={Object.values(point).find(isNumeric) || 0}
-                  r={6}
-                  fill="#ffffff"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  shape={(props) => (
-                    <g transform={`translate(${props.cx},${props.cy})`}>
-                      <circle
-                        cx="0"
-                        cy="0"
-                        r="6"
-                        fill="#ffffff"
-                        stroke="#3b82f6"
-                        strokeWidth="2"
-                      />
-                      <text
-                        x="0"
-                        y="1"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        fontSize="10"
-                        fill="#3b82f6"
-                        fontWeight="bold"
-                      >
-                        {getEventIcon(point.eventType)}
-                      </text>
-                    </g>
-                  )}
-                />
-              ))}
+              {filteredChartData.map((point, index) => {
+                // Find the first numeric value that is not NaN
+                const numericValue = Object.values(point).find(
+                  (val) => isNumeric(val) && !isNaN(val as number)
+                );
+                const yValue =
+                  numericValue !== undefined && !isNaN(numericValue as number)
+                    ? numericValue
+                    : 0;
+
+                return (
+                  <ReferenceDot
+                    key={`marker-${index}`}
+                    x={point.date}
+                    y={yValue}
+                    r={6}
+                    fill="#ffffff"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    shape={(props) => (
+                      <g transform={`translate(${props.cx},${props.cy})`}>
+                        <circle
+                          cx="0"
+                          cy="0"
+                          r="6"
+                          fill="#ffffff"
+                          stroke="#3b82f6"
+                          strokeWidth="2"
+                        />
+                        <text
+                          x="0"
+                          y="1"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fontSize="10"
+                          fill="#3b82f6"
+                          fontWeight="bold"
+                        >
+                          {getEventIcon(point.eventType)}
+                        </text>
+                      </g>
+                    )}
+                  />
+                );
+              })}
             </LineChart>
           </ResponsiveContainer>
         </div>
