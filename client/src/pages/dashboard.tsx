@@ -43,6 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ScrollGradients, GradientText } from "@/components/ui";
 
 interface Doctor {
   id: string;
@@ -232,11 +233,33 @@ export default function Dashboard() {
           >
             <div className="text-center px-4">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg">
-                Your Health Dashboard
+                <GradientText
+                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                  animationSpeed={3}
+                  showBorder={false}
+                  className="text-3xl md:text-4xl lg:text-5xl font-bold"
+                >
+                  Your Health Dashboard
+                </GradientText>
               </h1>
-              <p className="text-white/90 text-base md:text-lg lg:text-xl drop-shadow-md">
-                Monitor your health journey with AI-powered insights
-              </p>
+              <div className="space-y-2">
+                <GradientText
+                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                  animationSpeed={3}
+                  showBorder={false}
+                  className="text-white/90 text-base md:text-lg lg:text-xl font-medium block"
+                >
+                  {(() => {
+                    const hour = new Date().getHours();
+                    if (hour < 12) return "Good morning";
+                    if (hour < 18) return "Good afternoon";
+                    return "Good evening";
+                  })()}! Welcome to your health dashboard.
+                </GradientText>
+                <p className="text-white/90 text-base md:text-lg lg:text-xl drop-shadow-md">
+                  Monitor your health journey with AI-powered insights
+                </p>
+              </div>
             </div>
           </HeroCarousel>
         </div>
@@ -458,132 +481,134 @@ export default function Dashboard() {
                 )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {assignedDoctors.map((doctor) => {
-                  const hasActiveTreatment =
-                    doctor.treatmentStatus === "active";
-                  const hasCompletedTreatment =
-                    doctor.treatmentStatus === "completed";
-                  const hasPendingApproval =
-                    doctor.approvalStatus === "pending";
+            <CardContent className="p-0">
+              <ScrollGradients className="h-96" hideScrollbar={true}>
+                <div className="space-y-4 p-6">
+                  {assignedDoctors.map((doctor) => {
+                    const hasActiveTreatment =
+                      doctor.treatmentStatus === "active";
+                    const hasCompletedTreatment =
+                      doctor.treatmentStatus === "completed";
+                    const hasPendingApproval =
+                      doctor.approvalStatus === "pending";
 
-                  return (
-                    <div
-                      key={doctor.id}
-                      className={`bg-gray-50 dark:bg-slate-700 border rounded-lg p-6 hover:shadow-md transition-shadow ${
-                        hasPendingApproval
-                          ? "border-amber-400 bg-amber-50 dark:bg-amber-900/20"
-                          : hasActiveTreatment
-                          ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                          : hasCompletedTreatment
-                          ? "border-green-400 bg-green-50 dark:bg-green-900/20"
-                          : "border-gray-200 dark:border-slate-600"
-                      }`}
-                      data-testid={`doctor-card-${doctor.id}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div
-                          className="flex items-center space-x-4 flex-1 cursor-pointer"
-                          onClick={() => setSelectedDoctor(doctor)}
-                        >
-                          {doctor.profilePictureUrl ? (
-                            <img
-                              src={doctor.profilePictureUrl}
-                              alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
-                              className={`w-16 h-16 rounded-lg object-cover border-2 ${
-                                hasPendingApproval
-                                  ? "border-amber-500"
-                                  : hasActiveTreatment
-                                  ? "border-blue-500"
-                                  : hasCompletedTreatment
-                                  ? "border-green-500"
-                                  : "border-primary"
-                              }`}
-                            />
-                          ) : (
-                            <div
-                              className={`w-16 h-16 rounded-lg flex items-center justify-center ${
-                                hasPendingApproval
-                                  ? "bg-amber-500"
-                                  : hasActiveTreatment
-                                  ? "bg-blue-500"
-                                  : hasCompletedTreatment
-                                  ? "bg-green-500"
-                                  : "bg-primary"
-                              }`}
-                            >
-                              <UserIcon className="h-8 w-8 text-white" />
-                            </div>
-                          )}
-                          <div>
-                            <h3 className="font-semibold text-lg">
-                              Dr. {doctor.firstName} {doctor.lastName}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {doctor.email}
-                            </p>
-                            {hasPendingApproval && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                                <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
-                                  Pending Your Approval
-                                </span>
+                    return (
+                      <div
+                        key={doctor.id}
+                        className={`bg-gray-50 dark:bg-slate-700 border rounded-lg p-6 hover:shadow-md transition-shadow ${
+                          hasPendingApproval
+                            ? "border-amber-400 bg-amber-50 dark:bg-amber-900/20"
+                            : hasActiveTreatment
+                            ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                            : hasCompletedTreatment
+                            ? "border-green-400 bg-green-50 dark:bg-green-900/20"
+                            : "border-gray-200 dark:border-slate-600"
+                        }`}
+                        data-testid={`doctor-card-${doctor.id}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div
+                            className="flex items-center space-x-4 flex-1 cursor-pointer"
+                            onClick={() => setSelectedDoctor(doctor)}
+                          >
+                            {doctor.profilePictureUrl ? (
+                              <img
+                                src={doctor.profilePictureUrl}
+                                alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+                                className={`w-16 h-16 rounded-lg object-cover border-2 ${
+                                  hasPendingApproval
+                                    ? "border-amber-500"
+                                    : hasActiveTreatment
+                                    ? "border-blue-500"
+                                    : hasCompletedTreatment
+                                    ? "border-green-500"
+                                    : "border-primary"
+                                }`}
+                              />
+                            ) : (
+                              <div
+                                className={`w-16 h-16 rounded-lg flex items-center justify-center ${
+                                  hasPendingApproval
+                                    ? "bg-amber-500"
+                                    : hasActiveTreatment
+                                    ? "bg-blue-500"
+                                    : hasCompletedTreatment
+                                    ? "bg-green-500"
+                                    : "bg-primary"
+                                }`}
+                              >
+                                <UserIcon className="h-8 w-8 text-white" />
                               </div>
                             )}
-                            {hasActiveTreatment && !hasPendingApproval && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                                <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
-                                  Active Treatment
-                                </span>
-                              </div>
-                            )}
-                            {hasCompletedTreatment && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                                <span className="text-xs text-green-600 dark:text-green-400 font-semibold">
-                                  Treatment Completed
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right space-y-2">
-                          {doctor.specialization && (
-                            <Badge className="mt-2">
-                              {doctor.specialization}
-                            </Badge>
-                          )}
-                          {doctor.assignedDate && (
-                            <p className="text-xs text-muted-foreground">
-                              Assigned:{" "}
-                              {safeFormatDate(
-                                doctor.assignedDate,
-                                "MMM dd, yyyy"
+                            <div>
+                              <h3 className="font-semibold text-lg">
+                                Dr. {doctor.firstName} {doctor.lastName}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {doctor.email}
+                              </p>
+                              {hasPendingApproval && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                                  <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
+                                    Pending Your Approval
+                                  </span>
+                                </div>
                               )}
-                            </p>
-                          )}
-                          {doctor.detectedSpecialization &&
-                            doctor.detectedSpecialization !==
-                              doctor.specialization && (
+                              {hasActiveTreatment && !hasPendingApproval && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                  <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
+                                    Active Treatment
+                                  </span>
+                                </div>
+                              )}
+                              {hasCompletedTreatment && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                  <span className="text-xs text-green-600 dark:text-green-400 font-semibold">
+                                    Treatment Completed
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right space-y-2">
+                            {doctor.specialization && (
+                              <Badge className="mt-2">
+                                {doctor.specialization}
+                              </Badge>
+                            )}
+                            {doctor.assignedDate && (
                               <p className="text-xs text-muted-foreground">
-                                For: {doctor.detectedSpecialization}
+                                Assigned:{" "}
+                                {safeFormatDate(
+                                  doctor.assignedDate,
+                                  "MMM dd, yyyy"
+                                )}
                               </p>
                             )}
-                          <Button
-                            onClick={() => setSelectedDoctor(doctor)}
-                            size="sm"
-                            className="mt-2"
-                          >
-                            View Details
-                          </Button>
+                            {doctor.detectedSpecialization &&
+                              doctor.detectedSpecialization !==
+                                doctor.specialization && (
+                                <p className="text-xs text-muted-foreground">
+                                  For: {doctor.detectedSpecialization}
+                                </p>
+                              )}
+                            <Button
+                              onClick={() => setSelectedDoctor(doctor)}
+                              size="sm"
+                              className="mt-2"
+                            >
+                              View Details
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              </ScrollGradients>
             </CardContent>
           </Card>
         ) : null}
@@ -635,63 +660,68 @@ export default function Dashboard() {
             ) : healthTimeline &&
               Array.isArray(healthTimeline) &&
               healthTimeline.length > 0 ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="p-5 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-primary/20">
-                    <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
-                      Timeline Events
-                    </p>
-                    <p className="text-3xl font-bold text-foreground mt-2">
-                      {healthTimeline.length}
-                    </p>
-                  </div>
-                  <div className="p-5 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-blue-500/20">
-                    <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
-                      Reports
-                    </p>
-                    <p className="text-3xl font-bold text-foreground mt-2">
-                      {stats?.totalReports || 0}
-                    </p>
-                  </div>
-                  <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-green-500/20">
-                    <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
-                      Medications
-                    </p>
-                    <p className="text-3xl font-bold text-foreground mt-2">
-                      {stats?.activeMedications || 0}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {healthTimeline.slice(0, 3).map((event: any) => (
-                    <div
-                      key={event.id}
-                      className="p-4 border-2 border-border rounded-xl hover:shadow-lg hover:border-primary/30 smooth-transition hover-lift bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-900"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-semibold text-foreground">
-                            {event.title}
-                          </h4>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {event.description}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="ml-2 font-semibold">
-                          {event.eventType}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground font-medium mt-2">
-                        {safeFormatDate(event.date, "MMM dd, yyyy")}
+              <ScrollGradients className="h-96" hideScrollbar={true}>
+                <div className="space-y-4 p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="p-5 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-primary/20">
+                      <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
+                        Timeline Events
+                      </p>
+                      <p className="text-3xl font-bold text-foreground mt-2">
+                        {healthTimeline.length}
                       </p>
                     </div>
-                  ))}
+                    <div className="p-5 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-blue-500/20">
+                      <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
+                        Reports
+                      </p>
+                      <p className="text-3xl font-bold text-foreground mt-2">
+                        {stats?.totalReports || 0}
+                      </p>
+                    </div>
+                    <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-green-500/20">
+                      <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
+                        Medications
+                      </p>
+                      <p className="text-3xl font-bold text-foreground mt-2">
+                        {stats?.activeMedications || 0}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {healthTimeline.slice(0, 10).map((event: any) => (
+                      <div
+                        key={event.id}
+                        className="p-4 border-2 border-border rounded-xl hover:shadow-lg hover:border-primary/30 smooth-transition hover-lift bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-900"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-semibold text-foreground">
+                              {event.title}
+                            </h4>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {event.description}
+                            </p>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className="ml-2 font-semibold"
+                          >
+                            {event.eventType}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground font-medium mt-2">
+                          {safeFormatDate(event.date, "MMM dd, yyyy")}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-4">
+                    Track your health progress, view medical reports, and
+                    monitor medication adherence over time.
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Track your health progress, view medical reports, and monitor
-                  medication adherence over time.
-                </p>
-              </div>
+              </ScrollGradients>
             ) : (
               <div className="text-center py-8">
                 <svg

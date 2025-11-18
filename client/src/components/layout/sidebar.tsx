@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
+import AnimatedList from "@/components/ui/animated-list";
+import { ScrollGradients } from "@/components/ui";
 import {
   LayoutDashboard,
   Upload,
@@ -38,7 +40,7 @@ interface NavigationItem {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
 
@@ -101,6 +103,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   };
 
+  const handleNavigationSelect = (item: string, index: number) => {
+    const navItem = navigation[index];
+    if (navItem) {
+      // Navigate to the selected item using wouter
+      setLocation(navItem.href);
+      if (isMobile) {
+        onClose();
+      }
+    }
+  };
+
   const sidebarClasses = cn(
     "fixed lg:static inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 shadow-lg transform transition-all duration-300 ease-in-out",
     {
@@ -136,58 +149,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
         </div>
 
-        {/* Navigation Menu */}
-        <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-2 sm:space-y-3 smooth-scrollbar overflow-y-auto">
-          {navigation.map((item, index) => {
-            const isActive = location === item.href;
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-semibold rounded-lg transition-all",
-                  {
-                    "bg-primary text-primary-foreground border-2 border-primary/50 shadow-lg":
-                      isActive,
-                    "text-muted-foreground hover:text-foreground hover:bg-muted border-2 border-transparent":
-                      !isActive,
-                  }
-                )}
-                onClick={() => isMobile && onClose()}
-                data-testid={`nav-${item.name
-                  .toLowerCase()
-                  .replace(/\s+/g, "-")}`}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div
-                  className={cn(
-                    "w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mr-2 sm:mr-3",
-                    {
-                      "bg-white text-primary": isActive,
-                      "bg-muted text-foreground": !isActive,
-                    }
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </div>
-                <span className="hidden sm:inline">{item.name}</span>
-                <span className="sm:hidden text-xs">
-                  {item.name.split(" ")[0]}
-                </span>
-                {item.badge && (
-                  <Badge className="ml-2 bg-amber-500 text-white text-xs">
-                    {item.badge}
-                  </Badge>
-                )}
-              </Link>
-            );
-          })}
+        {/* Navigation Menu with AnimatedList */}
+        <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-2 sm:space-y-3 bg-white dark:bg-slate-800">
+          <ScrollGradients className="h-full" hideScrollbar={true}>
+            <AnimatedList
+              items={navigation.map((item) => item.name)}
+              onItemSelect={handleNavigationSelect}
+              showGradients={false} // We're using our new component now
+              enableArrowNavigation={true}
+              displayScrollbar={false}
+              className="w-full"
+            />
+          </ScrollGradients>
         </nav>
 
         {/* User Profile Section */}
-        <div className="border-t border-gray-200 dark:border-slate-700 p-3 sm:p-4 bg-gray-50 dark:bg-slate-800">
+        <div className="border-t border-gray-200 dark:border-slate-700 p-3 sm:p-4 bg-white dark:bg-slate-800">
           <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3 p-2 sm:p-3 rounded-lg bg-muted border border-gray-200 dark:border-slate-700 hover:bg-muted/80 transition-all">
             {user?.profilePictureUrl ? (
               <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-primary">

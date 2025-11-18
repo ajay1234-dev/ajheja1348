@@ -50,14 +50,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
             onClick={onMenuClick}
             data-testid="menu-button"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </Button>
 
           <div>
-            <h1 className="text-xl font-bold text-foreground gradient-text">
+            <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
               Health Dashboard
             </h1>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-sm text-blue-500 dark:text-blue-300 font-medium">
               {getGreeting()}, {user?.firstName}!
             </p>
           </div>

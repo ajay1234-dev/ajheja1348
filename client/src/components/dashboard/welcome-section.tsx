@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { HoverMotion, FloatingMotion } from "@/components/ui/motion-wrapper";
+import { GradientText } from "@/components/ui";
 import { UserRound } from "lucide-react";
 
 export default function WelcomeSection() {
@@ -20,8 +21,15 @@ export default function WelcomeSection() {
         <CardContent className="p-8">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                {getGreeting()}, {user?.firstName}!
+              <h2 className="text-4xl font-bold mb-3">
+                <GradientText
+                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                  animationSpeed={3}
+                  showBorder={false}
+                  className="text-4xl font-bold"
+                >
+                  {getGreeting()}, {user?.firstName}!
+                </GradientText>
               </h2>
               <p className="text-foreground text-xl font-medium">
                 Here's your health summary for today

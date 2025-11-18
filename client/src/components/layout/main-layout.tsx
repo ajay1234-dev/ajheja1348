@@ -8,6 +8,7 @@ import {
 import Sidebar from "./sidebar";
 import Header from "./header";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollGradients } from "@/components/ui";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -46,7 +47,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header onMenuClick={() => setSidebarOpen(true)} />
 
-          <main className="flex-1 overflow-y-auto p-6 smooth-scrollbar">
+          <main className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-900">
             <PageTransition>
               <div className="max-w-7xl mx-auto">
                 <StaggerContainer>

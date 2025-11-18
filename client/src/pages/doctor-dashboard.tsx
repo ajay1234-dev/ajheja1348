@@ -30,6 +30,7 @@ import {
   Eye,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
+import { GradientText } from "@/components/ui";
 import {
   HeroCarousel,
   DOCTOR_CAROUSEL_IMAGES,
@@ -207,7 +208,14 @@ export default function DoctorDashboard() {
                     <Stethoscope className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-white" />
                   </div>
                 )}
-                Dr. {user?.firstName} {user?.lastName}
+                <GradientText
+                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                  animationSpeed={3}
+                  showBorder={false}
+                  className="text-3xl md:text-4xl lg:text-5xl font-bold"
+                >
+                  Dr. {user?.firstName} {user?.lastName}
+                </GradientText>
               </h1>
               <p className="text-white/90 text-base md:text-lg lg:text-xl drop-shadow-md flex items-center justify-center gap-2 md:gap-3 flex-wrap">
                 {user?.specialization && (
@@ -215,6 +223,19 @@ export default function DoctorDashboard() {
                     {user.specialization}
                   </Badge>
                 )}
+                <GradientText
+                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                  animationSpeed={3}
+                  showBorder={false}
+                  className="text-white/90 text-base md:text-lg lg:text-xl font-medium"
+                >
+                  {(() => {
+                    const hour = new Date().getHours();
+                    if (hour < 12) return "Good morning";
+                    if (hour < 18) return "Good afternoon";
+                    return "Good evening";
+                  })()}, Dr. {user?.firstName}!
+                </GradientText>
                 <span className="hidden sm:inline">
                   View and manage your patients' health records and reports
                 </span>
