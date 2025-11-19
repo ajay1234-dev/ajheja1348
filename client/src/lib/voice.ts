@@ -6,6 +6,30 @@ export interface VoiceOptions {
   lang?: string;
 }
 
+interface Finding {
+  parameter: string;
+  value: string;
+  status: string;
+}
+
+interface ReportAnalysis {
+  summary?: string;
+  keyFindings?: Finding[];
+  recommendations?: string[];
+}
+
+interface Medication {
+  name: string;
+  dosage: string;
+  instructions?: string;
+}
+
+interface TimelineEvent {
+  title: string;
+  description?: string;
+  metrics?: Record<string, string | number>;
+}
+
 export class VoiceService {
   private static instance: VoiceService;
   private currentUtterance: SpeechSynthesisUtterance | null = null;
@@ -115,7 +139,7 @@ export class VoiceService {
   }
 
   // Speak medical report summary
-  speakReportSummary(analysis: any, language = 'en-US'): Promise<void> {
+  speakReportSummary(analysis: ReportAnalysis, language = 'en-US'): Promise<void> {
     if (!analysis) {
       return this.speak("Report analysis is not available.", { lang: language });
     }
@@ -128,7 +152,7 @@ export class VoiceService {
 
     if (analysis.keyFindings && analysis.keyFindings.length > 0) {
       summary += "Key findings include: ";
-      analysis.keyFindings.forEach((finding: any, index: number) => {
+      analysis.keyFindings?.forEach((finding: Finding, index: number) => {
         summary += `${finding.parameter} is ${finding.value}, which is ${finding.status}`;
         if (index < analysis.keyFindings.length - 1) {
           summary += ". ";
@@ -146,13 +170,13 @@ export class VoiceService {
   }
 
   // Speak medication reminder
-  speakMedicationReminder(medication: any, language = 'en-US'): Promise<void> {
+  speakMedicationReminder(medication: Medication, language = 'en-US'): Promise<void> {
     const reminder = `It's time to take your ${medication.name}, ${medication.dosage}. ${medication.instructions || ''}`;
     return this.speak(reminder, { lang: language });
   }
 
   // Speak timeline event
-  speakTimelineEvent(event: any, language = 'en-US'): Promise<void> {
+  speakTimelineEvent(event: TimelineEvent, language = 'en-US'): Promise<void> {
     let summary = `${event.title}. `;
     
     if (event.description) {

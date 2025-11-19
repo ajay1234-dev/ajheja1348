@@ -18,13 +18,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   UserIcon,
   Stethoscope,
-  Mail,
   Bell,
   Trash,
   FileText,
-  Activity,
-  Pill,
-  Calendar,
   CheckCircle,
   Clipboard,
   FileTextIcon,
@@ -34,7 +30,6 @@ import type {
   Report,
   Medication,
   Reminder,
-  SharedReport as SharedReportSchema,
 } from "@shared/schema";
 import type { DashboardStats } from "@/types/medical";
 import {
@@ -43,7 +38,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollGradients, GradientText } from "@/components/ui";
+import ScrollGradients from "@/components/ui/scroll-gradients";
+import GradientText from "@/components/ui/gradient-text";
 
 interface Doctor {
   id: string;
@@ -84,6 +80,14 @@ interface Prescription {
   notes: string | null;
   validityPeriod: Date;
   createdAt: Date;
+}
+
+interface TimelineEvent {
+  id: string;
+  title: string;
+  description: string;
+  eventType: string;
+  date: string;
 }
 
 export default function Dashboard() {
@@ -158,7 +162,7 @@ export default function Dashboard() {
     }
   );
 
-  const { data: healthTimeline, isLoading: timelineLoading } = useQuery({
+  const { data: healthTimeline, isLoading: timelineLoading } = useQuery<TimelineEvent[]>({
     queryKey: ["/api/timeline"],
     // Cache for 5 minutes
     staleTime: 5 * 60 * 1000,
@@ -689,7 +693,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    {healthTimeline.slice(0, 10).map((event: any) => (
+                    {healthTimeline.slice(0, 10).map((event: TimelineEvent) => (
                       <div
                         key={event.id}
                         className="p-4 border-2 border-border rounded-xl hover:shadow-lg hover:border-primary/30 smooth-transition hover-lift bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-900"

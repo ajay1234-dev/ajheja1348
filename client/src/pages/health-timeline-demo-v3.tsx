@@ -8,6 +8,8 @@ import { TimelineEvent } from "@/types/medical";
 const generateSampleTimelineData = (): TimelineEvent[] => {
   return [
     {
+      id: "v3-1",
+      title: "Annual Physical Exam",
       date: "2024-01-15",
       metrics: {
         systolic: 135,
@@ -20,6 +22,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       reportName: "Annual Physical Exam.pdf",
     },
     {
+      id: "v3-2",
+      title: "Follow-up Blood Work",
       date: "2024-02-20",
       metrics: {
         systolic: 130,
@@ -33,6 +37,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       reportName: "Follow-up Blood Work.pdf",
     },
     {
+      id: "v3-3",
+      title: "Quarterly Checkup",
       date: "2024-03-10",
       metrics: {
         systolic: 125,
@@ -46,6 +52,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       prescriptions: ["Lisinopril 10mg"],
     },
     {
+      id: "v3-4",
+      title: "Cardiology Consultation",
       date: "2024-04-05",
       metrics: {
         systolic: 122,
@@ -60,6 +68,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       reportName: "Cardiology Consultation.pdf",
     },
     {
+      id: "v3-5",
+      title: "Comprehensive Panel",
       date: "2024-05-18",
       metrics: {
         systolic: 118,
@@ -76,6 +86,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       reportName: "Comprehensive Panel.pdf",
     },
     {
+      id: "v3-6",
+      title: "Six-Month Review",
       date: "2024-06-22",
       metrics: {
         systolic: 115,
@@ -112,6 +124,8 @@ export default function HealthTimelineDemoV3() {
 
       // Add a new report with additional metrics
       const newReport: TimelineEvent = {
+        id: `v3-${newData.length + 1}`, // Added
+        title: "Latest Health Assessment", // Added
         date: new Date().toISOString().split("T")[0],
         metrics: {
           systolic: 112,
@@ -180,11 +194,9 @@ export default function HealthTimelineDemoV3() {
           </div>
 
           <HealthChart
-            data={timelineData}
-            timeRange="all"
-            metricType="all"
-            isLoading={isLoading}
-          />
+  data={timelineData}
+  isLoading={isLoading}
+/>
         </CardContent>
       </Card>
 

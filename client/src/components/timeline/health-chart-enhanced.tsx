@@ -24,18 +24,15 @@ import {
   Bone,
   Waves,
   Leaf,
-  FileText,
-  Pill,
-  Stethoscope,
 } from "lucide-react";
 import { TimelineEvent } from "@/types/medical";
 
 // Utility functions
-const isNumeric = (value: any): value is number => {
+const isNumeric = (value: unknown): value is number => {
   return typeof value === "number" && !isNaN(value);
 };
 
-const parseNumericValue = (value: any): number | null => {
+const parseNumericValue = (value: unknown): number | null => {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
     const num = parseFloat(value.replace(/[^\\d.-]/g, ""));
@@ -141,12 +138,18 @@ const METRIC_CATEGORIES: Record<
 };
 
 // Custom tooltip component for the combined chart
-const CombinedChartTooltip = ({ active, payload, label }: any) => {
+interface ChartTooltipPayload {
+  color: string;
+  dataKey: string;
+  value: string | number;
+}
+
+const CombinedChartTooltip = ({ active, payload, label }: { active?: boolean, payload?: ChartTooltipPayload[], label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border rounded-lg p-4 shadow-lg dark:bg-slate-800">
         <p className="font-semibold text-foreground mb-2">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry: ChartTooltipPayload, index: number) => (
           <div key={index} className="flex items-center justify-between py-1">
             <div className="flex items-center">
               <div
@@ -167,7 +170,12 @@ const CombinedChartTooltip = ({ active, payload, label }: any) => {
 };
 
 // Custom tooltip for mini charts
-const MiniChartTooltip = ({ active, payload, label }: any) => {
+interface MiniChartTooltipPayload {
+  dataKey: string;
+  value: string | number;
+}
+
+const MiniChartTooltip = ({ active, payload, label }: { active?: boolean, payload?: MiniChartTooltipPayload[], label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border rounded-lg p-3 shadow-lg dark:bg-slate-800">
@@ -342,15 +350,28 @@ const MiniChart = ({
 };
 
 // Dynamic Health Timeline Component
+interface ChartPoint {
+  date: string;
+  eventType: string;
+  [key: string]: string | number | null;
+}
+
+interface MetricData {
+  data: { date: string; value: number | string; eventType?: string }[];
+  category: string;
+}
+
+interface CategorizedMetrics {
+  [category: string]: {
+    [metricKey: string]: MetricData;
+  };
+}
+
 export default function HealthChart({
   data,
-  timeRange,
-  metricType,
   isLoading,
 }: {
   data: TimelineEvent[];
-  timeRange: string;
-  metricType: string;
   isLoading: boolean;
 }) {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -368,16 +389,10 @@ export default function HealthChart({
       }
 
       // Transform data for the combined chart
-      const chartData: Record<string, any>[] = [];
+      const chartData: ChartPoint[] = [];
 
       // Extract all unique metrics
-      const metricMap: Record<
-        string,
-        {
-          data: { date: string; value: number | string; eventType?: string }[];
-          category: string;
-        }
-      > = {};
+      const metricMap: { [metricKey: string]: MetricData } = {};
 
       data.forEach((event) => {
         // Safely check if event and event.metrics exist
@@ -391,7 +406,7 @@ export default function HealthChart({
           eventType = event.eventType;
         }
 
-        const chartPoint: Record<string, any> = {
+        const chartPoint: ChartPoint = {
           date: event.date,
           eventType: eventType,
         };
@@ -450,7 +465,7 @@ export default function HealthChart({
       });
 
       // Group metrics by category
-      const categorizedMetrics: Record<string, typeof metricMap> = {};
+      const categorizedMetrics: CategorizedMetrics = {};
       Object.entries(METRIC_CATEGORIES).forEach(([category]) => {
         categorizedMetrics[category] = {};
       });
@@ -465,7 +480,7 @@ export default function HealthChart({
 
       // Get all categories with metrics
       const allCategories = Object.entries(categorizedMetrics)
-        .filter(([category, metrics]) => Object.keys(metrics).length > 0)
+        .filter(([, metrics]) => Object.keys(metrics).length > 0)
         .map(([category]) => category);
 
       // Get all metrics
@@ -503,7 +518,7 @@ export default function HealthChart({
     if (filteredMetrics.length === 0) return chartData;
 
     return chartData.map((point) => {
-      const filteredPoint: Record<string, any> = {
+      const filteredPoint: ChartPoint = {
         date: point.date,
         eventType: point.eventType,
       };
@@ -643,16 +658,18 @@ export default function HealthChart({
         <div className="h-80 mb-8 rounded-xl border border-border p-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={filteredChartData.map((point) => {
-                // Filter out NaN values from the data point
-                const filteredPoint: Record<string, any> = {};
+              data={filteredChartData.map((point: ChartPoint) => {
+                const filteredPoint: ChartPoint = {
+                  date: point.date,
+                  eventType: point.eventType,
+                };
                 Object.entries(point).forEach(([key, value]) => {
                   if (key === "date" || key === "eventType") {
                     filteredPoint[key] = value;
                   } else if (isNumeric(value)) {
-                    filteredPoint[key] = isNaN(value as number) ? null : value;
+                    filteredPoint[key] = isNaN(value as number) ? null : value; // Convert NaN to null
                   } else {
-                    filteredPoint[key] = value;
+                    filteredPoint[key] = null; // Convert non-numeric to null
                   }
                 });
                 return filteredPoint;
@@ -732,7 +749,7 @@ export default function HealthChart({
                     fill="#ffffff"
                     stroke="#3b82f6"
                     strokeWidth={2}
-                    shape={(props) => (
+                    shape={(props: { cx: number; cy: number }) => (
                       <g transform={`translate(${props.cx},${props.cy})`}>
                         <circle
                           cx="0"
@@ -751,7 +768,7 @@ export default function HealthChart({
                           fill="#3b82f6"
                           fontWeight="bold"
                         >
-                          {getEventIcon(point.eventType)}
+                          {getEventIcon(point.eventType as string)}
                         </text>
                       </g>
                     )}

@@ -14,7 +14,7 @@ interface AssignedDoctor {
   email: string;
   specialization?: string;
   profilePictureUrl?: string | null;
-  assignedDate?: any;
+  assignedDate?: string | Date;
   detectedSpecialization?: string;
   reportSummary?: string;
   approvalStatus?: string;

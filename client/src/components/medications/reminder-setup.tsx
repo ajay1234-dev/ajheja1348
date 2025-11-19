@@ -15,8 +15,17 @@ interface ReminderSetupProps {
   onSuccess: () => void;
 }
 
+type FormData = {
+  name: string;
+  dosage: string;
+  frequency: string;
+  instructions: string;
+  sideEffects: string;
+  reminderTimes: string[];
+};
+
 export default function ReminderSetup({ medication, onSuccess }: ReminderSetupProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: medication?.name || "",
     dosage: medication?.dosage || "",
     frequency: medication?.frequency || "daily",
@@ -28,7 +37,7 @@ export default function ReminderSetup({ medication, onSuccess }: ReminderSetupPr
   const { toast } = useToast();
 
   const saveMedicationMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: FormData) => {
       const url = medication ? `/api/medications/${medication.id}` : "/api/medications";
       const method = medication ? "PATCH" : "POST";
       
@@ -74,7 +83,7 @@ export default function ReminderSetup({ medication, onSuccess }: ReminderSetupPr
       
       onSuccess();
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to save medication. Please try again.",

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -11,6 +11,7 @@ import {
 import HealthChart from "@/components/timeline/health-chart-chartjs";
 import TimelineEvents from "@/components/timeline/timeline-events";
 import { Calendar, TrendingUp } from "lucide-react";
+import { TimelineEvent } from "@/types/medical";
 
 export default function Timeline() {
   const [timeRange, setTimeRange] = useState("3m");
@@ -21,7 +22,7 @@ export default function Timeline() {
     isLoading,
     error,
     refetch,
-  } = useQuery({
+  } = useQuery<TimelineEvent[]>({
     queryKey: ["/api/timeline"],
     queryFn: async () => {
       const response = await fetch("/api/timeline", {
@@ -56,7 +57,7 @@ export default function Timeline() {
     refetchOnWindowFocus: true,
   });
 
-  const { data: reports } = useQuery({
+  useQuery({
     queryKey: ["/api/reports"],
     queryFn: async () => {
       const response = await fetch("/api/reports", {
@@ -68,37 +69,9 @@ export default function Timeline() {
   });
 
   // Helper function to convert various date formats to Date object
-  const parseEventDate = (dateValue: any): Date => {
-    if (!dateValue) return new Date();
-
-    // If it's already a Date object
-    if (dateValue instanceof Date) {
-      return dateValue;
-    }
-
-    // If it's a Firestore Timestamp with toDate method
-    if (dateValue && typeof dateValue.toDate === "function") {
-      return dateValue.toDate();
-    }
-
-    // If it's a Firestore Timestamp object (with seconds and nanoseconds)
-    if (dateValue && typeof dateValue === "object" && "seconds" in dateValue) {
-      return new Date(dateValue.seconds * 1000);
-    }
-
-    // If it's a number (Unix timestamp)
-    if (typeof dateValue === "number") {
-      return new Date(dateValue);
-    }
-
-    // If it's a string (ISO format)
-    if (typeof dateValue === "string") {
-      const parsed = new Date(dateValue);
-      return isNaN(parsed.getTime()) ? new Date() : parsed;
-    }
-
-    // Fallback
-    return new Date();
+  const parseEventDate = (dateString: string): Date => {
+    const parsedDate = new Date(dateString);
+    return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
   };
 
   // Filter data based on time range
@@ -127,7 +100,7 @@ export default function Timeline() {
 
     console.log("Time range filter:", { timeRange, now, cutoffDate });
 
-    const filtered = timeline.filter((event: any) => {
+    const filtered = timeline.filter((event) => {
       const eventDate = parseEventDate(event.date);
       const included = eventDate >= cutoffDate;
       console.log("Event date check:", {
@@ -154,7 +127,7 @@ export default function Timeline() {
     return (
       <div className="space-y-6 fade-in">
         <div className="text-center py-12">
-          <p className="text-red-500 mb-4">Error: {error.message}</p>
+          <p className="text-red-500 mb-4">{(error as Error).message}</p>
           <button
             onClick={handleRetry}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
@@ -239,7 +212,7 @@ export default function Timeline() {
                 <p className="text-2xl font-bold mt-1">
                   {
                     filteredData.filter(
-                      (e: any) => e.eventType === "lab_result"
+                      (e) => e.eventType === "lab_result"
                     ).length
                   }
                 </p>
@@ -261,7 +234,7 @@ export default function Timeline() {
                 <p className="text-2xl font-bold mt-1">
                   {
                     filteredData.filter(
-                      (e: any) => e.eventType === "medication_change"
+                      (e) => e.eventType === "medication_change"
                     ).length
                   }
                 </p>
@@ -283,7 +256,7 @@ export default function Timeline() {
                 <p className="text-2xl font-bold mt-1">
                   {
                     filteredData.filter(
-                      (e: any) => e.eventType === "appointment"
+                      (e) => e.eventType === "appointment"
                     ).length
                   }
                 </p>
@@ -299,8 +272,6 @@ export default function Timeline() {
       {/* Health Trends Chart */}
       <HealthChart
         data={filteredData}
-        timeRange={timeRange}
-        metricType={metricType}
         isLoading={isLoading}
       />
 

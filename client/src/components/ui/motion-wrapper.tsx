@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Transition } from "framer-motion";
 import { ReactNode } from "react";
 
 interface MotionWrapperProps {
@@ -27,7 +27,7 @@ const pageVariants = {
   },
 };
 
-const pageTransition = {
+const pageTransition: Transition = {
   type: "spring",
   damping: 25,
   stiffness: 300,
@@ -73,7 +73,7 @@ export function MotionWrapper({
     }
   };
 
-  const getTransition = () => {
+  const getTransition = (): Transition => {
     if (type === "page") {
       return pageTransition;
     }

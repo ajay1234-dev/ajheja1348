@@ -25,13 +25,14 @@ import { SiGoogle } from "react-icons/si";
 import {
   signInWithRedirect,
   getRedirectResult,
-  GoogleAuthProvider,
   signInWithEmailAndPassword,
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { MotionWrapper, PageTransition } from "@/components/ui/motion-wrapper";
-import { StarBorder, DotGrid, GradientText } from "@/components/ui";
+import StarBorder from "@/components/ui/star-border";
+import DotGrid from "@/components/ui/dot-grid";
+import GradientText from "@/components/ui/gradient-text";
 
 import "./login.css";
 
@@ -125,7 +126,7 @@ export default function Login() {
               title: "Welcome back!",
               description: "You have successfully logged in.",
             });
-          } catch (firebaseError: any) {
+          } catch (firebaseError: unknown) {
             // If Firebase authentication fails, fall back to traditional login
             // This handles cases where user has a traditional account but Firebase is configured
             console.log(
@@ -147,15 +148,15 @@ export default function Login() {
             description: "You have successfully logged in.",
           });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Login error:", error);
 
         // Check if it's a Firebase error
-        if (error.code) {
+        if (error && typeof error === 'object' && 'code' in error) {
           let errorMessage =
             "Invalid email, password, or role. Please try again.";
 
-          switch (error.code) {
+          switch ((error as {code: string}).code) {
             case "auth/user-not-found":
               errorMessage =
                 "No user found with this email. Please check your email or register.";
@@ -188,7 +189,7 @@ export default function Login() {
         setIsLoading(false);
       }
     },
-    [email, password, role, auth, login, loginWithFirebase, toast]
+    [email, password, role, login, loginWithFirebase, toast]
   );
 
   const handleGoogleSignIn = useCallback(async () => {
@@ -214,7 +215,7 @@ export default function Login() {
       });
       setIsGoogleLoading(false);
     }
-  }, [auth, googleProvider, toast]);
+  }, [toast]);
 
   const handleRoleSelection = useCallback(async () => {
     if (!pendingIdToken) return;

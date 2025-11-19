@@ -183,7 +183,7 @@ export default function Reminders() {
               <div>
                 <p className="text-sm text-muted-foreground">Due Today</p>
                 <p className="text-2xl font-bold text-foreground">
-                  {activeReminders?.filter((r: any) => {
+                  {activeReminders?.filter((r: Reminder) => {
                     const today = new Date().toDateString();
                     const reminderDate = new Date(
                       r.scheduledTime
@@ -236,7 +236,7 @@ export default function Reminders() {
             </div>
           ) : (
             <div className="space-y-4">
-              {reminders.map((reminder: any) => (
+              {reminders.map((reminder: Reminder) => (
                 <div
                   key={reminder.id}
                   className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
@@ -304,10 +304,10 @@ export default function Reminders() {
                         </Button>
 
                         <Switch
-                          checked={reminder.isActive}
+                          checked={reminder.isActive ?? false}
                           onCheckedChange={() =>
-                            handleToggleReminder(reminder.id, reminder.isActive)
-                          }
+  handleToggleReminder(reminder.id, reminder.isActive ?? false)
+}
                           data-testid={`toggle-reminder-${reminder.id}`}
                         />
                         <Button

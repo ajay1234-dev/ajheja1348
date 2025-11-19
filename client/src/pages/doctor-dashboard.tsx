@@ -27,10 +27,9 @@ import {
   Stethoscope,
   Bell,
   CheckCircle,
-  Eye,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
-import { GradientText } from "@/components/ui";
+import GradientText from "@/components/ui/gradient-text";
 import {
   HeroCarousel,
   DOCTOR_CAROUSEL_IMAGES,
@@ -38,15 +37,84 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+interface Patient {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePictureUrl?: string;
+  age?: number;
+  lastReportDate?: string;
+  lastReportSummary?: string;
+  detectedSpecialization?: string;
+  treatmentStatus?: string;
+  sharedReportId?: string;
+  hideFromDashboard?: boolean;
+}
+
+interface Report {
+  id: string;
+  fileName: string;
+  status: string;
+  reportType: string;
+  summary?: string;
+  createdAt: string;
+}
+
+interface SharedReport {
+  id: string;
+  patient: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  reports: Report[];
+  createdAt: string;
+  expiresAt: string;
+  isActive: boolean;
+  symptoms?: string;
+  description?: string;
+  detectedSpecialization?: string;
+  reportSummary?: string;
+  approvalStatus: string;
+}
+
+interface Medication {
+  id: string;
+  name: string;
+  dosage: string;
+  frequency: string;
+  instructions?: string;
+  isActive: boolean;
+}
+
+interface TimelineEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+}
+
+interface PatientData {
+  patient: {
+    email: string;
+    phone?: string;
+    dateOfBirth?: string;
+  };
+  reports: Report[];
+  medications: Medication[];
+  timeline: TimelineEvent[];
+}
+
 export default function DoctorDashboard() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
-  const [selectedSharedReport, setSelectedSharedReport] = useState<any>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedSharedReport, setSelectedSharedReport] = useState<SharedReport | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const { data: patients, isLoading } = useQuery<any[]>({
+  const { data: patients, isLoading } = useQuery<Patient[]>({
     queryKey: ["/api/doctor/patients"],
     queryFn: async () => {
       const response = await fetch("/api/doctor/patients", {
@@ -57,10 +125,11 @@ export default function DoctorDashboard() {
     },
   });
 
-  const { data: patientData, isLoading: isLoadingPatientData } = useQuery({
+  const { data: patientData, isLoading: isLoadingPatientData } = useQuery<PatientData>({
     queryKey: ["/api/doctor/patient", selectedPatient?.id, "reports"],
     enabled: !!selectedPatient,
     queryFn: async () => {
+      if (!selectedPatient) throw new Error("No patient selected");
       const response = await fetch(
         `/api/doctor/patient/${selectedPatient.id}/reports`,
         {
@@ -72,7 +141,7 @@ export default function DoctorDashboard() {
     },
   });
 
-  const { data: sharedReports, isLoading: isLoadingShared } = useQuery<any[]>({
+  const { data: sharedReports, isLoading: isLoadingShared } = useQuery<SharedReport[]>({
     queryKey: ["/api/doctor/shared-reports"],
     queryFn: async () => {
       const response = await fetch("/api/doctor/shared-reports", {
@@ -85,7 +154,7 @@ export default function DoctorDashboard() {
 
   // Get pending approvals (shared reports with approvalStatus === 'pending')
   const pendingApprovals = (sharedReports || []).filter(
-    (report: any) => report.approvalStatus === "pending"
+    (report) => report.approvalStatus === "pending"
   );
 
   // Mutation to mark treatment as complete
@@ -155,7 +224,7 @@ export default function DoctorDashboard() {
     },
   });
 
-  const filteredPatients = (patients || []).filter((patient: any) => {
+  const filteredPatients = (patients || []).filter((patient) => {
     const searchLower = searchTerm.toLowerCase();
     return (
       !patient.hideFromDashboard &&
@@ -254,7 +323,7 @@ export default function DoctorDashboard() {
                     Total Patients
                   </p>
                   <p className="text-3xl font-bold">
-                    {patients?.filter((p: any) => !p.hideFromDashboard)
+                    {patients?.filter((p) => !p.hideFromDashboard)
                       .length || 0}
                   </p>
                 </div>
@@ -292,7 +361,7 @@ export default function DoctorDashboard() {
                   </p>
                   <p className="text-3xl font-bold">
                     {patients?.filter(
-                      (p: any) => p.lastReportSummary && !p.hideFromDashboard
+                      (p) => p.lastReportSummary && !p.hideFromDashboard
                     ).length || 0}
                   </p>
                 </div>
@@ -392,7 +461,7 @@ export default function DoctorDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {filteredPatients.map((patient: any) => {
+                    {filteredPatients.map((patient) => {
                       const hasAbnormalities =
                         patient.lastReportSummary &&
                         (patient.lastReportSummary
@@ -490,7 +559,7 @@ export default function DoctorDashboard() {
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       markCompleteMutation.mutate(
-                                        patient.sharedReportId
+                                        patient.sharedReportId as string
                                       );
                                     }}
                                     disabled={markCompleteMutation.isPending}
@@ -513,7 +582,7 @@ export default function DoctorDashboard() {
                                       )
                                     ) {
                                       hidePatientMutation.mutate({
-                                        sharedReportId: patient.sharedReportId,
+                                        sharedReportId: patient.sharedReportId as string,
                                         hide: true,
                                       });
                                     }
@@ -582,7 +651,7 @@ export default function DoctorDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {pendingApprovals.map((share: any) => (
+                    {pendingApprovals.map((share) => (
                       <div
                         key={share.id}
                         className="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-700 rounded-lg p-6 hover:shadow-md transition-shadow"
@@ -704,7 +773,7 @@ export default function DoctorDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {sharedReports.map((share: any) => (
+                    {sharedReports.map((share) => (
                       <div
                         key={share.id}
                         className="bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
@@ -841,8 +910,7 @@ export default function DoctorDashboard() {
                 </Card>
 
                 {/* Referral Details */}
-                {(selectedPatient?.symptoms ||
-                  selectedPatient?.description ||
+                {(selectedPatient?.lastReportSummary ||
                   selectedPatient?.detectedSpecialization) && (
                   <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
                     <CardHeader>
@@ -860,26 +928,6 @@ export default function DoctorDashboard() {
                           <Badge variant="default" className="mt-1">
                             {selectedPatient.detectedSpecialization}
                           </Badge>
-                        </div>
-                      )}
-                      {selectedPatient?.symptoms && (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            Reported Symptoms
-                          </p>
-                          <p className="font-medium">
-                            {selectedPatient.symptoms}
-                          </p>
-                        </div>
-                      )}
-                      {selectedPatient?.description && (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            Additional Details
-                          </p>
-                          <p className="text-sm">
-                            {selectedPatient.description}
-                          </p>
                         </div>
                       )}
                       {selectedPatient?.lastReportSummary && (
@@ -906,7 +954,7 @@ export default function DoctorDashboard() {
                   <CardContent>
                     {patientData.reports?.length > 0 ? (
                       <div className="space-y-3">
-                        {patientData.reports.map((report: any) => (
+                        {patientData.reports.map((report) => (
                           <div
                             key={report.id}
                             className="border rounded-lg p-4"
@@ -961,7 +1009,7 @@ export default function DoctorDashboard() {
                   <CardContent>
                     {patientData.medications?.length > 0 ? (
                       <div className="space-y-3">
-                        {patientData.medications.map((med: any) => (
+                        {patientData.medications.map((med) => (
                           <div key={med.id} className="border rounded-lg p-4">
                             <div className="flex items-start gap-3">
                               <Pill className="h-5 w-5 text-primary mt-1" />
@@ -1001,9 +1049,11 @@ export default function DoctorDashboard() {
                       <Button
                         onClick={() => {
                           setSelectedPatient(null);
-                          navigate(
-                            `/doctor/patient/${patientData.patient.id}/timeline`
-                          );
+                          if (patientData.patient) {
+                            navigate(
+                              `/doctor/patient/${selectedPatient?.id}/timeline`
+                            );
+                          }
                         }}
                         variant="outline"
                         size="sm"
@@ -1017,7 +1067,7 @@ export default function DoctorDashboard() {
                   <CardContent>
                     {patientData.timeline?.length > 0 ? (
                       <div className="space-y-3">
-                        {patientData.timeline.slice(0, 5).map((event: any) => (
+                        {patientData.timeline.slice(0, 5).map((event) => (
                           <div
                             key={event.id}
                             className="border-l-2 border-primary pl-4"
@@ -1194,7 +1244,7 @@ export default function DoctorDashboard() {
                   <CardContent>
                     {selectedSharedReport.reports?.length > 0 ? (
                       <div className="space-y-3">
-                        {selectedSharedReport.reports.map((report: any) => (
+                        {selectedSharedReport.reports.map((report) => (
                           <div
                             key={report.id}
                             className="border rounded-lg p-4"

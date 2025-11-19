@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle, AlertCircle } from "lucide-react";
 import type { MedicalAnalysis } from "@/types/medical";
 
 interface AnalysisSummaryProps {
-  analysis: MedicalAnalysis | any;
+  analysis: MedicalAnalysis;
 }
 
 export default function AnalysisSummary({ analysis }: AnalysisSummaryProps) {
@@ -63,7 +63,7 @@ export default function AnalysisSummary({ analysis }: AnalysisSummaryProps) {
       {analysis.keyFindings && analysis.keyFindings.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-foreground">Key Findings:</h4>
-          {analysis.keyFindings.map((finding: any, index: number) => (
+          {analysis.keyFindings.map((finding: MedicalAnalysis['keyFindings'][0], index: number) => (
             <div
               key={index}
               className={`flex items-center justify-between p-3 rounded-lg border ${getStatusColor(finding.status)}`}

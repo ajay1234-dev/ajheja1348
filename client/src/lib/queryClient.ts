@@ -57,7 +57,7 @@ export const queryClient = new QueryClient({
       // Retry delay increases exponentially
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       // Enable placeholder data for smoother transitions
-      placeholderData: (previousData: any) => previousData,
+      placeholderData: (previousData: unknown) => previousData,
     },
     mutations: {
       // Retry mutations up to 1 time

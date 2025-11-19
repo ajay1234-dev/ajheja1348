@@ -8,7 +8,7 @@ import {
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 interface User {
@@ -22,6 +22,13 @@ interface User {
   profilePictureUrl?: string | null;
 }
 
+interface AdditionalData {
+  role: string;
+  specialization?: string;
+  age?: number;
+  gender?: string;
+}
+
 interface AuthContext {
   user: User | null;
   isLoading: boolean;
@@ -29,7 +36,7 @@ interface AuthContext {
   loginWithFirebase: (
     idToken: string,
     role: string,
-    additionalData?: any
+    additionalData?: AdditionalData
   ) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
@@ -50,7 +57,7 @@ const AuthContext = createContext<AuthContext | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
-  const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
 
   // Listen for Firebase auth state changes
   useEffect(() => {
@@ -131,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }: {
       idToken: string;
       role: string;
-      additionalData?: any;
+      additionalData?: AdditionalData;
     }) => {
       const payload = { idToken, role, ...additionalData };
       const response = await apiRequest(
@@ -198,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithFirebase = async (
     idToken: string,
     role: string,
-    additionalData?: any
+    additionalData?: AdditionalData
   ) => {
     await firebaseLoginMutation.mutateAsync({ idToken, role, additionalData });
   };

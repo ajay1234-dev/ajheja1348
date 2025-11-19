@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useVoice } from "@/hooks/use-voice";
 import { useAuth } from "@/hooks/use-auth";
 import LanguageSelector from "@/components/common/language-selector";
 import NotificationCenter from "@/components/common/notification-center";

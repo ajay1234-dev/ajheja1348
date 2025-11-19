@@ -3,84 +3,14 @@ import HealthChart from "@/components/timeline/health-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TimelineEvent } from "@/types/medical";
-import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Filter,
-  Activity,
-  Heart,
-  Droplets,
-  Zap,
-  Bone,
-  Waves,
-  Leaf,
-} from "lucide-react";
 
-// Metric category definitions
-const METRIC_CATEGORIES: Record<
-  string,
-  {
-    name: string;
-    icon: React.ReactNode;
-    keywords: string[];
-  }
-> = {
-  blood: {
-    name: "Blood Metrics",
-    icon: <Heart className="h-4 w-4" />,
-    keywords: ["bp", "pressure", "blood"],
-  },
-  sugar: {
-    name: "Sugar Metrics",
-    icon: <Droplets className="h-4 w-4" />,
-    keywords: ["sugar", "glucose", "hba1c"],
-  },
-  cholesterol: {
-    name: "Cholesterol Metrics",
-    icon: <Droplets className="h-4 w-4" />,
-    keywords: ["cholesterol", "hdl", "ldl", "lipid", "triglycerides"],
-  },
-  ecg: {
-    name: "Heart / ECG",
-    icon: <Zap className="h-4 w-4" />,
-    keywords: [
-      "ecg",
-      "cardiac",
-      "heart",
-      "treadmill",
-      "ejection",
-      "fraction",
-      "st",
-      "qt",
-    ],
-  },
-  bone: {
-    name: "Bone Health",
-    icon: <Bone className="h-4 w-4" />,
-    keywords: ["bone", "density", "calcium"],
-  },
-  kidney: {
-    name: "Kidney Metrics",
-    icon: <Waves className="h-4 w-4" />,
-    keywords: ["creatinine", "gfr", "kidney", "renal"],
-  },
-  liver: {
-    name: "Liver Metrics",
-    icon: <Leaf className="h-4 w-4" />,
-    keywords: ["liver", "alt", "ast", "bilirubin"],
-  },
-  other: {
-    name: "Other Metrics",
-    icon: <Activity className="h-4 w-4" />,
-    keywords: [],
-  },
-};
 
 // Sample data generator for demonstration
 const generateSampleTimelineData = (): TimelineEvent[] => {
   return [
     {
+      id: "v2-1",
+      title: "Annual Physical Exam",
       date: "2024-01-15",
       metrics: {
         blood_pressure_systolic: 135,
@@ -99,6 +29,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       reportName: "Annual Physical Exam.pdf",
     },
     {
+      id: "v2-2",
+      title: "Follow-up Blood Work",
       date: "2024-03-22",
       metrics: {
         blood_pressure_systolic: 130,
@@ -119,6 +51,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       reportName: "Follow-up Blood Work.pdf",
     },
     {
+      id: "v2-3",
+      title: "Quarterly Checkup",
       date: "2024-06-10",
       metrics: {
         blood_pressure_systolic: 125,
@@ -140,6 +74,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       reportName: "Quarterly Checkup.pdf",
     },
     {
+      id: "v2-4",
+      title: "Cardiology Consultation",
       date: "2024-09-05",
       metrics: {
         blood_pressure_systolic: 122,
@@ -162,6 +98,8 @@ const generateSampleTimelineData = (): TimelineEvent[] => {
       reportName: "Cardiology Consultation.pdf",
     },
     {
+      id: "v2-5",
+      title: "Year-End Comprehensive Panel",
       date: "2024-12-18",
       metrics: {
         blood_pressure_systolic: 118,
@@ -203,6 +141,8 @@ export default function HealthTimelineDemoV2() {
 
       // Add a new report with additional metrics
       const newReport: TimelineEvent = {
+        id: `v2-${newData.length + 1}`, // Added
+        title: "Latest Health Assessment", // Added
         date: new Date().toISOString().split("T")[0],
         metrics: {
           blood_pressure_systolic: 115,
@@ -286,11 +226,9 @@ export default function HealthTimelineDemoV2() {
           </div>
 
           <HealthChart
-            data={timelineData}
-            timeRange="all"
-            metricType="all"
-            isLoading={isLoading}
-          />
+  data={timelineData}
+  isLoading={isLoading}
+/>
         </CardContent>
       </Card>
 

@@ -18,16 +18,21 @@ import {
   CloudUpload,
   File,
   CheckCircle,
-  AlertCircle,
   Stethoscope,
   Loader2,
   UserCheck,
 } from "lucide-react";
 
+interface SuggestedDoctor {
+  firstName: string;
+  lastName: string;
+  specialization: string;
+}
+
 export default function UploadReportForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [suggestedDoctor, setSuggestedDoctor] = useState<any>(null);
+  const [suggestedDoctor, setSuggestedDoctor] = useState<SuggestedDoctor | null>(null);
   const [sharedReportId, setSharedReportId] = useState<string | null>(null);
   const [approvalStatus, setApprovalStatus] = useState<"pending" | "approved">(
     "pending"

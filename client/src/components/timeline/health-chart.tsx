@@ -24,24 +24,35 @@ import {
   Bone,
   Waves,
   Leaf,
-  FileText,
-  Pill,
-  Stethoscope,
 } from "lucide-react";
 import { TimelineEvent } from "@/types/medical";
 
 // Utility functions
-const isNumeric = (value: any): value is number => {
+const isNumeric = (value: unknown): value is number => {
   return typeof value === "number" && !isNaN(value);
 };
 
-const parseNumericValue = (value: any): number | null => {
+const parseNumericValue = (value: unknown): number | null => {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
     const num = parseFloat(value.replace(/[^\d.-]/g, ""));
     return isNaN(num) ? null : num;
   }
   return null;
+};
+
+const parseDate = (date: string | Date): Date => {
+  if (date instanceof Date) return date;
+  try {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      throw new Error("Invalid date");
+    }
+    return parsedDate;
+  } catch (error) {
+    console.error("Failed to parse date:", date, error);
+    return new Date();
+  }
 };
 
 const formatValue = (value: number | string): string => {
@@ -117,12 +128,12 @@ const METRIC_CATEGORIES: Record<
 };
 
 // Custom tooltip component for the combined chart
-const CombinedChartTooltip = ({ active, payload, label }: any) => {
+const CombinedChartTooltip = ({ active, payload, label }: { active?: boolean, payload?: { color: string, dataKey: string, value: string | number }[], label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border rounded-lg p-4 shadow-lg dark:bg-slate-800">
         <p className="font-semibold text-foreground mb-2">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry: { color: string, dataKey: string, value: string | number }, index: number) => (
           <div key={index} className="flex items-center justify-between py-1">
             <div className="flex items-center">
               <div
@@ -141,7 +152,7 @@ const CombinedChartTooltip = ({ active, payload, label }: any) => {
 };
 
 // Custom tooltip for mini charts
-const MiniChartTooltip = ({ active, payload, label }: any) => {
+const MiniChartTooltip = ({ active, payload, label }: { active?: boolean, payload?: { dataKey: string, value: string | number }[], label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border rounded-lg p-3 shadow-lg dark:bg-slate-800">
@@ -319,15 +330,28 @@ const MiniChart = ({
 };
 
 // Dynamic Health Timeline Component
+interface ChartPoint {
+  date: string;
+  eventType: string;
+  [key: string]: string | number | null;
+}
+
+interface MetricData {
+  data: { date: string; value: number | string; eventType?: string }[];
+  category: string;
+}
+
+interface CategorizedMetrics {
+  [category: string]: {
+    [metricKey: string]: MetricData;
+  };
+}
+
 export default function HealthChart({
   data,
-  timeRange,
-  metricType,
   isLoading,
 }: {
   data: TimelineEvent[];
-  timeRange: string;
-  metricType: string;
   isLoading: boolean;
 }) {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -335,7 +359,113 @@ export default function HealthChart({
   // Process data to extract metrics and categories
   const { chartData, categorizedMetrics, allCategories, allMetrics } =
     useMemo(() => {
-      if (!data || data.length === 0) {
+      try {
+        if (!data || data.length === 0) {
+          return {
+            chartData: [],
+            categorizedMetrics: {},
+            allCategories: [],
+            allMetrics: [],
+          };
+        }
+
+        // Transform data for the combined chart
+        const chartData: ChartPoint[] = [];
+
+        // Extract all unique metrics
+        const metricMap: { [metricKey: string]: MetricData } = {};
+
+        data.forEach((event) => {
+          // Safely check if event and event.metrics exist
+          if (!event || !event.metrics) return;
+
+          // Determine event type
+          let eventType = "report";
+          if (event.prescriptions && event.prescriptions.length > 0) {
+            eventType = "prescription";
+          } else if (event.eventType) {
+            eventType = event.eventType;
+          }
+
+          const eventDate = parseDate(event.date);
+
+          const chartPoint: ChartPoint = {
+            date: eventDate.toISOString(),
+            eventType: eventType,
+          };
+
+          Object.entries(event.metrics).forEach(([metricKey, metricValue]) => {
+            // Skip if metric is null/undefined
+            if (!metricKey || metricValue === null || metricValue === undefined)
+              return;
+
+            // Add to chart data
+            const numericValue = parseNumericValue(metricValue);
+            if (numericValue === null) return;
+
+            chartPoint[metricKey] = numericValue;
+
+            // Initialize metric data array if not exists
+            if (!metricMap[metricKey]) {
+              // Determine category based on keywords
+              let category = "other";
+              const lowerMetric = metricKey.toLowerCase();
+
+              for (const [cat, catInfo] of Object.entries(METRIC_CATEGORIES)) {
+                if (cat === "other") continue;
+
+                if (
+                  catInfo.keywords.some((keyword) =>
+                    lowerMetric.includes(keyword)
+                  )
+                ) {
+                  category = cat;
+                  break;
+                }
+              }
+
+              metricMap[metricKey] = {
+                data: [],
+                category,
+              };
+            }
+
+            // Add data point
+            metricMap[metricKey].data.push({
+              date: eventDate.toISOString(),
+              value: numericValue,
+              eventType: eventType,
+            });
+          });
+
+          chartData.push(chartPoint);
+        });
+
+        // Group metrics by category
+        const categorizedMetrics: CategorizedMetrics = {};
+        Object.entries(METRIC_CATEGORIES).forEach(([category]) => {
+          categorizedMetrics[category] = {};
+        });
+
+        Object.entries(metricMap).forEach(([metricKey, metricInfo]) => {
+          const category = metricInfo.category;
+          if (!categorizedMetrics[category]) {
+            categorizedMetrics[category] = {};
+          }
+          categorizedMetrics[category][metricKey] = metricInfo;
+        });
+
+        // Get all categories with metrics
+        const allCategories = Object.entries(categorizedMetrics)
+          .filter(([, metrics]) => Object.keys(metrics).length > 0)
+          .map(([category]) => category);
+
+        // Get all metrics
+        const allMetrics = Object.keys(metricMap);
+
+        return { chartData, categorizedMetrics, allCategories, allMetrics };
+      } catch (error) {
+        console.error("Error processing health chart data:", error);
         return {
           chartData: [],
           categorizedMetrics: {},
@@ -343,105 +473,6 @@ export default function HealthChart({
           allMetrics: [],
         };
       }
-
-      // Transform data for the combined chart
-      const chartData: Record<string, any>[] = [];
-
-      // Extract all unique metrics
-      const metricMap: Record<
-        string,
-        {
-          data: { date: string; value: number | string; eventType?: string }[];
-          category: string;
-        }
-      > = {};
-
-      data.forEach((event) => {
-        // Safely check if event and event.metrics exist
-        if (!event || !event.metrics) return;
-
-        // Determine event type
-        let eventType = "report";
-        if (event.prescriptions && event.prescriptions.length > 0) {
-          eventType = "prescription";
-        } else if (event.eventType) {
-          eventType = event.eventType;
-        }
-
-        const chartPoint: Record<string, any> = {
-          date: event.date,
-          eventType: eventType,
-        };
-
-        Object.entries(event.metrics).forEach(([metricKey, metricValue]) => {
-          // Skip if metric is null/undefined
-          if (!metricKey || metricValue === null || metricValue === undefined)
-            return;
-
-          // Add to chart data
-          const numericValue = parseNumericValue(metricValue);
-          chartPoint[metricKey] =
-            numericValue !== null ? numericValue : metricValue;
-
-          // Initialize metric data array if not exists
-          if (!metricMap[metricKey]) {
-            // Determine category based on keywords
-            let category = "other";
-            const lowerMetric = metricKey.toLowerCase();
-
-            for (const [cat, catInfo] of Object.entries(METRIC_CATEGORIES)) {
-              if (cat === "other") continue;
-
-              if (
-                catInfo.keywords.some((keyword) =>
-                  lowerMetric.includes(keyword)
-                )
-              ) {
-                category = cat;
-                break;
-              }
-            }
-
-            metricMap[metricKey] = {
-              data: [],
-              category,
-            };
-          }
-
-          // Add data point
-          metricMap[metricKey].data.push({
-            date: event.date,
-            value: numericValue !== null ? numericValue : metricValue,
-            eventType: eventType,
-          });
-        });
-
-        chartData.push(chartPoint);
-      });
-
-      // Group metrics by category
-      const categorizedMetrics: Record<string, typeof metricMap> = {};
-      Object.entries(METRIC_CATEGORIES).forEach(([category]) => {
-        categorizedMetrics[category] = {};
-      });
-
-      Object.entries(metricMap).forEach(([metricKey, metricInfo]) => {
-        const category = metricInfo.category;
-        if (!categorizedMetrics[category]) {
-          categorizedMetrics[category] = {};
-        }
-        categorizedMetrics[category][metricKey] = metricInfo;
-      });
-
-      // Get all categories with metrics
-      const allCategories = Object.entries(categorizedMetrics)
-        .filter(([category, metrics]) => Object.keys(metrics).length > 0)
-        .map(([category]) => category);
-
-      // Get all metrics
-      const allMetrics = Object.keys(metricMap);
-
-      return { chartData, categorizedMetrics, allCategories, allMetrics };
     }, [data]);
 
   // Toggle filter
@@ -473,7 +504,7 @@ export default function HealthChart({
     if (filteredMetrics.length === 0) return chartData;
 
     return chartData.map((point) => {
-      const filteredPoint: Record<string, any> = {
+      const filteredPoint: ChartPoint = {
         date: point.date,
         eventType: point.eventType,
       };
@@ -667,12 +698,12 @@ export default function HealthChart({
                 <ReferenceDot
                   key={`marker-${index}`}
                   x={point.date}
-                  y={Object.values(point).find(isNumeric) || 0}
+                  y={0}
                   r={6}
                   fill="#ffffff"
                   stroke="#3b82f6"
                   strokeWidth={2}
-                  shape={(props) => (
+                  shape={(props: { cx: number, cy: number }) => (
                     <g transform={`translate(${props.cx},${props.cy})`}>
                       <circle
                         cx="0"

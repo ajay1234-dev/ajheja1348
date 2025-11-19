@@ -8,7 +8,6 @@ import {
 import Sidebar from "./sidebar";
 import Header from "./header";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ScrollGradients } from "@/components/ui";
 
 interface MainLayoutProps {
   children: ReactNode;

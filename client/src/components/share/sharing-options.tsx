@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Link as LinkIcon, Mail, Copy, Download, Share2 } from "lucide-react";
+import { FileText, Link as LinkIcon, Mail, Copy, Share2 } from "lucide-react";
 
 interface SharingOptionsProps {
   selectedReports: string[];
@@ -128,7 +128,7 @@ export default function SharingOptions({ selectedReports, doctorEmail, disabled 
         title: "Copied",
         description: "Link copied to clipboard",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to copy link",

@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import AnimatedList from "@/components/ui/animated-list";
-import { ScrollGradients } from "@/components/ui";
+import ScrollGradients from "@/components/ui/scroll-gradients";
 import {
   LayoutDashboard,
   Upload,
@@ -18,7 +18,6 @@ import {
   Share,
   Heart,
   LogOut,
-  Menu,
   X,
   UserCircle,
   Eye,
@@ -40,7 +39,7 @@ interface NavigationItem {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useIsMobile();
 
@@ -54,7 +53,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       if (!response.ok) throw new Error("Failed to fetch doctors");
       const doctors = await response.json();
       return doctors.filter(
-        (doctor: any) => doctor.approvalStatus === "pending"
+        (doctor: { approvalStatus: string }) => doctor.approvalStatus === "pending"
       );
     },
     enabled: user?.role === "patient",

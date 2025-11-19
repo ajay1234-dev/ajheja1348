@@ -1,33 +1,42 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Search,
   UserIcon,
-  FileText,
   Activity,
-  Stethoscope,
   Eye,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+interface PatientHistoryEntry {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePictureUrl?: string;
+  age?: number;
+  lastReportDate?: string;
+  lastReportSummary?: string;
+  detectedSpecialization?: string;
+  treatmentStatus?: string;
+  hideFromDashboard?: boolean;
+  sharedReportId?: string;
+}
+
 export default function PatientHistory() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
-  const { user } = useAuth();
+  const [selectedPatient, setSelectedPatient] = useState<PatientHistoryEntry | null>(null);
   const { toast } = useToast();
 
-  const { data: patients, isLoading } = useQuery<any[]>({
+  const { data: patients, isLoading } = useQuery<PatientHistoryEntry[]>({
     queryKey: ["/api/doctor/patients/history"],
     queryFn: async () => {
       const response = await fetch("/api/doctor/patients/history", {
@@ -38,10 +47,11 @@ export default function PatientHistory() {
     },
   });
 
-  const { data: patientData, isLoading: isLoadingPatientData } = useQuery({
+  useQuery({
     queryKey: ["/api/doctor/patient", selectedPatient?.id, "reports"],
     enabled: !!selectedPatient,
     queryFn: async () => {
+      if (!selectedPatient) return null;
       const response = await fetch(
         `/api/doctor/patient/${selectedPatient.id}/reports`,
         {
@@ -91,7 +101,7 @@ export default function PatientHistory() {
     },
   });
 
-  const filteredPatients = (patients || []).filter((patient: any) => {
+  const filteredPatients = (patients || []).filter((patient) => {
     const searchLower = searchTerm.toLowerCase();
     return (
       patient.firstName?.toLowerCase().includes(searchLower) ||
@@ -99,19 +109,6 @@ export default function PatientHistory() {
       patient.email?.toLowerCase().includes(searchLower)
     );
   });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "processing":
-        return "bg-amber-100 text-amber-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900">
@@ -159,7 +156,7 @@ export default function PatientHistory() {
                     Hidden Patients
                   </p>
                   <p className="text-3xl font-bold">
-                    {patients?.filter((p: any) => p.hideFromDashboard).length ||
+                    {patients?.filter((p) => p.hideFromDashboard).length ||
                       0}
                   </p>
                 </div>
@@ -178,7 +175,7 @@ export default function PatientHistory() {
                     Patients at Risk
                   </p>
                   <p className="text-3xl font-bold">
-                    {patients?.filter((p: any) => p.lastReportSummary).length ||
+                    {patients?.filter((p) => p.lastReportSummary).length ||
                       0}
                   </p>
                 </div>
@@ -252,7 +249,7 @@ export default function PatientHistory() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredPatients.map((patient: any) => {
+                {filteredPatients.map((patient) => {
                   const hasAbnormalities =
                     patient.lastReportSummary &&
                     (patient.lastReportSummary
@@ -352,7 +349,7 @@ export default function PatientHistory() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   unhidePatientMutation.mutate({
-                                    sharedReportId: patient.sharedReportId,
+                                    sharedReportId: patient.sharedReportId as string,
                                     hide: false,
                                   });
                                 }}

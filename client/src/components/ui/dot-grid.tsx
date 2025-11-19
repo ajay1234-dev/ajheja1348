@@ -8,13 +8,15 @@ import "./dot-grid.css";
 
 gsap.registerPlugin(InertiaPlugin);
 
-const throttle = (func: Function, limit: number) => {
+const throttle = <T extends (...args: any[]) => any>(
+  func: T,
+  limit: number
+) => {
   let lastCall = 0;
-  return function (...args: any[]) {
+  return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
     const now = performance.now();
     if (now - lastCall >= limit) {
       lastCall = now;
-      // @ts-ignore
       func.apply(this, args);
     }
   };
@@ -28,6 +30,14 @@ function hexToRgb(hex: string) {
     g: parseInt(m[2], 16),
     b: parseInt(m[3], 16),
   };
+}
+
+interface Dot {
+  cx: number;
+  cy: number;
+  xOffset: number;
+  yOffset: number;
+  _inertiaApplied: boolean;
 }
 
 const DotGrid = ({
@@ -61,7 +71,7 @@ const DotGrid = ({
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dotsRef = useRef<any[]>([]);
+  const dotsRef = useRef<Dot[]>([]);
   const pointerRef = useRef({
     x: 0,
     y: 0,
@@ -175,15 +185,13 @@ const DotGrid = ({
 
     // Only run in browser environment
     if (typeof window !== "undefined") {
-      const win = window as any;
-
-      if ("ResizeObserver" in win) {
-        ro = new win.ResizeObserver(buildGrid);
+      if ("ResizeObserver" in window) {
+        ro = new window.ResizeObserver(buildGrid);
         if (wrapperRef.current && ro) {
           ro.observe(wrapperRef.current);
         }
       } else {
-        win.addEventListener("resize", buildGrid);
+        (window as Window).addEventListener("resize", buildGrid);
       }
     }
 
@@ -191,8 +199,7 @@ const DotGrid = ({
       if (ro) {
         ro.disconnect();
       } else if (typeof window !== "undefined") {
-        const win = window as any;
-        win.removeEventListener("resize", buildGrid);
+        (window as Window).removeEventListener("resize", buildGrid);
       }
     };
   }, [buildGrid]);
@@ -279,15 +286,15 @@ const DotGrid = ({
       }
     };
 
-    const throttledMove = throttle(onMove, 50);
-    window.addEventListener("mousemove", throttledMove as EventListener, {
+    const throttledMove: (e: MouseEvent) => void = throttle(onMove, 50);
+    (window as Window).addEventListener("mousemove", throttledMove as EventListener, {
       passive: true,
     });
-    window.addEventListener("click", onClick);
+    (window as Window).addEventListener("click", onClick);
 
     return () => {
-      window.removeEventListener("mousemove", throttledMove as EventListener);
-      window.removeEventListener("click", onClick);
+      (window as Window).removeEventListener("mousemove", throttledMove as EventListener);
+      (window as Window).removeEventListener("click", onClick);
     };
   }, [
     maxSpeed,

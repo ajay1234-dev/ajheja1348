@@ -12,14 +12,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Link } from "wouter";
 import { useVoice } from "@/hooks/use-voice";
 import { Play, FileText, Clock, Download, Share, Trash2 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import type { Report } from "@shared/schema";
 import AnalysisSummary from "./analysis-summary";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 

@@ -1,8 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { HoverMotion, FloatingMotion } from "@/components/ui/motion-wrapper";
-import { GradientText } from "@/components/ui";
+import { HoverMotion } from "@/components/ui/motion-wrapper";
+import GradientText from "@/components/ui/gradient-text";
 import { UserRound } from "lucide-react";
 
 export default function WelcomeSection() {

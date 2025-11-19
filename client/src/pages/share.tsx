@@ -1,23 +1,23 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import SharingOptions from "@/components/share/sharing-options";
 import { Share2, FileText, Users } from "lucide-react";
+import type { Report } from "@shared/schema";
 
 export default function Share() {
   const [selectedReports, setSelectedReports] = useState<string[]>([]);
   const [doctorEmail, setDoctorEmail] = useState("");
 
-  const { data: reports, isLoading } = useQuery({
+  const { data: reports, isLoading } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
   });
 
-  const completedReports = (reports as any[] || []).filter(
-    (report: any) => report.status === "completed"
+  const completedReports = (reports || []).filter(
+    (report) => report.status === "completed"
   );
 
   const handleReportSelection = (reportId: string, checked: boolean) => {
@@ -30,7 +30,7 @@ export default function Share() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedReports(completedReports.map((report: any) => report.id));
+      setSelectedReports(completedReports.map((report) => report.id));
     } else {
       setSelectedReports([]);
     }
@@ -146,7 +146,7 @@ export default function Share() {
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {completedReports.map((report: any) => (
+                {completedReports.map((report) => (
                   <div
                     key={report.id}
                     className="flex items-center space-x-3 p-3 border border-border rounded-lg hover:bg-muted/50 transition-colors"

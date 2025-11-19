@@ -25,12 +25,10 @@ import {
 
 interface ProfilePictureUploadProps {
   currentPictureUrl?: string | null;
-  userId: string;
 }
 
 export default function ProfilePictureUpload({
   currentPictureUrl,
-  userId,
 }: ProfilePictureUploadProps) {
   const [preview, setPreview] = useState<string | null>(
     currentPictureUrl || null

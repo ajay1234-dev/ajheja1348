@@ -1,0 +1,46 @@
+/* client/src/components/ui/star-border.css */
+
+.star-border-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.star-border-top,
+.star-border-bottom {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background: currentColor; /* Use currentColor to inherit from parent or default */
+}
+
+.star-border-top {
+  top: 0;
+  animation: star-border-top-anim linear infinite;
+}
+
+.star-border-bottom {
+  bottom: 0;
+  animation: star-border-bottom-anim linear infinite;
+}
+
+.star-border-content {
+  padding: 1rem; /* Example padding */
+}
+
+@keyframes star-border-top-anim {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes star-border-bottom-anim {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}

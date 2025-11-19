@@ -1,10 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import HealthChart from "./health-chart-enhanced";
 import { TimelineEvent } from "@/types/medical";
+import '@testing-library/jest-dom'; // Added for toBeInTheDocument
 
 // Mock data for testing
 const mockData: TimelineEvent[] = [
   {
+    id: "1",
+    title: "Annual Physical Exam",
     date: "2024-01-15",
     metrics: {
       Systolic: 135,
@@ -14,6 +17,8 @@ const mockData: TimelineEvent[] = [
     reportName: "Annual Physical Exam.pdf",
   },
   {
+    id: "2",
+    title: "Follow-up Blood Work",
     date: "2024-03-22",
     metrics: {
       Systolic: 130,
@@ -23,6 +28,8 @@ const mockData: TimelineEvent[] = [
     reportName: "Follow-up Blood Work.pdf",
   },
   {
+    id: "3",
+    title: "Quarterly Checkup",
     date: "2024-06-10",
     metrics: {
       Systolic: 125,
@@ -38,8 +45,6 @@ describe("HealthChart Enhanced", () => {
     render(
       <HealthChart
         data={mockData}
-        timeRange="3m"
-        metricType="all"
         isLoading={false}
       />
     );
@@ -49,7 +54,7 @@ describe("HealthChart Enhanced", () => {
 
   it("shows loading state", () => {
     render(
-      <HealthChart data={[]} timeRange="3m" metricType="all" isLoading={true} />
+      <HealthChart data={[]} isLoading={true} />
     );
 
     expect(screen.getByText("Health Timeline")).toBeInTheDocument();
@@ -59,8 +64,6 @@ describe("HealthChart Enhanced", () => {
     render(
       <HealthChart
         data={[]}
-        timeRange="3m"
-        metricType="all"
         isLoading={false}
       />
     );
@@ -72,8 +75,6 @@ describe("HealthChart Enhanced", () => {
     render(
       <HealthChart
         data={mockData}
-        timeRange="all"
-        metricType="all"
         isLoading={false}
       />
     );
@@ -86,6 +87,8 @@ describe("HealthChart Enhanced", () => {
   it("formats large numbers with commas", () => {
     const largeNumberData: TimelineEvent[] = [
       {
+        id: "4",
+        title: "Test Report",
         date: "2024-01-15",
         metrics: {
           HighValueMetric: 15000,
@@ -97,8 +100,6 @@ describe("HealthChart Enhanced", () => {
     render(
       <HealthChart
         data={largeNumberData}
-        timeRange="all"
-        metricType="all"
         isLoading={false}
       />
     );
@@ -111,6 +112,8 @@ describe("HealthChart Enhanced", () => {
   it("formats small decimal numbers correctly", () => {
     const smallNumberData: TimelineEvent[] = [
       {
+        id: "5",
+        title: "Test Report",
         date: "2024-01-15",
         metrics: {
           SmallValueMetric: 0.75,
@@ -122,8 +125,6 @@ describe("HealthChart Enhanced", () => {
     render(
       <HealthChart
         data={smallNumberData}
-        timeRange="all"
-        metricType="all"
         isLoading={false}
       />
     );

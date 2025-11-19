@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,9 +25,6 @@ import {
   Bone,
   Waves,
   Leaf,
-  FileText,
-  Pill,
-  Stethoscope,
 } from "lucide-react";
 import { TimelineEvent } from "@/types/medical";
 
@@ -66,7 +63,7 @@ class ChartErrorBoundary extends React.Component<
 }
 
 // Universal value sanitizer
-const sanitizeMetricValue = (value: any): number => {
+const sanitizeMetricValue = (value: unknown): number => {
   // Handle null/undefined/empty values
   if (value === null || value === undefined || value === "") {
     return 0;
@@ -132,18 +129,6 @@ const parseSafeDate = (dateString: string): Date | null => {
   if (isNaN(parsedDate.getTime())) return null;
 
   return parsedDate;
-};
-
-// Format date for display
-const formatDisplayDate = (dateString: string): string => {
-  const date = parseSafeDate(dateString);
-  if (!date) return "Invalid Date";
-
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 };
 
 // Safe domain calculation
@@ -278,7 +263,7 @@ const formatMetricValue = (value: number): string => {
 };
 
 // Custom tooltip component for the combined chart with safety checks
-const CombinedChartTooltip = ({ active, payload, label }: any) => {
+const CombinedChartTooltip = ({ active, payload, label }: { active?: boolean, payload?: { color: string, dataKey: string, value: string | number }[], label?: string }) => {
   // Safety checks
   if (!active || !payload || !Array.isArray(payload) || payload.length === 0) {
     return null;
@@ -287,9 +272,9 @@ const CombinedChartTooltip = ({ active, payload, label }: any) => {
   return (
     <div className="bg-card border border-border rounded-lg p-4 shadow-lg dark:bg-slate-800">
       <p className="font-semibold text-foreground mb-2">{label}</p>
-      {payload.map((entry: any, index: number) => {
+      {payload.map((entry: { color: string, dataKey: string, value: string | number }, index: number) => {
         // Additional safety checks
-        if (!entry || entry.value == null || isNaN(entry.value)) {
+        if (!entry || entry.value == null || (typeof entry.value === 'number' && isNaN(entry.value))) {
           return null;
         }
 
@@ -303,7 +288,7 @@ const CombinedChartTooltip = ({ active, payload, label }: any) => {
               <span className="text-sm text-foreground">{entry.dataKey}</span>
             </div>
             <span className="font-medium text-foreground">
-              {formatMetricValue(entry.value)}
+              {typeof entry.value === 'number' ? formatMetricValue(entry.value) : entry.value}
             </span>
           </div>
         );
@@ -313,14 +298,14 @@ const CombinedChartTooltip = ({ active, payload, label }: any) => {
 };
 
 // Custom tooltip for mini charts with safety checks
-const MiniChartTooltip = ({ active, payload, label }: any) => {
+const MiniChartTooltip = ({ active, payload, label }: { active?: boolean, payload?: { dataKey: string, value: string | number }[], label?: string }) => {
   // Safety checks
   if (!active || !payload || !Array.isArray(payload) || payload.length === 0) {
     return null;
   }
 
   const entry = payload[0];
-  if (!entry || entry.value == null || isNaN(entry.value)) {
+  if (!entry || entry.value == null || (typeof entry.value === 'number' && isNaN(entry.value))) {
     return null;
   }
 
@@ -328,7 +313,7 @@ const MiniChartTooltip = ({ active, payload, label }: any) => {
     <div className="bg-card border border-border rounded-lg p-3 shadow-lg dark:bg-slate-800">
       <p className="font-medium text-foreground text-sm">{label}</p>
       <p className="text-xs text-foreground mt-1">
-        {`${entry.dataKey}: ${formatMetricValue(entry.value)}`}
+        {`${entry.dataKey}: ${typeof entry.value === 'number' ? formatMetricValue(entry.value) : entry.value}`}
       </p>
     </div>
   );
@@ -466,15 +451,28 @@ const MiniChart = ({
 };
 
 // Dynamic Health Timeline Component
+interface ChartPoint {
+  date: string;
+  eventType: string;
+  [key: string]: string | number | null;
+}
+
+interface MetricData {
+  data: { date: string; value: number; eventType?: string }[];
+  category: string;
+}
+
+interface CategorizedMetrics {
+  [category: string]: {
+    [metricKey: string]: MetricData;
+  };
+}
+
 export default function HealthChart({
   data,
-  timeRange,
-  metricType,
   isLoading,
 }: {
   data: TimelineEvent[];
-  timeRange: string;
-  metricType: string;
   isLoading: boolean;
 }) {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -492,16 +490,10 @@ export default function HealthChart({
       }
 
       // Transform data for the combined chart
-      const chartData: Record<string, any>[] = [];
+      const chartData: ChartPoint[] = [];
 
       // Extract all unique metrics
-      const metricMap: Record<
-        string,
-        {
-          data: { date: string; value: number; eventType?: string }[];
-          category: string;
-        }
-      > = {};
+      const metricMap: { [metricKey: string]: MetricData } = {};
 
       data.forEach((event) => {
         // Safely check if event and event.metrics exist
@@ -522,7 +514,7 @@ export default function HealthChart({
           eventType = event.eventType;
         }
 
-        const chartPoint: Record<string, any> = {
+        const chartPoint: ChartPoint = {
           date: displayDate,
           eventType: eventType,
         };
@@ -566,7 +558,7 @@ export default function HealthChart({
       });
 
       // Group metrics by category
-      const categorizedMetrics: Record<string, typeof metricMap> = {};
+      const categorizedMetrics: CategorizedMetrics = {};
 
       // Dynamically create categories based on detected metrics
       Object.entries(metricMap).forEach(([metricKey, metricInfo]) => {
@@ -579,7 +571,7 @@ export default function HealthChart({
 
       // Get all categories with metrics
       const allCategories = Object.entries(categorizedMetrics)
-        .filter(([category, metrics]) => Object.keys(metrics).length > 0)
+        .filter(([, metrics]) => Object.keys(metrics).length > 0)
         .map(([category]) => category);
 
       // Get all metrics
@@ -617,7 +609,7 @@ export default function HealthChart({
     if (filteredMetrics.length === 0) return chartData;
 
     return chartData.map((point) => {
-      const filteredPoint: Record<string, any> = {
+      const filteredPoint: ChartPoint = {
         date: point.date,
         eventType: point.eventType,
       };
@@ -840,7 +832,7 @@ export default function HealthChart({
                       fill="#ffffff"
                       stroke="#3b82f6"
                       strokeWidth={2}
-                      shape={(props) => (
+                      shape={(props: { cx: number, cy: number }) => (
                         <g transform={`translate(${props.cx},${props.cy})`}>
                           <circle
                             cx="0"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,9 @@ import { SiGoogle } from "react-icons/si";
 import { signInWithRedirect, getRedirectResult } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { MotionWrapper, PageTransition } from "@/components/ui/motion-wrapper";
-import { StarBorder, DotGrid, GradientText } from "@/components/ui";
+import StarBorder from "@/components/ui/star-border";
+import DotGrid from "@/components/ui/dot-grid";
+import GradientText from "@/components/ui/gradient-text";
 
 import "./register.css";
 
@@ -52,6 +54,24 @@ const SPECIALIZATIONS = [
   "Urology",
   "Other",
 ];
+
+interface RegistrationData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: string;
+  specialization?: string;
+  age?: number;
+  gender?: string;
+}
+
+interface RoleData {
+  role: string;
+  specialization?: string;
+  age?: number;
+  gender?: string;
+}
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -136,7 +156,7 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      const registrationData: any = {
+      const registrationData: RegistrationData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -164,7 +184,7 @@ export default function Register() {
         description:
           "Welcome to MediCare. You can now start managing your health.",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Registration failed",
         description: "Failed to create account. Please try again.",
@@ -216,7 +236,7 @@ export default function Register() {
     setShowRoleDialog(false);
 
     try {
-      const roleData: any = { role: selectedRole };
+      const roleData: RoleData = { role: selectedRole };
 
       if (selectedRole === "doctor" && selectedSpecialization) {
         roleData.specialization = selectedSpecialization;
@@ -237,7 +257,7 @@ export default function Register() {
         title: "Welcome!",
         description: "You have successfully signed up.",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Firebase registration error:", error);
       toast({
         title: "Registration failed",

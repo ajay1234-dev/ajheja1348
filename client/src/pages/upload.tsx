@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { HeroImage, MEDICAL_IMAGES } from "@/components/ui/hero-image";
+import { MEDICAL_IMAGES } from "@/components/ui/hero-image";
 import {
   FileText,
   Clock,
@@ -112,9 +112,8 @@ export default function Upload() {
             <TabsContent value="quick">
               <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-8">
                 <DragDropZone
-                  onUploadProgress={setUploadProgress}
-                  uploadProgress={uploadProgress}
-                />
+  onUploadProgress={setUploadProgress}
+/>
               </div>
             </TabsContent>
           </Tabs>

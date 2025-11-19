@@ -4,6 +4,8 @@ import { TimelineEvent } from "@/types/medical";
 export const generateSampleTimelineData = (): TimelineEvent[] => {
   return [
     {
+      id: "sample-1",
+      title: "Annual Physical Exam",
       date: "2024-01-15",
       metrics: {
         Systolic: 135,
@@ -22,6 +24,8 @@ export const generateSampleTimelineData = (): TimelineEvent[] => {
       prescriptions: ["Lisinopril 10mg", "Atorvastatin 20mg"],
     },
     {
+      id: "sample-2",
+      title: "Follow-up Blood Work",
       date: "2024-03-22",
       metrics: {
         Systolic: 130,
@@ -46,6 +50,8 @@ export const generateSampleTimelineData = (): TimelineEvent[] => {
       ],
     },
     {
+      id: "sample-3",
+      title: "Quarterly Checkup",
       date: "2024-06-10",
       metrics: {
         Systolic: 125,
@@ -71,6 +77,8 @@ export const generateSampleTimelineData = (): TimelineEvent[] => {
       ],
     },
     {
+      id: "sample-4",
+      title: "Cardiology Consultation",
       date: "2024-09-05",
       metrics: {
         Systolic: 122,
@@ -99,6 +107,8 @@ export const generateSampleTimelineData = (): TimelineEvent[] => {
       ],
     },
     {
+      id: "sample-5",
+      title: "Year-End Comprehensive Panel",
       date: "2024-12-18",
       metrics: {
         Systolic: 118,

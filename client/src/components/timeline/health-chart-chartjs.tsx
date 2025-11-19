@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
   Filler,
+  TooltipItem,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,7 +42,7 @@ ChartJS.register(
 );
 
 // Universal value sanitizer
-const sanitizeMetricValue = (value: any): number => {
+const sanitizeMetricValue = (value: string | number | null | undefined): number => {
   // Handle null/undefined/empty values
   if (value === null || value === undefined || value === "") {
     return 0;
@@ -130,42 +131,6 @@ const formatMetricValue = (value: number): string => {
   } else {
     return value.toString();
   }
-};
-
-// Safe domain calculation
-const calculateSafeDomain = (values: number[]): [number, number] => {
-  // Filter out any invalid values
-  const validValues = values.filter(
-    (val) => typeof val === "number" && !isNaN(val) && isFinite(val)
-  );
-
-  if (validValues.length === 0) {
-    return [0, 1];
-  }
-
-  // Handle very large values (compression for values > 10,000)
-  const compressedValues = validValues.map((val) => {
-    if (Math.abs(val) > 10000) {
-      // Apply log scaling for very large values
-      return val > 0 ? Math.log10(val) : -Math.log10(Math.abs(val));
-    }
-    return val;
-  });
-
-  const minValue = Math.min(...compressedValues);
-  const maxValue = Math.max(...compressedValues);
-
-  // If all values are the same, create a small range around that value
-  if (minValue === maxValue) {
-    const value = minValue;
-    // Add padding to prevent flat line
-    const padding = Math.abs(value) * 0.1 || 1;
-    return [value - padding, value + padding];
-  }
-
-  // Otherwise create a 10% buffer around min/max
-  const range = (maxValue - minValue) * 0.1;
-  return [minValue - range, maxValue + range];
 };
 
 // Dynamic metric categorization
@@ -347,9 +312,10 @@ const MiniChart = ({
           size: 11,
         },
         callbacks: {
-          label: function (context: any) {
-            return `${context.dataset.label}: ${formatMetricValue(
-              context.parsed.y
+          label: function (context: TooltipItem<"line">) {
+            const label = context.dataset.label || ''; // Handle undefined label
+            return `${label}: ${formatMetricValue(
+              context.parsed.y ?? 0 // Handle null case
             )}`;
           },
         },
@@ -420,15 +386,28 @@ const MiniChart = ({
 };
 
 // Dynamic Health Timeline Component
+interface ChartPoint {
+  date: string;
+  eventType: string;
+  [key: string]: string | number;
+}
+
+interface MetricData {
+  data: { date: string; value: number; eventType?: string }[];
+  category: string;
+}
+
+interface CategorizedMetrics {
+  [category: string]: {
+    [metricKey: string]: MetricData;
+  };
+}
+
 export default function HealthChart({
   data,
-  timeRange,
-  metricType,
   isLoading,
 }: {
   data: TimelineEvent[];
-  timeRange: string;
-  metricType: string;
   isLoading: boolean;
 }) {
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
@@ -446,16 +425,10 @@ export default function HealthChart({
       }
 
       // Transform data for the combined chart
-      const chartData: Record<string, any>[] = [];
+      const chartData: ChartPoint[] = [];
 
       // Extract all unique metrics
-      const metricMap: Record<
-        string,
-        {
-          data: { date: string; value: number; eventType?: string }[];
-          category: string;
-        }
-      > = {};
+      const metricMap: { [metricKey: string]: MetricData } = {};
 
       data.forEach((event) => {
         // Safely check if event and event.metrics exist
@@ -476,7 +449,7 @@ export default function HealthChart({
           eventType = event.eventType;
         }
 
-        const chartPoint: Record<string, any> = {
+        const chartPoint: ChartPoint = {
           date: displayDate,
           eventType: eventType,
         };
@@ -520,7 +493,7 @@ export default function HealthChart({
       });
 
       // Group metrics by category
-      const categorizedMetrics: Record<string, typeof metricMap> = {};
+      const categorizedMetrics: CategorizedMetrics = {};
 
       // Dynamically create categories based on detected metrics
       Object.entries(metricMap).forEach(([metricKey, metricInfo]) => {
@@ -533,7 +506,7 @@ export default function HealthChart({
 
       // Get all categories with metrics
       const allCategories = Object.entries(categorizedMetrics)
-        .filter(([category, metrics]) => Object.keys(metrics).length > 0)
+        .filter(([, metrics]) => Object.keys(metrics).length > 0)
         .map(([category]) => category);
 
       // Get all metrics
@@ -571,7 +544,7 @@ export default function HealthChart({
     if (filteredMetrics.length === 0) return chartData;
 
     return chartData.map((point) => {
-      const filteredPoint: Record<string, any> = {
+      const filteredPoint: ChartPoint = {
         date: point.date,
         eventType: point.eventType,
       };
@@ -620,18 +593,6 @@ export default function HealthChart({
     return colorMap;
   }, [allMetrics]);
 
-  // Get event icon based on event type
-  const getEventIcon = (eventType: string) => {
-    switch (eventType) {
-      case "prescription":
-        return "💊";
-      case "consultation":
-        return "🩺";
-      default:
-        return "📄";
-    }
-  };
-
   if (isLoading) {
     return (
       <Card className="shadow-lg rounded-2xl overflow-hidden">
@@ -677,14 +638,14 @@ export default function HealthChart({
 
   // Prepare combined chart data for Chart.js
   const combinedChartData = {
-    labels: filteredChartData.map((point) => point.date),
-    datasets: filteredMetrics.map((metric, index) => {
+    labels: filteredChartData.map((point: ChartPoint) => point.date),
+    datasets: filteredMetrics.map((metric) => {
       const color = metricColors[metric] || "#3b82f6";
       return {
         label: metric
           .replace(/_/g, " ")
           .replace(/\b\w/g, (l) => l.toUpperCase()),
-        data: filteredChartData.map((point) => point[metric] || 0),
+        data: filteredChartData.map((point: ChartPoint) => point[metric] || 0),
         borderColor: color,
         backgroundColor: `${color}20`, // Add transparency
         fill: false,
@@ -721,9 +682,10 @@ export default function HealthChart({
           size: 12,
         },
         callbacks: {
-          label: function (context: any) {
-            return `${context.dataset.label}: ${formatMetricValue(
-              context.parsed.y
+          label: function (context: TooltipItem<"line">) {
+            const label = context.dataset.label || ''; // Handle undefined label
+            return `${label}: ${formatMetricValue(
+              context.parsed.y ?? 0 // Handle null case
             )}`;
           },
         },
@@ -754,8 +716,11 @@ export default function HealthChart({
           font: {
             size: 11,
           },
-          callback: function (value: any) {
-            return formatMetricValue(value);
+          callback: function (value: number | string) {
+            if (typeof value === 'number') {
+              return formatMetricValue(value);
+            }
+            return value;
           },
         },
       },

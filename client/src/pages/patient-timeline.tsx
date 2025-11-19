@@ -15,6 +15,20 @@ import HealthChart from "@/components/timeline/health-chart";
 import TimelineEvents from "@/components/timeline/timeline-events";
 import { Calendar, TrendingUp, ArrowLeft, User } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
+import { TimelineEvent } from "@/types/medical";
+
+interface Patient {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  dateOfBirth?: string;
+}
+
+interface PatientTimelineData {
+  patient: Patient;
+  timeline: TimelineEvent[];
+}
 
 export default function PatientTimeline() {
   const [, params] = useRoute("/doctor/patient/:patientId/timeline");
@@ -24,7 +38,7 @@ export default function PatientTimeline() {
 
   const patientId = params?.patientId;
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery<PatientTimelineData>({
     queryKey: [`/api/doctor/patient/${patientId}/timeline`],
     enabled: !!patientId,
     queryFn: async () => {
@@ -51,26 +65,9 @@ export default function PatientTimeline() {
     refetchOnWindowFocus: true,
   });
 
-  const parseEventDate = (dateValue: any): Date => {
-    if (!dateValue) return new Date();
-
-    if (dateValue instanceof Date) {
-      return dateValue;
-    }
-
-    if (dateValue && typeof dateValue.toDate === "function") {
-      return dateValue.toDate();
-    }
-
-    if (typeof dateValue === "number") {
-      return new Date(dateValue);
-    }
-
-    if (typeof dateValue === "string") {
-      return new Date(dateValue);
-    }
-
-    return new Date();
+  const parseEventDate = (dateString: string): Date => {
+    const parsedDate = new Date(dateString);
+    return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
   };
 
   const getFilteredData = () => {
@@ -97,7 +94,7 @@ export default function PatientTimeline() {
     }
 
     return data.timeline.filter(
-      (event: any) => parseEventDate(event.date) >= cutoffDate
+      (event) => parseEventDate(event.date) >= cutoffDate
     );
   };
 
@@ -126,7 +123,7 @@ export default function PatientTimeline() {
     return (
       <div className="space-y-6 fade-in">
         <div className="text-center py-12">
-          <p className="text-red-500 mb-4">Error: {error.message}</p>
+          <p className="text-red-500 mb-4">{(error as Error).message}</p>
           <Button onClick={handleRetry}>Retry</Button>
           <Button
             onClick={() => navigate("/doctor-dashboard")}
@@ -274,8 +271,6 @@ export default function PatientTimeline() {
       {/* Health Chart */}
       <HealthChart
         data={filteredData}
-        timeRange={timeRange}
-        metricType={metricType}
         isLoading={isLoading}
       />
 

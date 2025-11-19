@@ -10,12 +10,10 @@ import { CloudUpload, File, X, CheckCircle, AlertCircle } from "lucide-react";
 
 interface DragDropZoneProps {
   onUploadProgress?: (progress: number | null) => void;
-  uploadProgress?: number | null;
 }
 
 export default function DragDropZone({
   onUploadProgress,
-  uploadProgress,
 }: DragDropZoneProps) {
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{

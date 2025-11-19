@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 
 export default function HealthTimelineProductionDemo() {
-  const [timeRange, setTimeRange] = useState("all");
-  const [metricType, setMetricType] = useState("all");
+  const timeRange = "all";
+  const metricType = "all";
   const [data] = useState<TimelineEvent[]>(generateSampleTimelineData());
   const [isLoading, setIsLoading] = useState(false);
 
@@ -82,11 +82,9 @@ export default function HealthTimelineProductionDemo() {
 
       {/* Health Trends Chart */}
       <HealthChart
-        data={data}
-        timeRange={timeRange}
-        metricType={metricType}
-        isLoading={isLoading}
-      />
+  data={data}
+  isLoading={isLoading}
+/>
     </div>
   );
 }

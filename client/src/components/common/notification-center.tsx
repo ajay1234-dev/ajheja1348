@@ -1,13 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
@@ -115,102 +107,103 @@ export default function NotificationCenter() {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="relative"
-          data-testid="notifications-button"
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-            >
-              {unreadCount}
-            </Badge>
-          )}
-        </Button>
-      </SheetTrigger>
+    <div className="relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="relative"
+        data-testid="notifications-button"
+        onClick={() => setIsOpen(!isOpen)} // Toggle visibility
+      >
+        <Bell className="h-5 w-5" />
+        {unreadCount > 0 && (
+          <Badge
+            variant="destructive"
+            className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+          >
+            {unreadCount}
+          </Badge>
+        )}
+      </Button>
 
-      <SheetContent className="w-full sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle className="flex items-center justify-between">
-            Notifications
-            <div className="flex space-x-2">
-              {unreadCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => markAllAsReadMutation.mutate()}
-                  disabled={markAllAsReadMutation.isPending}
-                >
-                  Mark all as read
-                </Button>
-              )}
-              {totalCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteAllNotificationsMutation.mutate()}
-                  disabled={deleteAllNotificationsMutation.isPending}
-                >
-                  Clear all
-                </Button>
-              )}
-            </div>
-          </SheetTitle>
-          <SheetDescription>
-            Stay updated with your health reminders and reports
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="mt-6 space-y-4 overflow-y-auto max-h-[calc(100vh-180px)] pr-2">
-          {isLoading ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Loading notifications...</p>
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="text-center py-8">
-              <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No notifications yet</p>
-            </div>
-          ) : (
-            notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${getNotificationBgColor(
-                  notification.type
-                )} ${
-                  !notification.isRead ? "border-l-4 border-l-primary" : ""
-                }`}
-                onClick={() => handleNotificationClick(notification)}
-                data-testid={`notification-${notification.id}`}
-              >
-                <div className="flex items-start space-x-3">
-                  {getNotificationIcon(notification.type)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">
-                      {notification.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {notification.message}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {safeFormatDate(notification.createdAt, "MMM d, h:mm a")}
-                    </p>
-                  </div>
-                  {!notification.isRead && (
-                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
-                  )}
-                </div>
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-full sm:max-w-md bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg z-50">
+          <div className="p-4">
+            <h2 className="text-lg font-semibold flex items-center justify-between">
+              Notifications
+              <div className="flex space-x-2">
+                {unreadCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => markAllAsReadMutation.mutate()}
+                    disabled={markAllAsReadMutation.isPending}
+                  >
+                    Mark all as read
+                  </Button>
+                )}
+                {totalCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteAllNotificationsMutation.mutate()}
+                    disabled={deleteAllNotificationsMutation.isPending}
+                  >
+                    Clear all
+                  </Button>
+                )}
               </div>
-            ))
-          )}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Stay updated with your health reminders and reports
+            </p>
+          </div>
+
+          <div className="mt-2 space-y-4 overflow-y-auto max-h-[calc(100vh-180px)] p-4 border-t border-gray-200 dark:border-slate-700">
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Loading notifications...</p>
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="text-center py-8">
+                <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No notifications yet</p>
+              </div>
+            ) : (
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${getNotificationBgColor(
+                    notification.type
+                  )} ${
+                    !notification.isRead ? "border-l-4 border-l-primary" : ""
+                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                  data-testid={`notification-${notification.id}`}
+                >
+                  <div className="flex items-start space-x-3">
+                    {getNotificationIcon(notification.type)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {safeFormatDate(notification.createdAt, "MMM d, h:mm a")}
+                      </p>
+                    </div>
+                    {!notification.isRead && (
+                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+    </div>
   );
 }

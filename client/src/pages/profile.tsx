@@ -30,7 +30,7 @@ import {
 import type { User } from "@shared/schema";
 
 export default function ProfilePage() {
-  const { user: authUser, logout } = useAuth();
+  const { logout } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -61,7 +61,7 @@ export default function ProfilePage() {
       const response = await apiRequest("PATCH", "/api/profile", updates);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",
@@ -166,9 +166,8 @@ export default function ProfilePage() {
 
       {/* Profile Picture Upload */}
       <ProfilePictureUpload
-        currentPictureUrl={profile.profilePictureUrl}
-        userId={profile.id}
-      />
+  currentPictureUrl={profile.profilePictureUrl}
+/>
 
       <Card>
         <CardHeader>

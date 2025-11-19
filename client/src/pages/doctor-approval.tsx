@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
   CheckCircle,
-  XCircle,
   UserCheck,
   Stethoscope,
   Loader2,
@@ -15,6 +14,17 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Link } from "wouter";
+
+interface PendingDoctor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  specialization?: string;
+  detectedSpecialization?: string;
+  reportSummary?: string;
+  sharedReportId: string;
+  approvalStatus: string;
+}
 
 export default function DoctorApproval() {
   const { toast } = useToast();
@@ -28,7 +38,7 @@ export default function DoctorApproval() {
     data: pendingDoctors,
     isLoading,
     refetch,
-  } = useQuery({
+  } = useQuery<PendingDoctor[]>({
     queryKey: ["/api/patient/doctors"],
     queryFn: async () => {
       const response = await fetch("/api/patient/doctors", {
@@ -42,10 +52,10 @@ export default function DoctorApproval() {
         );
         throw new Error("Failed to fetch doctors");
       }
-      const doctors = await response.json();
+      const doctors: PendingDoctor[] = await response.json();
       console.log("All doctors fetched:", doctors);
       const pending = doctors.filter(
-        (doctor: any) => doctor.approvalStatus === "pending"
+        (doctor) => doctor.approvalStatus === "pending"
       );
       console.log("Pending doctors:", pending);
       return pending;
@@ -67,7 +77,7 @@ export default function DoctorApproval() {
     onMutate: (sharedReportId: string) => {
       setApprovalStatus((prev) => ({ ...prev, [sharedReportId]: "pending" }));
     },
-    onSuccess: (data, sharedReportId) => {
+    onSuccess: (_data, sharedReportId) => {
       setApprovalStatus((prev) => ({ ...prev, [sharedReportId]: "approved" }));
       toast({
         title: "✅ Doctor Approved!",
@@ -171,7 +181,7 @@ export default function DoctorApproval() {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {pendingDoctors.map((doctor: any) => (
+            {pendingDoctors.map((doctor: PendingDoctor) => (
               <Card
                 key={doctor.id}
                 className="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-700 shadow-sm"
