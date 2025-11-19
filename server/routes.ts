@@ -1,11 +1,13 @@
-import type { Express } from "express";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import {
   insertUserSchema,
-  insertReportSchema,
   insertMedicationSchema,
   insertReminderSchema,
+  type SharedReport,
+  type InsertUser,
 } from "@shared/schema";
 import {
   analyzeMedicalReport,
@@ -96,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Authentication middleware
-  const requireAuth = (req: any, res: any, next: any) => {
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
     // Debug logging
     console.log("Auth check - Session:", {
       hasSession: !!req.session,
@@ -248,7 +250,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Don't send password to client
-      const { password, ...userWithoutPassword } = user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
       res.status(500).json({
@@ -276,7 +279,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Don't send password to client
-      const { password, ...userWithoutPassword } = updatedUser;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...userWithoutPassword } = updatedUser;
       res.json(userWithoutPassword);
     } catch (error) {
       res.status(400).json({
@@ -371,11 +375,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             req.file.mimetype
           );
           console.log("✅ File uploaded to S3:", publicUrl);
-        } catch (s3Error: any) {
-          console.error("❌ S3 upload failed:", s3Error.message);
+        } catch (s3Error: unknown) {
+          const errorMessage = s3Error instanceof Error ? s3Error.message : String(s3Error);
+          console.error("❌ S3 upload failed:", errorMessage);
           return res.status(500).json({
             message: "Failed to upload to AWS S3",
-            error: s3Error.message,
+            error: errorMessage,
             instructions: [
               "Please check your AWS S3 configuration:",
               "1. Verify AWS_ACCESS_KEY_ID is set in .env",
@@ -424,19 +429,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         profilePictureUrl: publicUrl,
         storage: "AWS S3",
       });
-    } catch (error: any) {
-      console.error("❌ Profile picture upload error:", error);
-      console.error("Error stack:", error.stack);
+    } catch (error: unknown) {
+      const err = error as Error & { code?: string; stack?: string };
+      console.error("❌ Profile picture upload error:", err);
+      console.error("Error stack:", err.stack);
 
       // Return JSON error response with helpful information
       return res.status(500).json({
-        message: error.message || "Upload failed",
+        message: err.message || "Upload failed",
         error:
           process.env.NODE_ENV === "development"
             ? {
-                message: error.message,
-                code: error.code,
-                stack: error.stack,
+                message: err.message,
+                code: err.code,
+                stack: err.stack,
               }
             : {
                 message:
@@ -524,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        const userData: any = {
+        const userData: InsertUser = {
           email: verifiedToken.email,
           firstName,
           lastName,
@@ -2047,13 +2053,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const enrichedShares = await Promise.all(
-        sharedReports.map(async (share: any) => {
+        sharedReports.map(async (share: SharedReport) => {
           const patient = await storage.getUser(share.userId);
           const reports = [];
-          for (const reportId of share.reportIds) {
-            const report = await storage.getReport(reportId);
-            if (report) {
-              reports.push(report);
+          if (share.reportIds) {
+            for (const reportId of share.reportIds) {
+              const report = await storage.getReport(reportId);
+              if (report) {
+                reports.push(report);
+              }
             }
           }
 
@@ -2167,14 +2175,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter for only approved shared reports
       const sharedReports = allSharedReports.filter(
-        (share: any) => share.approvalStatus === "approved"
+        (share: SharedReport) => share.approvalStatus === "approved"
       );
 
       // Extract unique patient IDs from approved sharedReports
       const patientIds = new Set<string>();
-      sharedReports.forEach((share: any) => {
-        if (share.userId || share.patientId) {
-          patientIds.add(share.userId || share.patientId);
+      sharedReports.forEach((share: SharedReport) => {
+        const patientId = share.userId || share.patientId;
+        if (patientId) {
+          patientIds.add(patientId);
         }
       });
 
@@ -2186,7 +2195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Get the most recent report shared with this doctor for this patient
           const patientShares = sharedReports.filter(
-            (share: any) =>
+            (share: SharedReport) =>
               share.userId === patientId || share.patientId === patientId
           );
           const latestShare = patientShares[0]; // Already sorted by date in storage
@@ -2264,7 +2273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter for only approved or pending shared reports
       const relevantShares = patientShares.filter(
-        (share: any) =>
+        (share: SharedReport) =>
           share.approvalStatus === "approved" ||
           share.approvalStatus === "pending"
       );
@@ -2273,7 +2282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Extract unique doctor emails and fetch doctor details
       const doctorEmails = new Set<string>();
-      relevantShares.forEach((share: any) => {
+      relevantShares.forEach((share: SharedReport) => {
         if (share.doctorEmail) {
           doctorEmails.add(share.doctorEmail);
         }
@@ -2292,10 +2301,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Enrich doctor data with assignment details
       const enrichedDoctors = assignedDoctors.map((doctor) => {
         const doctorShares = relevantShares.filter(
-          (share: any) => share.doctorEmail === doctor.email
+          (share: SharedReport) => share.doctorEmail === doctor.email
         );
         // Sort by createdAt to get the most recent assignment
-        doctorShares.sort((a: any, b: any) => {
+        doctorShares.sort((a: SharedReport, b: SharedReport) => {
           const dateA =
             a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
           const dateB =
@@ -2534,7 +2543,7 @@ Key Points:
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
-      const sharedReport = await storage.createSharedReport({
+      await storage.createSharedReport({
         userId: req.session.userId!,
         reportIds,
         shareToken,

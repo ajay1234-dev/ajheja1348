@@ -152,9 +152,9 @@ export class VoiceService {
 
     if (analysis.keyFindings && analysis.keyFindings.length > 0) {
       summary += "Key findings include: ";
-      analysis.keyFindings?.forEach((finding: Finding, index: number) => {
+      analysis.keyFindings.forEach((finding: Finding, index: number) => {
         summary += `${finding.parameter} is ${finding.value}, which is ${finding.status}`;
-        if (index < analysis.keyFindings.length - 1) {
+        if (analysis.keyFindings && index < analysis.keyFindings.length - 1) {
           summary += ". ";
         }
       });

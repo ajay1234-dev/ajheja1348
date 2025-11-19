@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   S3Client,
   PutObjectCommand,
@@ -130,7 +131,7 @@ export async function checkS3FileExists(fileUrl: string): Promise<boolean> {
 
     await s3Client.send(command);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

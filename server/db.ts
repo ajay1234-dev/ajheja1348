@@ -6,6 +6,6 @@ import * as schema from '@shared/schema';
 // This file is kept for backwards compatibility but will not be initialized
 export const db = process.env.DATABASE_URL 
   ? drizzle(new Pool({ connectionString: process.env.DATABASE_URL }), { schema })
-  : null as any;
+  : null as never;
 
 export type Database = typeof db;

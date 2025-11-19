@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DragDropZone from "@/components/upload/drag-drop-zone";
@@ -21,8 +20,6 @@ import { safeFormatDate } from "@/lib/date-utils";
 import type { Report } from "@shared/schema";
 
 export default function Upload() {
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-
   const { data: reports, isLoading } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
     refetchInterval: 5000,
@@ -111,9 +108,7 @@ export default function Upload() {
 
             <TabsContent value="quick">
               <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-8">
-                <DragDropZone
-  onUploadProgress={setUploadProgress}
-/>
+                <DragDropZone />
               </div>
             </TabsContent>
           </Tabs>

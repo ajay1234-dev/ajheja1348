@@ -659,15 +659,15 @@ export default function HealthChart({
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={filteredChartData.map((point: ChartPoint) => {
-                const filteredPoint: ChartPoint = {
+                const filteredPoint: Record<string, string | number | null> = {
                   date: point.date,
                   eventType: point.eventType,
                 };
                 Object.entries(point).forEach(([key, value]) => {
                   if (key === "date" || key === "eventType") {
-                    filteredPoint[key] = value;
+                    filteredPoint[key] = value as string;
                   } else if (isNumeric(value)) {
-                    filteredPoint[key] = isNaN(value as number) ? null : value; // Convert NaN to null
+                    filteredPoint[key] = isNaN(value as number) ? null : (value as number); // Convert NaN to null
                   } else {
                     filteredPoint[key] = null; // Convert non-numeric to null
                   }
@@ -735,9 +735,9 @@ export default function HealthChart({
                 const numericValue = Object.values(point).find(
                   (val) => isNumeric(val) && !isNaN(val as number)
                 );
-                const yValue =
+                const yValue: number | string | undefined =
                   numericValue !== undefined && !isNaN(numericValue as number)
-                    ? numericValue
+                    ? (numericValue as number)
                     : 0;
 
                 return (

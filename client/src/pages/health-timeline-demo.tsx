@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 
 export default function HealthTimelineDemo() {
-  const timeRange = "all";
-  const metricType = "all";
   const [data] = useState<TimelineEvent[]>(generateSampleTimelineData());
   const [isLoading, setIsLoading] = useState(false);
 

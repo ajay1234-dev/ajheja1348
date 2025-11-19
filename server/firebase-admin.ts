@@ -10,10 +10,11 @@ async function testFirestoreConnection(): Promise<boolean> {
   try {
     // Set gRPC settings to prefer IPv4 and increase timeout
     const testCollection = firestore.collection("_connection_test");
-    const snapshot = await testCollection.limit(1).get();
+    await testCollection.limit(1).get();
     return true;
-  } catch (error: any) {
-    console.warn("⚠️ Firestore connection test failed:", error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn("⚠️ Firestore connection test failed:", errorMessage);
     console.warn("   This might be a temporary network issue. Retrying...");
 
     // Retry once after a delay
@@ -23,10 +24,11 @@ async function testFirestoreConnection(): Promise<boolean> {
       await testCollection.limit(1).get();
       console.log("✅ Firestore connection successful on retry");
       return true;
-    } catch (retryError: any) {
+    } catch (retryError: unknown) {
+      const retryErrorMessage = retryError instanceof Error ? retryError.message : String(retryError);
       console.error(
         "❌ Firestore connection failed after retry:",
-        retryError.message
+        retryErrorMessage
       );
       return false;
     }

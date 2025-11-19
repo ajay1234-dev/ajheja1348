@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createWorker } from 'tesseract.js';
 
 // Define a timeout for OCR processing (in milliseconds)

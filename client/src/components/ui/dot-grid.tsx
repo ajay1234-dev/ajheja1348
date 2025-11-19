@@ -8,6 +8,7 @@ import "./dot-grid.css";
 
 gsap.registerPlugin(InertiaPlugin);
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const throttle = <T extends (...args: any[]) => any>(
   func: T,
   limit: number

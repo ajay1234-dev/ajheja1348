@@ -1,4 +1,4 @@
-import { createWorker, RecognizeResult, Word, ConfigResult, Page } from 'tesseract.js';
+import { createWorker, Word } from 'tesseract.js';
 import type { Worker as TesseractWorker } from 'tesseract.js';
 
 export interface OCRResult {
@@ -22,9 +22,7 @@ let worker: TesseractWorker | null = null;
 export const initializeOCR = async (): Promise<TesseractWorker> => {
   if (worker) return worker;
 
-  worker = await createWorker();
-  await worker.loadLanguage('eng');
-  await worker.initialize('eng');
+  worker = await createWorker('eng');
   
   // Configure for medical documents
   await worker.setParameters({
@@ -42,10 +40,14 @@ export const extractTextFromImage = async (file: File): Promise<OCRResult> => {
     
     const result = await ocrWorker.recognize(file);
     
+    // Tesseract.js types might not match actual runtime data structure
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const words = (result.data as any).words || [];
+    
     return {
       text: result.data.text,
       confidence: result.data.confidence,
-      words: result.data.words.map((word: Word) => ({
+      words: words.map((word: Word) => ({
         text: word.text,
         confidence: word.confidence,
         bbox: word.bbox
