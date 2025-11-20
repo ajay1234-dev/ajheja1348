@@ -53,7 +53,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       if (!response.ok) throw new Error("Failed to fetch doctors");
       const doctors = await response.json();
       return doctors.filter(
-        (doctor: { approvalStatus: string }) => doctor.approvalStatus === "pending"
+        (doctor: { approvalStatus: string }) =>
+          doctor.approvalStatus === "pending"
       );
     },
     enabled: user?.role === "patient",
@@ -114,7 +115,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   };
 
   const sidebarClasses = cn(
-    "fixed lg:static inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 shadow-lg transform transition-all duration-300 ease-in-out",
+    "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 shadow-lg transform transition-all duration-300 ease-in-out",
     {
       "translate-x-0": isOpen || !isMobile,
       "-translate-x-full": !isOpen && isMobile,
@@ -126,11 +127,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="flex flex-col h-full">
         {/* Logo Section */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-white/20 bg-gradient-to-r from-sky-400/10 to-purple-600/10 dark:from-sky-400/20 dark:to-purple-600/20">
-          <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center soft-glow shadow-xl icon-static">
-              <Heart className="h-6 w-6 text-primary" />
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-sky-400 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center soft-glow shadow-xl icon-static">
+              <Heart className="h-4 w-4 md:h-6 md:w-6 text-primary" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-lg md:text-xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-600 bg-clip-text text-transparent truncate">
               MediCare
             </span>
           </div>
@@ -149,7 +150,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation Menu with AnimatedList */}
-        <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-2 sm:space-y-3 bg-white dark:bg-slate-800">
+        <nav className="flex-1 px-3 py-4 space-y-2 bg-white dark:bg-slate-800">
           <ScrollGradients className="h-full" hideScrollbar={true}>
             <AnimatedList
               items={navigation.map((item) => item.name)}
@@ -163,32 +164,32 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* User Profile Section */}
-        <div className="border-t border-gray-200 dark:border-slate-700 p-3 sm:p-4 bg-white dark:bg-slate-800">
-          <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3 p-2 sm:p-3 rounded-lg bg-muted border border-gray-200 dark:border-slate-700 hover:bg-muted/80 transition-all">
+        <div className="border-t border-gray-200 dark:border-slate-700 p-3 bg-white dark:bg-slate-800">
+          <div className="flex items-center space-x-2 mb-2 p-2 rounded-lg bg-muted border border-gray-200 dark:border-slate-700 hover:bg-muted/80 transition-all">
             {user?.profilePictureUrl ? (
-              <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-primary">
+              <Avatar className="w-10 h-10 border-2 border-primary">
                 <AvatarImage
                   src={user.profilePictureUrl}
                   alt={`${user.firstName} ${user.lastName}`}
                 />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm font-bold">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                   {user?.firstName?.[0]}
                   {user?.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-xs sm:text-sm font-bold text-primary-foreground">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-xs font-bold text-primary-foreground">
                   {user?.firstName?.[0]}
                   {user?.lastName?.[0]}
                 </span>
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm sm:text-base font-bold truncate">
+              <p className="text-sm font-bold truncate">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {user?.email}
               </p>
               {user?.role && (
@@ -201,12 +202,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="w-full justify-start hover:bg-destructive/10 text-destructive rounded-lg transition-all text-xs sm:text-sm"
+            className="w-full justify-start hover:bg-destructive/10 text-destructive rounded-lg transition-all text-xs"
             data-testid="logout-button"
           >
-            <LogOut className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="hidden sm:inline">Sign Out</span>
-            <span className="sm:hidden">Logout</span>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Logout</span>
           </Button>
         </div>
       </div>

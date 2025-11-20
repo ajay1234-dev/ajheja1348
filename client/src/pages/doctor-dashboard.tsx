@@ -29,7 +29,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
-import GradientText from "@/components/ui/gradient-text";
+
 import {
   HeroCarousel,
   DOCTOR_CAROUSEL_IMAGES,
@@ -110,7 +110,8 @@ export default function DoctorDashboard() {
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [selectedSharedReport, setSelectedSharedReport] = useState<SharedReport | null>(null);
+  const [selectedSharedReport, setSelectedSharedReport] =
+    useState<SharedReport | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -125,23 +126,26 @@ export default function DoctorDashboard() {
     },
   });
 
-  const { data: patientData, isLoading: isLoadingPatientData } = useQuery<PatientData>({
-    queryKey: ["/api/doctor/patient", selectedPatient?.id, "reports"],
-    enabled: !!selectedPatient,
-    queryFn: async () => {
-      if (!selectedPatient) throw new Error("No patient selected");
-      const response = await fetch(
-        `/api/doctor/patient/${selectedPatient.id}/reports`,
-        {
-          credentials: "include",
-        }
-      );
-      if (!response.ok) throw new Error("Failed to fetch patient data");
-      return response.json();
-    },
-  });
+  const { data: patientData, isLoading: isLoadingPatientData } =
+    useQuery<PatientData>({
+      queryKey: ["/api/doctor/patient", selectedPatient?.id, "reports"],
+      enabled: !!selectedPatient,
+      queryFn: async () => {
+        if (!selectedPatient) throw new Error("No patient selected");
+        const response = await fetch(
+          `/api/doctor/patient/${selectedPatient.id}/reports`,
+          {
+            credentials: "include",
+          }
+        );
+        if (!response.ok) throw new Error("Failed to fetch patient data");
+        return response.json();
+      },
+    });
 
-  const { data: sharedReports, isLoading: isLoadingShared } = useQuery<SharedReport[]>({
+  const { data: sharedReports, isLoading: isLoadingShared } = useQuery<
+    SharedReport[]
+  >({
     queryKey: ["/api/doctor/shared-reports"],
     queryFn: async () => {
       const response = await fetch("/api/doctor/shared-reports", {
@@ -260,55 +264,48 @@ export default function DoctorDashboard() {
             showIndicators={true}
           >
             <div className="text-center px-4">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg flex items-center justify-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-3">
                 {user?.profilePictureUrl ? (
-                  <Avatar className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 border-2 border-white shadow-lg">
+                  <Avatar className="w-16 h-16 border-2 border-white shadow-lg">
                     <AvatarImage
                       src={user.profilePictureUrl}
                       alt={`Dr. ${user.firstName} ${user.lastName}`}
                     />
-                    <AvatarFallback className="bg-primary text-white text-lg md:text-xl lg:text-2xl font-bold">
+                    <AvatarFallback className="bg-primary text-white text-xl font-bold">
                       {user?.firstName?.[0]}
                       {user?.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <div className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-primary rounded-lg flex items-center justify-center">
-                    <Stethoscope className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-white" />
+                  <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center">
+                    <Stethoscope className="h-8 w-8 text-white" />
                   </div>
                 )}
-                <GradientText
-                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
-                  animationSpeed={3}
-                  showBorder={false}
-                  className="text-3xl md:text-4xl lg:text-5xl font-bold"
-                >
-                  Dr. {user?.firstName} {user?.lastName}
-                </GradientText>
-              </h1>
-              <p className="text-white/90 text-base md:text-lg lg:text-xl drop-shadow-md flex items-center justify-center gap-2 md:gap-3 flex-wrap">
+                <div className="text-left">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
+                    Dr. {user?.firstName} {user?.lastName}
+                  </h1>
+                  <p className="text-white/90 text-base md:text-lg drop-shadow-md mt-1">
+                    {(() => {
+                      const hour = new Date().getHours();
+                      if (hour < 12) return "Good morning";
+                      if (hour < 18) return "Good afternoon";
+                      return "Good evening";
+                    })()}
+                    , Dr. {user?.firstName}!
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                 {user?.specialization && (
-                  <Badge className="bg-white/90 text-slate-900 text-sm md:text-base">
+                  <Badge className="bg-white/90 text-slate-900 text-sm">
                     {user.specialization}
                   </Badge>
                 )}
-                <GradientText
-                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
-                  animationSpeed={3}
-                  showBorder={false}
-                  className="text-white/90 text-base md:text-lg lg:text-xl font-medium"
-                >
-                  {(() => {
-                    const hour = new Date().getHours();
-                    if (hour < 12) return "Good morning";
-                    if (hour < 18) return "Good afternoon";
-                    return "Good evening";
-                  })()}, Dr. {user?.firstName}!
-                </GradientText>
-                <span className="hidden sm:inline">
+                <p className="text-white/90 text-sm md:text-base drop-shadow-md text-center">
                   View and manage your patients' health records and reports
-                </span>
-              </p>
+                </p>
+              </div>
             </div>
           </HeroCarousel>
         </div>
@@ -323,8 +320,7 @@ export default function DoctorDashboard() {
                     Total Patients
                   </p>
                   <p className="text-3xl font-bold">
-                    {patients?.filter((p) => !p.hideFromDashboard)
-                      .length || 0}
+                    {patients?.filter((p) => !p.hideFromDashboard).length || 0}
                   </p>
                 </div>
                 <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
@@ -582,7 +578,8 @@ export default function DoctorDashboard() {
                                       )
                                     ) {
                                       hidePatientMutation.mutate({
-                                        sharedReportId: patient.sharedReportId as string,
+                                        sharedReportId:
+                                          patient.sharedReportId as string,
                                         hide: true,
                                       });
                                     }

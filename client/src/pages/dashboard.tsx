@@ -26,11 +26,7 @@ import {
   FileTextIcon,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
-import type {
-  Report,
-  Medication,
-  Reminder,
-} from "@shared/schema";
+import type { Report, Medication, Reminder } from "@shared/schema";
 import type { DashboardStats } from "@/types/medical";
 import {
   Dialog,
@@ -39,7 +35,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ScrollGradients from "@/components/ui/scroll-gradients";
-import GradientText from "@/components/ui/gradient-text";
 
 interface Doctor {
   id: string;
@@ -162,7 +157,9 @@ export default function Dashboard() {
     }
   );
 
-  const { data: healthTimeline, isLoading: timelineLoading } = useQuery<TimelineEvent[]>({
+  const { data: healthTimeline, isLoading: timelineLoading } = useQuery<
+    TimelineEvent[]
+  >({
     queryKey: ["/api/timeline"],
     // Cache for 5 minutes
     staleTime: 5 * 60 * 1000,
@@ -225,42 +222,31 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900">
-      <div className="space-y-6 page-transition p-6">
+      <div className="space-y-6 page-transition p-4 md:p-6">
         {/* Hero Section with Auto-Scrolling Carousel */}
         <div className="relative mb-6">
           <HeroCarousel
             images={PATIENT_CAROUSEL_IMAGES}
-            className="h-64 md:h-80 lg:h-96 w-full"
+            className="h-48 sm:h-64 md:h-80 w-full"
             autoPlayInterval={5000}
             showControls={true}
             showIndicators={true}
           >
             <div className="text-center px-4">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg">
-                <GradientText
-                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
-                  animationSpeed={3}
-                  showBorder={false}
-                  className="text-3xl md:text-4xl lg:text-5xl font-bold"
-                >
-                  Your Health Dashboard
-                </GradientText>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+                Your Health Dashboard
               </h1>
               <div className="space-y-2">
-                <GradientText
-                  colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
-                  animationSpeed={3}
-                  showBorder={false}
-                  className="text-white/90 text-base md:text-lg lg:text-xl font-medium block"
-                >
+                <p className="text-white/90 text-sm sm:text-base md:text-lg font-medium drop-shadow-md">
                   {(() => {
                     const hour = new Date().getHours();
                     if (hour < 12) return "Good morning";
                     if (hour < 18) return "Good afternoon";
                     return "Good evening";
-                  })()}! Welcome to your health dashboard.
-                </GradientText>
-                <p className="text-white/90 text-base md:text-lg lg:text-xl drop-shadow-md">
+                  })()}
+                  ! Welcome to your health dashboard.
+                </p>
+                <p className="text-white/90 text-sm sm:text-base md:text-lg drop-shadow-md">
                   Monitor your health journey with AI-powered insights
                 </p>
               </div>
@@ -271,13 +257,13 @@ export default function Dashboard() {
         <WelcomeSection />
 
         {statsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <Card
                 key={i}
                 className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm"
               >
-                <CardContent className="p-6">
+                <CardContent className="p-4">
                   <Skeleton className="h-4 w-20 mb-2" />
                   <Skeleton className="h-8 w-16" />
                 </CardContent>
@@ -289,7 +275,7 @@ export default function Dashboard() {
         )}
 
         {/* Health Summary and Prescription Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card
             className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => setShowHealthSummary(true)}
@@ -302,8 +288,8 @@ export default function Dashboard() {
                 Monthly Health Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="p-4 md:p-6">
+              <p className="text-muted-foreground mb-4 text-sm md:text-base">
                 Get your comprehensive health overview based on recent reports
                 and medications
               </p>
@@ -333,8 +319,8 @@ export default function Dashboard() {
                 Monthly Prescription
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="p-4 md:p-6">
+              <p className="text-muted-foreground mb-4 text-sm md:text-base">
                 Review your current medications and prescription details
               </p>
               {activeMedications && (
@@ -354,13 +340,13 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4">
           {reportsLoading ? (
             <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
               <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
                 <Skeleton className="h-6 w-40" />
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
                     <Skeleton key={i} className="h-16 w-full" />
@@ -377,7 +363,7 @@ export default function Dashboard() {
               <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
                 <Skeleton className="h-6 w-40" />
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="space-y-4">
                   {[...Array(3)].map((_, i) => (
                     <Skeleton key={i} className="h-16 w-full" />
@@ -396,7 +382,7 @@ export default function Dashboard() {
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
               <Skeleton className="h-6 w-40" />
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                   <Skeleton key={i} className="h-16 w-full" />
@@ -414,14 +400,14 @@ export default function Dashboard() {
                 Reminders
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="space-y-3">
                 {reminders.slice(0, 4).map((reminder) => (
                   <div
                     key={reminder.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    className="flex items-center justify-between p-3 border rounded-lg flex-col sm:flex-row gap-2 sm:gap-0"
                   >
-                    <div>
+                    <div className="text-center sm:text-left">
                       <p className="text-sm font-medium">{reminder.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {safeFormatDate(
@@ -435,9 +421,10 @@ export default function Dashboard() {
                       size="sm"
                       type="button"
                       onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                      className="w-full sm:w-auto"
                     >
                       <Trash className="h-4 w-4" />
-                      Remove
+                      <span className="ml-1">Remove</span>
                     </Button>
                   </div>
                 ))}
@@ -459,7 +446,7 @@ export default function Dashboard() {
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
               <Skeleton className="h-6 w-40" />
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="space-y-4">
                 {[...Array(2)].map((_, i) => (
                   <Skeleton key={i} className="h-20 w-full" />
@@ -499,7 +486,7 @@ export default function Dashboard() {
                     return (
                       <div
                         key={doctor.id}
-                        className={`bg-gray-50 dark:bg-slate-700 border rounded-lg p-6 hover:shadow-md transition-shadow ${
+                        className={`bg-gray-50 dark:bg-slate-700 border rounded-lg p-4 md:p-6 hover:shadow-md transition-shadow ${
                           hasPendingApproval
                             ? "border-amber-400 bg-amber-50 dark:bg-amber-900/20"
                             : hasActiveTreatment
@@ -510,9 +497,9 @@ export default function Dashboard() {
                         }`}
                         data-testid={`doctor-card-${doctor.id}`}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                           <div
-                            className="flex items-center space-x-4 flex-1 cursor-pointer"
+                            className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-4 flex-1 cursor-pointer w-full"
                             onClick={() => setSelectedDoctor(doctor)}
                           >
                             {doctor.profilePictureUrl ? (
@@ -544,7 +531,7 @@ export default function Dashboard() {
                                 <UserIcon className="h-8 w-8 text-white" />
                               </div>
                             )}
-                            <div>
+                            <div className="text-center sm:text-left w-full">
                               <h3 className="font-semibold text-lg">
                                 Dr. {doctor.firstName} {doctor.lastName}
                               </h3>
@@ -552,7 +539,7 @@ export default function Dashboard() {
                                 {doctor.email}
                               </p>
                               {hasPendingApproval && (
-                                <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                                   <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
                                   <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
                                     Pending Your Approval
@@ -560,7 +547,7 @@ export default function Dashboard() {
                                 </div>
                               )}
                               {hasActiveTreatment && !hasPendingApproval && (
-                                <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                                   <div className="w-2 h-2 bg-blue-500 rounded-full" />
                                   <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
                                     Active Treatment
@@ -568,7 +555,7 @@ export default function Dashboard() {
                                 </div>
                               )}
                               {hasCompletedTreatment && (
-                                <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                                   <span className="text-xs text-green-600 dark:text-green-400 font-semibold">
                                     Treatment Completed
@@ -577,7 +564,7 @@ export default function Dashboard() {
                               )}
                             </div>
                           </div>
-                          <div className="text-right space-y-2">
+                          <div className="text-center sm:text-right space-y-2 w-full md:w-auto">
                             {doctor.specialization && (
                               <Badge className="mt-2">
                                 {doctor.specialization}
@@ -602,7 +589,7 @@ export default function Dashboard() {
                             <Button
                               onClick={() => setSelectedDoctor(doctor)}
                               size="sm"
-                              className="mt-2"
+                              className="mt-2 w-full sm:w-auto"
                             >
                               View Details
                             </Button>
@@ -666,28 +653,28 @@ export default function Dashboard() {
               healthTimeline.length > 0 ? (
               <ScrollGradients className="h-96" hideScrollbar={true}>
                 <div className="space-y-4 p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="p-5 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-primary/20">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-primary/20">
                       <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
                         Timeline Events
                       </p>
-                      <p className="text-3xl font-bold text-foreground mt-2">
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">
                         {healthTimeline.length}
                       </p>
                     </div>
-                    <div className="p-5 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-blue-500/20">
+                    <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-blue-500/20">
                       <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
                         Reports
                       </p>
-                      <p className="text-3xl font-bold text-foreground mt-2">
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">
                         {stats?.totalReports || 0}
                       </p>
                     </div>
-                    <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-green-500/20">
+                    <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl hover-lift smooth-transition shadow-md border-2 border-transparent hover:border-green-500/20">
                       <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wide">
                         Medications
                       </p>
-                      <p className="text-3xl font-bold text-foreground mt-2">
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">
                         {stats?.activeMedications || 0}
                       </p>
                     </div>
@@ -698,7 +685,7 @@ export default function Dashboard() {
                         key={event.id}
                         className="p-4 border-2 border-border rounded-xl hover:shadow-lg hover:border-primary/30 smooth-transition hover-lift bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-900"
                       >
-                        <div className="flex items-start justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                           <div>
                             <h4 className="font-semibold text-foreground">
                               {event.title}
@@ -709,7 +696,7 @@ export default function Dashboard() {
                           </div>
                           <Badge
                             variant="outline"
-                            className="ml-2 font-semibold"
+                            className="font-semibold whitespace-nowrap"
                           >
                             {event.eventType}
                           </Badge>
@@ -746,7 +733,7 @@ export default function Dashboard() {
                 <p className="text-muted-foreground mb-2">
                   No health timeline events yet
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground px-4">
                   Upload your first medical report to start tracking your health
                   journey
                 </p>

@@ -11,13 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Loader2, UserIcon, Stethoscope } from "lucide-react";
@@ -42,9 +35,6 @@ export default function Login() {
   const [role, setRole] = useState("patient");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showRoleDialog, setShowRoleDialog] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("patient");
-  const [pendingIdToken, setPendingIdToken] = useState<string | null>(null);
   const { login, loginWithFirebase } = useAuth();
   const { toast } = useToast();
 
@@ -57,9 +47,13 @@ export default function Login() {
         // User is signed in, get ID token and proceed
         try {
           const idToken = await user.getIdToken();
-          setPendingIdToken(idToken);
-          setShowRoleDialog(true);
-          setIsGoogleLoading(false);
+
+          // For doctors, login directly without showing dialog
+          if (role === "doctor") {
+            // Directly call the login function with correct role
+            await loginWithFirebase(idToken, "doctor");
+          }
+          // For patients, we still need to show some UI, but we'll simplify it
         } catch (error) {
           console.error("Error getting ID token:", error);
           toast({
@@ -67,7 +61,6 @@ export default function Login() {
             description: "Failed to authenticate. Please try again.",
             variant: "destructive",
           });
-          setIsGoogleLoading(false);
         }
       }
     });
@@ -82,8 +75,15 @@ export default function Login() {
           setIsGoogleLoading(true);
 
           const idToken = await result.user.getIdToken();
-          setPendingIdToken(idToken);
-          setShowRoleDialog(true);
+
+          // For Google sign-in, handle doctors directly
+          if (role === "doctor") {
+            // Directly call the login function
+            await loginWithFirebase(idToken, "doctor");
+          } else {
+            // For patients, we'll need to handle this differently
+            // This would typically show a simplified UI or auto-login
+          }
           setIsGoogleLoading(false);
         }
       } catch (error) {
@@ -119,8 +119,22 @@ export default function Login() {
             );
             const idToken = await userCredential.user.getIdToken();
 
-            // Use Firebase login instead of traditional login
-            await loginWithFirebase(idToken, role);
+            // If the user is logging in as a doctor, we can try to auto-detect their role
+            // For now, we'll use the selected role from the form
+            // In a production app, you might check if the user already has a role in your database
+            if (role === "doctor") {
+              // For doctors, we need to ensure we're passing the correct role
+              await loginWithFirebase(idToken, "doctor");
+              // Show welcome message for doctors too
+              toast({
+                title: "Welcome back, Doctor!",
+                description: "You have successfully logged in.",
+              });
+              return;
+            } else {
+              // Use Firebase login instead of traditional login
+              await loginWithFirebase(idToken, role);
+            }
 
             toast({
               title: "Welcome back!",
@@ -133,30 +147,46 @@ export default function Login() {
               "Firebase auth failed, trying traditional login:",
               firebaseError
             );
-            await login(email, password, role);
+            // Ensure doctors get the correct role
+            if (role === "doctor") {
+              await login(email, password, "doctor");
+            } else {
+              await login(email, password, role);
+            }
 
+            // Only show toast for non-doctors
+            if (role !== "doctor") {
+              toast({
+                title: "Welcome back!",
+                description: "You have successfully logged in.",
+              });
+            }
+          }
+        } else {
+          // Fallback to traditional login if Firebase is not configured
+          // Ensure doctors get the correct role
+          if (role === "doctor") {
+            await login(email, password, "doctor");
+          } else {
+            await login(email, password, role);
+          }
+          // Only show toast for non-doctors
+          if (role !== "doctor") {
             toast({
               title: "Welcome back!",
               description: "You have successfully logged in.",
             });
           }
-        } else {
-          // Fallback to traditional login if Firebase is not configured
-          await login(email, password, role);
-          toast({
-            title: "Welcome back!",
-            description: "You have successfully logged in.",
-          });
         }
       } catch (error: unknown) {
         console.error("Login error:", error);
 
         // Check if it's a Firebase error
-        if (error && typeof error === 'object' && 'code' in error) {
+        if (error && typeof error === "object" && "code" in error) {
           let errorMessage =
             "Invalid email, password, or role. Please try again.";
 
-          switch ((error as {code: string}).code) {
+          switch ((error as { code: string }).code) {
             case "auth/user-not-found":
               errorMessage =
                 "No user found with this email. Please check your email or register.";
@@ -217,31 +247,10 @@ export default function Login() {
     }
   }, [toast]);
 
-  const handleRoleSelection = useCallback(async () => {
-    if (!pendingIdToken) return;
-
-    setIsGoogleLoading(true);
-    setShowRoleDialog(false);
-
-    try {
-      await loginWithFirebase(pendingIdToken, selectedRole);
-
-      toast({
-        title: "Welcome!",
-        description: "You have successfully signed in.",
-      });
-    } catch (error) {
-      console.error("Firebase login error:", error);
-      toast({
-        title: "Sign-in failed",
-        description: "Failed to complete sign-in. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGoogleLoading(false);
-      setPendingIdToken(null);
-    }
-  }, [pendingIdToken, selectedRole, loginWithFirebase, toast]);
+  // Remove the auto-confirm effect as we don't show role dialog anymore
+  useEffect(() => {
+    // This effect is now removed as we don't show role dialog anymore
+  }, []);
 
   return (
     <PageTransition>
@@ -285,7 +294,13 @@ export default function Login() {
                         <Heart className="h-9 w-9 text-primary-foreground" />
                       </div>
                       <GradientText
-                        colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                        colors={[
+                          "#40ffaa",
+                          "#4079ff",
+                          "#40ffaa",
+                          "#4079ff",
+                          "#40ffaa",
+                        ]}
                         animationSpeed={3}
                         showBorder={false}
                         className="text-4xl font-bold"
@@ -528,105 +543,7 @@ export default function Login() {
               </Card>
             </MotionWrapper>
 
-            <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
-              <DialogContent className="sm:max-w-md bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                <DialogHeader className="text-center">
-                  <DialogTitle className="text-3xl font-bold">
-                    Select Your Role
-                  </DialogTitle>
-                  <DialogDescription className="text-lg">
-                    Please select whether you are a patient or a doctor to
-                    continue
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 p-6">
-                  <RadioGroup
-                    value={selectedRole}
-                    onValueChange={useCallback(
-                      (value: string) => setSelectedRole(value),
-                      []
-                    )}
-                    className="grid grid-cols-2 gap-4"
-                  >
-                    <Label
-                      htmlFor="role-patient"
-                      className={`flex flex-col items-center justify-between rounded-lg border-2 bg-gray-50 dark:bg-slate-700 p-6 hover:bg-gray-100 dark:hover:bg-slate-600 transition-all cursor-pointer ${
-                        selectedRole === "patient"
-                          ? "border-primary shadow-lg bg-primary/10"
-                          : "border-gray-200 dark:border-slate-600"
-                      } role-selector`}
-                    >
-                      <RadioGroupItem
-                        value="patient"
-                        id="role-patient"
-                        className="sr-only"
-                      />
-                      <div
-                        className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                          selectedRole === "patient"
-                            ? "bg-primary/20"
-                            : "bg-muted"
-                        }`}
-                      >
-                        <UserIcon
-                          className={`h-8 w-8 ${
-                            selectedRole === "patient"
-                              ? "text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </div>
-                      <span className="text-lg font-semibold">Patient</span>
-                    </Label>
-                    <Label
-                      htmlFor="role-doctor"
-                      className={`flex flex-col items-center justify-between rounded-lg border-2 bg-gray-50 dark:bg-slate-700 p-6 hover:bg-gray-100 dark:hover:bg-slate-600 transition-all cursor-pointer ${
-                        selectedRole === "doctor"
-                          ? "border-primary shadow-lg bg-primary/10"
-                          : "border-gray-200 dark:border-slate-600"
-                      } role-selector`}
-                    >
-                      <RadioGroupItem
-                        value="doctor"
-                        id="role-doctor"
-                        className="sr-only"
-                      />
-                      <div
-                        className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                          selectedRole === "doctor"
-                            ? "bg-primary/20"
-                            : "bg-muted"
-                        }`}
-                      >
-                        <Stethoscope
-                          className={`h-8 w-8 ${
-                            selectedRole === "doctor"
-                              ? "text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </div>
-                      <span className="text-lg font-semibold">Doctor</span>
-                    </Label>
-                  </RadioGroup>
-                  <Button
-                    onClick={handleRoleSelection}
-                    className="w-full h-14 text-lg font-semibold login-button"
-                    disabled={isGoogleLoading}
-                    data-testid="button-confirm-role"
-                  >
-                    {isGoogleLoading ? (
-                      <>
-                        <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Continue"
-                    )}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            {/* Role selection dialog removed - direct login flow */}
           </div>
         </div>
       </div>

@@ -39,13 +39,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-3 py-1 shadow-sm">
+    <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-3 py-2 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button
             variant="ghost"
             size="sm"
-            className="lg:hidden hover-lift"
+            className="md:hidden hover-lift"
             onClick={onMenuClick}
             data-testid="menu-button"
           >
@@ -53,16 +53,16 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </Button>
 
           <div>
-            <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
+            <h1 className="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400 truncate">
               Health Dashboard
             </h1>
-            <p className="text-sm text-blue-500 dark:text-blue-300 font-medium">
+            <p className="text-xs md:text-sm text-blue-500 dark:text-blue-300 font-medium truncate">
               {getGreeting()}, {user?.firstName}!
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 md:space-x-2">
           <LanguageSelector />
 
           <VoiceControls />

@@ -31,24 +31,24 @@ export default function MainLayout({ children }: MainLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-white dark:bg-slate-900">
+    <div className="flex h-screen bg-white dark:bg-slate-900 flex-col md:flex-row">
       {/* Floating Particles Background */}
-      <div className="absolute inset-0 opacity-10 dark:opacity-5">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-sky-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse floating-particles"></div>
-        <div className="absolute top-40 right-20 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-700 floating-particles"></div>
-        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000 floating-particles"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-500 floating-particles"></div>
+      <div className="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-sky-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse floating-particles hidden md:block"></div>
+        <div className="absolute top-40 right-20 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-700 floating-particles hidden md:block"></div>
+        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000 floating-particles hidden md:block"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-500 floating-particles hidden md:block"></div>
       </div>
 
-      <div className="relative z-10 flex h-screen w-full">
+      <div className="relative z-10 flex h-screen w-full flex-col md:flex-row">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header onMenuClick={() => setSidebarOpen(true)} />
 
-          <main className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-900">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-white dark:bg-slate-900">
             <PageTransition>
-              <div className="max-w-7xl mx-auto">
+              <div className="max-w-7xl mx-auto w-full">
                 <StaggerContainer>
                   <StaggerItem>{children}</StaggerItem>
                 </StaggerContainer>

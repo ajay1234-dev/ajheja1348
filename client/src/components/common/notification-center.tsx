@@ -127,10 +127,15 @@ export default function NotificationCenter() {
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-full sm:max-w-md bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg z-50">
-          <div className="p-4">
-            <h2 className="text-lg font-semibold flex items-center justify-between">
-              Notifications
+        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg z-50 max-w-[90vw] md:max-w-md">
+          <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">Notifications</h2>
+                <p className="text-sm text-muted-foreground">
+                  Stay updated with your health reminders and reports
+                </p>
+              </div>
               <div className="flex space-x-2">
                 {unreadCount > 0 && (
                   <Button
@@ -138,6 +143,7 @@ export default function NotificationCenter() {
                     size="sm"
                     onClick={() => markAllAsReadMutation.mutate()}
                     disabled={markAllAsReadMutation.isPending}
+                    className="text-xs sm:text-sm whitespace-nowrap"
                   >
                     Mark all as read
                   </Button>
@@ -148,21 +154,21 @@ export default function NotificationCenter() {
                     size="sm"
                     onClick={() => deleteAllNotificationsMutation.mutate()}
                     disabled={deleteAllNotificationsMutation.isPending}
+                    className="text-xs sm:text-sm whitespace-nowrap"
                   >
                     Clear all
                   </Button>
                 )}
               </div>
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Stay updated with your health reminders and reports
-            </p>
+            </div>
           </div>
 
-          <div className="mt-2 space-y-4 overflow-y-auto max-h-[calc(100vh-180px)] p-4 border-t border-gray-200 dark:border-slate-700">
+          <div className="max-h-[70vh] overflow-y-auto p-4">
             {isLoading ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">Loading notifications...</p>
+                <p className="text-muted-foreground">
+                  Loading notifications...
+                </p>
               </div>
             ) : notifications.length === 0 ? (
               <div className="text-center py-8">
@@ -170,36 +176,41 @@ export default function NotificationCenter() {
                 <p className="text-muted-foreground">No notifications yet</p>
               </div>
             ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${getNotificationBgColor(
-                    notification.type
-                  )} ${
-                    !notification.isRead ? "border-l-4 border-l-primary" : ""
-                  }`}
-                  onClick={() => handleNotificationClick(notification)}
-                  data-testid={`notification-${notification.id}`}
-                >
-                  <div className="flex items-start space-x-3">
-                    {getNotificationIcon(notification.type)}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">
-                        {notification.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {safeFormatDate(notification.createdAt, "MMM d, h:mm a")}
-                      </p>
+              <div className="space-y-3">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${getNotificationBgColor(
+                      notification.type
+                    )} ${
+                      !notification.isRead ? "border-l-4 border-l-primary" : ""
+                    }`}
+                    onClick={() => handleNotificationClick(notification)}
+                    data-testid={`notification-${notification.id}`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      {getNotificationIcon(notification.type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">
+                          {notification.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {safeFormatDate(
+                            notification.createdAt,
+                            "MMM d, h:mm a"
+                          )}
+                        </p>
+                      </div>
+                      {!notification.isRead && (
+                        <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2" />
+                      )}
                     </div>
-                    {!notification.isRead && (
-                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
-                    )}
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         </div>
