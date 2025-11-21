@@ -29,6 +29,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
+import GlareHover from "@/components/ui/glare-hover";
 
 import {
   HeroCarousel,
@@ -312,61 +313,107 @@ export default function DoctorDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-primary/50 transition-all duration-300 hover:scale-105 cursor-pointer">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Total Patients
-                  </p>
-                  <p className="text-3xl font-bold">
-                    {patients?.filter((p) => !p.hideFromDashboard).length || 0}
-                  </p>
+          <GlareHover
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderRadius="0.5rem"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.3}
+            glareAngle={-30}
+            glareSize={300}
+            transitionDuration={800}
+            playOnce={false}
+            className="rounded-lg"
+          >
+            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-primary/50 transition-all duration-300 hover:scale-105 cursor-pointer w-full h-full">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Total Patients
+                    </p>
+                    <p className="text-3xl font-bold">
+                      {patients?.filter((p) => !p.hideFromDashboard).length ||
+                        0}
+                    </p>
+                  </div>
+                  <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
+                    <UserIcon className="h-8 w-8 text-white" />
+                  </div>
                 </div>
-                <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
-                  <UserIcon className="h-8 w-8 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </GlareHover>
 
-          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-purple-500/50 transition-all duration-300 hover:scale-105 cursor-pointer">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Shared Reports
-                  </p>
-                  <p className="text-3xl font-bold">
-                    {sharedReports?.length || 0}
-                  </p>
+          <GlareHover
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderRadius="0.5rem"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.3}
+            glareAngle={-30}
+            glareSize={300}
+            transitionDuration={800}
+            playOnce={false}
+            className="rounded-lg"
+          >
+            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-purple-500/50 transition-all duration-300 hover:scale-105 cursor-pointer w-full h-full">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Shared Reports
+                    </p>
+                    <p className="text-3xl font-bold">
+                      {sharedReports?.length || 0}
+                    </p>
+                  </div>
+                  <div className="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
+                    <Share2 className="h-8 w-8 text-white" />
+                  </div>
                 </div>
-                <div className="w-16 h-16 bg-purple-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
-                  <Share2 className="h-8 w-8 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </GlareHover>
 
-          <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-red-500/50 transition-all duration-300 hover:scale-105 cursor-pointer">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Patients at Risk
-                  </p>
-                  <p className="text-3xl font-bold">
-                    {patients?.filter(
-                      (p) => p.lastReportSummary && !p.hideFromDashboard
-                    ).length || 0}
-                  </p>
+          <GlareHover
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderRadius="0.5rem"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.3}
+            glareAngle={-30}
+            glareSize={300}
+            transitionDuration={800}
+            playOnce={false}
+            className="rounded-lg"
+          >
+            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-red-500/50 transition-all duration-300 hover:scale-105 cursor-pointer w-full h-full">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Patients at Risk
+                    </p>
+                    <p className="text-3xl font-bold">
+                      {patients?.filter(
+                        (p) => p.lastReportSummary && !p.hideFromDashboard
+                      ).length || 0}
+                    </p>
+                  </div>
+                  <div className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
+                    <Activity className="h-8 w-8 text-white" />
+                  </div>
                 </div>
-                <div className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
-                  <Activity className="h-8 w-8 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </GlareHover>
         </div>
 
         {/* Navigation Tabs */}

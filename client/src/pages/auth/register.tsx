@@ -309,7 +309,13 @@ export default function Register() {
                         <Heart className="h-9 w-9 text-primary-foreground" />
                       </div>
                       <GradientText
-                        colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+                        colors={[
+                          "#40ffaa",
+                          "#4079ff",
+                          "#40ffaa",
+                          "#4079ff",
+                          "#40ffaa",
+                        ]}
                         animationSpeed={3}
                         showBorder={false}
                         className="text-4xl font-bold"
@@ -346,6 +352,7 @@ export default function Register() {
                             className="w-full"
                             color="cyan"
                             speed="5s"
+                            thickness={2}
                           >
                             <Input
                               id="firstName"
@@ -355,7 +362,7 @@ export default function Register() {
                               onChange={handleInputChange}
                               required
                               data-testid="input-first-name"
-                              className="h-12 optimized-input bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                              className="h-12 optimized-input bg-background border-input focus:border-primary focus:ring-primary"
                             />
                           </StarBorder>
                         </div>
@@ -372,6 +379,7 @@ export default function Register() {
                             className="w-full"
                             color="cyan"
                             speed="5s"
+                            thickness={2}
                           >
                             <Input
                               id="lastName"
@@ -381,7 +389,7 @@ export default function Register() {
                               onChange={handleInputChange}
                               required
                               data-testid="input-last-name"
-                              className="h-12 optimized-input bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                              className="h-12 optimized-input bg-background border-input focus:border-primary focus:ring-primary"
                             />
                           </StarBorder>
                         </div>
@@ -518,6 +526,7 @@ export default function Register() {
                               className="w-full"
                               color="cyan"
                               speed="5s"
+                              thickness={2}
                             >
                               <Input
                                 id="age"
@@ -529,7 +538,7 @@ export default function Register() {
                                 min="1"
                                 max="120"
                                 data-testid="input-age"
-                                className="h-12 optimized-input bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                                className="h-12 optimized-input bg-background border-input focus:border-primary focus:ring-primary"
                               />
                             </StarBorder>
                           </div>
@@ -577,6 +586,7 @@ export default function Register() {
                           className="w-full"
                           color="cyan"
                           speed="5s"
+                          thickness={2}
                         >
                           <Input
                             id="email"
@@ -587,7 +597,7 @@ export default function Register() {
                             onChange={handleInputChange}
                             required
                             data-testid="input-email"
-                            className="h-12 optimized-input bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                            className="h-12 optimized-input bg-background border-input focus:border-primary focus:ring-primary"
                           />
                         </StarBorder>
                       </div>
@@ -607,6 +617,7 @@ export default function Register() {
                             className="w-full"
                             color="cyan"
                             speed="5s"
+                            thickness={2}
                           >
                             <Input
                               id="password"
@@ -617,7 +628,7 @@ export default function Register() {
                               onChange={handleInputChange}
                               required
                               data-testid="input-password"
-                              className="h-12 optimized-input bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                              className="h-12 optimized-input bg-background border-input focus:border-primary focus:ring-primary"
                             />
                           </StarBorder>
                         </div>
@@ -634,6 +645,7 @@ export default function Register() {
                             className="w-full"
                             color="cyan"
                             speed="5s"
+                            thickness={2}
                           >
                             <Input
                               id="confirmPassword"
@@ -644,7 +656,7 @@ export default function Register() {
                               onChange={handleInputChange}
                               required
                               data-testid="input-confirm-password"
-                              className="h-12 optimized-input bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                              className="h-12 optimized-input bg-background border-input focus:border-primary focus:ring-primary"
                             />
                           </StarBorder>
                         </div>
@@ -851,6 +863,7 @@ export default function Register() {
                           className="w-full"
                           color="cyan"
                           speed="5s"
+                          thickness={2}
                         >
                           <Input
                             id="dialog-age"
@@ -861,7 +874,7 @@ export default function Register() {
                             min="1"
                             max="120"
                             data-testid="input-dialog-age"
-                            className="h-12 optimized-input bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                            className="h-12 optimized-input bg-background border-input focus:border-primary focus:ring-primary"
                           />
                         </StarBorder>
                       </div>

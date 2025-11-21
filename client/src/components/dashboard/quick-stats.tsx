@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/motion-wrapper";
 import { FileText, Pill, Bell, Heart } from "lucide-react";
 import type { DashboardStats } from "@/types/medical";
+import GlareHover from "@/components/ui/glare-hover";
 
 interface QuickStatsProps {
   stats?: DashboardStats;
@@ -65,30 +66,46 @@ export default function QuickStats({ stats }: QuickStatsProps) {
           return (
             <StaggerItem key={index}>
               <HoverMotion>
-                <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          {item.label}
-                        </p>
-                        <p
-                          className="text-4xl font-bold mt-2"
-                          data-testid={`stat-${item.label
-                            .toLowerCase()
-                            .replace(/\s+/g, "-")}`}
+                {/* Wrap the card with GlareHover for a shiny effect on hover */}
+                <GlareHover
+                  width="100%"
+                  height="100%"
+                  background="transparent"
+                  borderRadius="0.5rem"
+                  borderColor="transparent"
+                  glareColor="#ffffff"
+                  glareOpacity={0.3}
+                  glareAngle={-30}
+                  glareSize={300}
+                  transitionDuration={800}
+                  playOnce={false}
+                  className="rounded-lg"
+                >
+                  <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm w-full h-full">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            {item.label}
+                          </p>
+                          <p
+                            className="text-4xl font-bold mt-2"
+                            data-testid={`stat-${item.label
+                              .toLowerCase()
+                              .replace(/\s+/g, "-")}`}
+                          >
+                            {item.value}
+                          </p>
+                        </div>
+                        <div
+                          className={`w-16 h-16 bg-gradient-to-br ${item.gradient} rounded-lg flex items-center justify-center`}
                         >
-                          {item.value}
-                        </p>
+                          <Icon className="h-8 w-8 text-primary-foreground" />
+                        </div>
                       </div>
-                      <div
-                        className={`w-16 h-16 bg-gradient-to-br ${item.gradient} rounded-lg flex items-center justify-center`}
-                      >
-                        <Icon className="h-8 w-8 text-primary-foreground" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </GlareHover>
               </HoverMotion>
             </StaggerItem>
           );

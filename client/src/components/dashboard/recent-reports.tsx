@@ -6,6 +6,7 @@ import { Play, FileText, Clock } from "lucide-react";
 import { useVoice } from "@/hooks/use-voice";
 import { safeFormatDate } from "@/lib/date-utils";
 import type { Report } from "@shared/schema";
+import GlareHover from "@/components/ui/glare-hover";
 
 interface RecentReportsProps {
   reports: Report[];
@@ -71,68 +72,84 @@ export default function RecentReports({ reports }: RecentReportsProps) {
         ) : (
           <div className="space-y-4">
             {reports.map((report) => (
-              <div
+              // Wrap each report card with GlareHover for a shiny effect on hover
+              <GlareHover
                 key={report.id}
-                className="bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:shadow-md transition-shadow"
-                data-testid={`report-${report.id}`}
+                width="100%"
+                height="100%"
+                background="transparent"
+                borderRadius="0.5rem"
+                borderColor="transparent"
+                glareColor="#ffffff"
+                glareOpacity={0.2}
+                glareAngle={-45}
+                glareSize={200}
+                transitionDuration={600}
+                playOnce={false}
+                className="rounded-lg"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-semibold text-lg">
-                        {getReportTypeDisplay(report.reportType)}
-                      </h4>
-                      <Badge
-                        className={`${getStatusColor(
-                          report.status || "processing"
-                        )}`}
+                <div
+                  className="bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:shadow-md transition-shadow w-full h-full"
+                  data-testid={`report-${report.id}`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="font-semibold text-lg">
+                          {getReportTypeDisplay(report.reportType)}
+                        </h4>
+                        <Badge
+                          className={`${getStatusColor(
+                            report.status || "processing"
+                          )}`}
+                        >
+                          {report.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {report.fileName}
+                      </p>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 mr-2" />
+                        {safeFormatDate(report.createdAt)}
+                      </div>
+                    </div>
+
+                    {report.summary && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePlayAudio(report.summary || "")}
+                        title="Listen to report summary"
+                        data-testid={`play-audio-${report.id}`}
                       >
-                        {report.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {report.fileName}
-                    </p>
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3 mr-2" />
-                      {safeFormatDate(report.createdAt)}
-                    </div>
+                        <Play className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
 
                   {report.summary && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handlePlayAudio(report.summary || "")}
-                      title="Listen to report summary"
-                      data-testid={`play-audio-${report.id}`}
-                    >
-                      <Play className="h-4 w-4" />
-                    </Button>
+                    <div className="bg-muted/50 rounded-lg p-4 border border-gray-200 dark:border-slate-600">
+                      <h5 className="text-sm font-semibold mb-2">Summary:</h5>
+                      <p className="text-sm text-muted-foreground">
+                        {report.summary}
+                      </p>
+                    </div>
                   )}
-                </div>
 
-                {report.summary && (
-                  <div className="bg-muted/50 rounded-lg p-4 border border-gray-200 dark:border-slate-600">
-                    <h5 className="text-sm font-semibold mb-2">Summary:</h5>
-                    <p className="text-sm text-muted-foreground">
-                      {report.summary}
-                    </p>
+                  <div className="mt-4 flex justify-between items-center">
+                    <Link href={`/reports/${report.id}`}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        data-testid={`view-report-${report.id}`}
+                      >
+                        View Details
+                      </Button>
+                    </Link>
                   </div>
-                )}
-
-                <div className="mt-4 flex justify-between items-center">
-                  <Link href={`/reports/${report.id}`}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      data-testid={`view-report-${report.id}`}
-                    >
-                      View Details
-                    </Button>
-                  </Link>
                 </div>
-              </div>
+              </GlareHover>
             ))}
           </div>
         )}

@@ -26,6 +26,7 @@ import { MotionWrapper, PageTransition } from "@/components/ui/motion-wrapper";
 import StarBorder from "@/components/ui/star-border";
 import DotGrid from "@/components/ui/dot-grid";
 import GradientText from "@/components/ui/gradient-text";
+import GlareHover from "@/components/ui/glare-hover";
 
 import "./login.css";
 
@@ -336,6 +337,7 @@ export default function Login() {
                           className="w-full"
                           color="cyan"
                           speed="5s"
+                          thickness={2}
                         >
                           <Input
                             id="email"
@@ -349,7 +351,7 @@ export default function Login() {
                             )}
                             required
                             data-testid="input-email"
-                            className="h-12 optimized-input smooth-transition bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                            className="h-12 optimized-input smooth-transition bg-background border-input focus:border-primary focus:ring-primary"
                           />
                         </StarBorder>
                       </div>
@@ -368,6 +370,7 @@ export default function Login() {
                           className="w-full"
                           color="cyan"
                           speed="5s"
+                          thickness={2}
                         >
                           <Input
                             id="password"
@@ -381,7 +384,7 @@ export default function Login() {
                             )}
                             required
                             data-testid="input-password"
-                            className="h-12 optimized-input smooth-transition bg-blue-50 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+                            className="h-12 optimized-input smooth-transition bg-background border-input focus:border-primary focus:ring-primary"
                           />
                         </StarBorder>
                       </div>
@@ -467,21 +470,36 @@ export default function Login() {
                     </MotionWrapper>
 
                     <MotionWrapper type="scale" delay={0.8} duration={0.5}>
-                      <Button
-                        type="submit"
-                        className="w-full h-14 text-lg font-semibold login-button hover-lift"
-                        disabled={isLoading}
-                        data-testid="button-login"
+                      <GlareHover
+                        width="100%"
+                        height="100%"
+                        background="transparent"
+                        borderRadius="0.5rem"
+                        borderColor="transparent"
+                        glareColor="#ffffff"
+                        glareOpacity={0.4}
+                        glareAngle={-30}
+                        glareSize={300}
+                        transitionDuration={800}
+                        playOnce={false}
+                        className="rounded-lg"
                       >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                            Signing in...
-                          </>
-                        ) : (
-                          "Sign In"
-                        )}
-                      </Button>
+                        <Button
+                          type="submit"
+                          className="w-full h-14 text-lg font-semibold login-button hover-lift"
+                          disabled={isLoading}
+                          data-testid="button-login"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+                              Signing in...
+                            </>
+                          ) : (
+                            "Sign In"
+                          )}
+                        </Button>
+                      </GlareHover>
                     </MotionWrapper>
                   </form>
 
@@ -501,26 +519,41 @@ export default function Login() {
                       </MotionWrapper>
 
                       <MotionWrapper type="scale" delay={1.0} duration={0.5}>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full h-14 text-lg font-semibold google-button hover-lift"
-                          onClick={handleGoogleSignIn}
-                          disabled={isGoogleLoading || isLoading}
-                          data-testid="button-google-signin"
+                        <GlareHover
+                          width="100%"
+                          height="100%"
+                          background="transparent"
+                          borderRadius="0.5rem"
+                          borderColor="transparent"
+                          glareColor="#ffffff"
+                          glareOpacity={0.4}
+                          glareAngle={-30}
+                          glareSize={300}
+                          transitionDuration={800}
+                          playOnce={false}
+                          className="rounded-lg"
                         >
-                          {isGoogleLoading ? (
-                            <>
-                              <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                              Signing in with Google...
-                            </>
-                          ) : (
-                            <>
-                              <SiGoogle className="mr-3 h-6 w-6 text-red-400" />
-                              Sign in with Google
-                            </>
-                          )}
-                        </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full h-14 text-lg font-semibold google-button hover-lift"
+                            onClick={handleGoogleSignIn}
+                            disabled={isGoogleLoading || isLoading}
+                            data-testid="button-google-signin"
+                          >
+                            {isGoogleLoading ? (
+                              <>
+                                <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+                                Signing in with Google...
+                              </>
+                            ) : (
+                              <>
+                                <SiGoogle className="mr-3 h-6 w-6 text-red-400" />
+                                Sign in with Google
+                              </>
+                            )}
+                          </Button>
+                        </GlareHover>
                       </MotionWrapper>
                     </>
                   )}

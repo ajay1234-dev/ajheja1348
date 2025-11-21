@@ -35,6 +35,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ScrollGradients from "@/components/ui/scroll-gradients";
+import GlareHover from "@/components/ui/glare-hover";
 
 interface Doctor {
   id: string;
@@ -276,68 +277,98 @@ export default function Dashboard() {
 
         {/* Health Summary and Prescription Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card
-            className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setShowHealthSummary(true)}
+          <GlareHover
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderRadius="0.5rem"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.3}
+            glareAngle={-30}
+            glareSize={300}
+            transitionDuration={800}
+            playOnce={false}
+            className="rounded-lg"
           >
-            <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-900/20">
-              <CardTitle className="flex items-center gap-2 font-bold">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <FileTextIcon className="h-4 w-4 text-white" />
-                </div>
-                Monthly Health Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 md:p-6">
-              <p className="text-muted-foreground mb-4 text-sm md:text-base">
-                Get your comprehensive health overview based on recent reports
-                and medications
-              </p>
-              {stats && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Health Score:</span>
-                  <Badge variant="default" className="text-sm">
-                    {stats.healthScore}
-                  </Badge>
-                </div>
-              )}
-              <Button className="w-full mt-4" variant="outline">
-                View Summary
-              </Button>
-            </CardContent>
-          </Card>
+            <Card
+              className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm cursor-pointer hover:shadow-md transition-shadow w-full h-full"
+              onClick={() => setShowHealthSummary(true)}
+            >
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-900/20">
+                <CardTitle className="flex items-center gap-2 font-bold">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <FileTextIcon className="h-4 w-4 text-white" />
+                  </div>
+                  Monthly Health Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <p className="text-muted-foreground mb-4 text-sm md:text-base">
+                  Get your comprehensive health overview based on recent reports
+                  and medications
+                </p>
+                {stats && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Health Score:</span>
+                    <Badge variant="default" className="text-sm">
+                      {stats.healthScore}
+                    </Badge>
+                  </div>
+                )}
+                <Button className="w-full mt-4" variant="outline">
+                  View Summary
+                </Button>
+              </CardContent>
+            </Card>
+          </GlareHover>
 
-          <Card
-            className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => setShowPrescription(true)}
+          <GlareHover
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderRadius="0.5rem"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.3}
+            glareAngle={-30}
+            glareSize={300}
+            transitionDuration={800}
+            playOnce={false}
+            className="rounded-lg"
           >
-            <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-green-50 dark:bg-green-900/20">
-              <CardTitle className="flex items-center gap-2 font-bold">
-                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                  <Clipboard className="h-4 w-4 text-white" />
-                </div>
-                Monthly Prescription
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 md:p-6">
-              <p className="text-muted-foreground mb-4 text-sm md:text-base">
-                Review your current medications and prescription details
-              </p>
-              {activeMedications && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    Active Medications:
-                  </span>
-                  <Badge variant="default" className="text-sm">
-                    {activeMedications.length}
-                  </Badge>
-                </div>
-              )}
-              <Button className="w-full mt-4" variant="outline">
-                View Prescription
-              </Button>
-            </CardContent>
-          </Card>
+            <Card
+              className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm cursor-pointer hover:shadow-md transition-shadow w-full h-full"
+              onClick={() => setShowPrescription(true)}
+            >
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-green-50 dark:bg-green-900/20">
+                <CardTitle className="flex items-center gap-2 font-bold">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <Clipboard className="h-4 w-4 text-white" />
+                  </div>
+                  Monthly Prescription
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <p className="text-muted-foreground mb-4 text-sm md:text-base">
+                  Review your current medications and prescription details
+                </p>
+                {activeMedications && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">
+                      Active Medications:
+                    </span>
+                    <Badge variant="default" className="text-sm">
+                      {activeMedications.length}
+                    </Badge>
+                  </div>
+                )}
+                <Button className="w-full mt-4" variant="outline">
+                  View Prescription
+                </Button>
+              </CardContent>
+            </Card>
+          </GlareHover>
         </div>
 
         <div className="grid grid-cols-1 gap-4">
