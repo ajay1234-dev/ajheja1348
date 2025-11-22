@@ -1308,6 +1308,64 @@ export class FirestoreStorage implements IStorage {
     return count;
   }
 
+  // Add this new function to get mapped doctor for a patient
+  async getMappedDoctor(patientId: string): Promise<User | undefined> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    // Get shared reports for this patient
+    const sharedReports = await this.getSharedReportsByPatientId(patientId);
+
+    // Filter for approved or pending shared reports (both indicate a doctor assignment)
+    const relevantReports = sharedReports.filter(
+      (report) =>
+        report.approvalStatus === "approved" ||
+        report.approvalStatus === "pending"
+    );
+
+    if (relevantReports.length === 0) return undefined;
+
+    // Get the most recent relevant report
+    const latestReport = relevantReports.sort((a, b) => {
+      const dateA =
+        a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+      const dateB =
+        b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+      return dateB.getTime() - dateA.getTime();
+    })[0];
+
+    // Get the doctor associated with this report
+    if (latestReport.doctorId) {
+      return await this.getUser(latestReport.doctorId);
+    }
+
+    return undefined;
+  }
+
+  // Add this new function to get patient reports
+  async getPatientReports(patientId: string): Promise<Report[]> {
+    return await this.getUserReports(patientId);
+  }
+
+  // Add this new function to get shared reports for a doctor
+  async getSharedReports(doctorId: string): Promise<SharedReport[]> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    // First get the doctor to get their email
+    const doctor = await this.getUser(doctorId);
+    if (!doctor) return [];
+
+    // Get shared reports by doctor email
+    const sharedReports = await this.getSharedReportsByDoctorEmail(
+      doctor.email
+    );
+
+    // Filter for reports that have the doctorId field (new format)
+    return sharedReports.filter(
+      (report) =>
+        report.doctorId === doctorId || (report as any).doctorId === doctorId
+    );
+  }
+
   async deleteNotification(id: string): Promise<boolean> {
     if (!firestore) throw new Error("Firestore is not initialized");
 

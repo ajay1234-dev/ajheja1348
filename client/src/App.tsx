@@ -19,6 +19,8 @@ import Medications from "@/pages/medications";
 import Timeline from "@/pages/timeline";
 import Reminders from "@/pages/reminders";
 import Share from "@/pages/share";
+import ShareWithDoctor from "@/pages/share-with-doctor";
+import DoctorSharedReports from "@/pages/doctor/shared-reports";
 import ProfilePage from "@/pages/profile";
 import HealthTimelineDemo from "@/pages/health-timeline-demo";
 import HealthTimelineProductionDemo from "@/pages/health-timeline-production-demo";
@@ -147,6 +149,18 @@ function Router() {
       <Route path="/share">
         <ProtectedRoute>
           <Share />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/share-with-doctor">
+        <ProtectedRoute allowedRoles={["patient"]}>
+          <ShareWithDoctor />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/doctor/shared-reports">
+        <ProtectedRoute allowedRoles={["doctor"]}>
+          <DoctorSharedReports />
         </ProtectedRoute>
       </Route>
 

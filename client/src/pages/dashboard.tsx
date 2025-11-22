@@ -275,6 +275,44 @@ export default function Dashboard() {
           <QuickStats stats={stats} />
         )}
 
+        {/* Share With Doctor Card */}
+        <Link href="/share-with-doctor">
+          <GlareHover
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderRadius="0.5rem"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.3}
+            glareAngle={-30}
+            glareSize={300}
+            transitionDuration={800}
+            playOnce={false}
+            className="rounded-lg"
+          >
+            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm cursor-pointer hover:shadow-md transition-shadow w-full h-full">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 bg-purple-50 dark:bg-purple-900/20">
+                <CardTitle className="flex items-center gap-2 font-bold">
+                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <UserIcon className="h-4 w-4 text-white" />
+                  </div>
+                  Share Reports with Doctor
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <p className="text-muted-foreground mb-4 text-sm md:text-base">
+                  Share your medical reports with your assigned doctor for
+                  review
+                </p>
+                <Button className="w-full" variant="outline">
+                  Share Now
+                </Button>
+              </CardContent>
+            </Card>
+          </GlareHover>
+        </Link>
+
         {/* Health Summary and Prescription Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <GlareHover

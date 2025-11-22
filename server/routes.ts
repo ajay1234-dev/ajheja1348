@@ -23,6 +23,7 @@ import {
 import { verifyFirebaseToken } from "./services/firebase-verify";
 import { analyzeReportForSpecialization } from "./services/ai-doctor-matching";
 import { uploadToS3, deleteFromS3, s3Available } from "./s3-storage";
+import { registerShareRoutes } from "./routes-share";
 import bcrypt from "bcrypt";
 import session from "express-session";
 import multer from "multer";
@@ -96,6 +97,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       name: "sessionId", // Custom session name to avoid conflicts
     })
   );
+
+  // Register share routes
+  registerShareRoutes(app);
 
   // Authentication middleware
   const requireAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -376,7 +380,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           console.log("✅ File uploaded to S3:", publicUrl);
         } catch (s3Error: unknown) {
-          const errorMessage = s3Error instanceof Error ? s3Error.message : String(s3Error);
+          const errorMessage =
+            s3Error instanceof Error ? s3Error.message : String(s3Error);
           console.error("❌ S3 upload failed:", errorMessage);
           return res.status(500).json({
             message: "Failed to upload to AWS S3",
@@ -551,7 +556,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         user = await storage.createUser(userData);
-        console.log(`✅ New user created via Firebase: ${user.email} (${user.role})`);
+        console.log(
+          `✅ New user created via Firebase: ${user.email} (${user.role})`
+        );
       } else {
         // Update existing user with Firebase UID if not already set
         if (!user.firebaseUid || user.firebaseUid !== verifiedToken.uid) {
@@ -561,7 +568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           console.log(`✅ Updated user with Firebase UID: ${user.email}`);
         }
-        
+
         // Update user role if provided and different
         if (role && user.role !== role) {
           await storage.updateUser(user.id, {

@@ -312,7 +312,7 @@ export default function DoctorDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <GlareHover
             width="100%"
             height="100%"
@@ -409,6 +409,40 @@ export default function DoctorDashboard() {
                   </div>
                   <div className="w-16 h-16 bg-red-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
                     <Activity className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </GlareHover>
+
+          <GlareHover
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderRadius="0.5rem"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.3}
+            glareAngle={-30}
+            glareSize={300}
+            transitionDuration={800}
+            playOnce={false}
+            className="rounded-lg"
+          >
+            <Card
+              className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-lg hover:border-blue-500/50 transition-all duration-300 hover:scale-105 cursor-pointer w-full h-full"
+              onClick={() => navigate("/doctor/shared-reports")}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      View All Shared Reports
+                    </p>
+                    <p className="text-3xl font-bold">View</p>
+                  </div>
+                  <div className="w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center transition-transform duration-300 hover:rotate-12">
+                    <FileText className="h-8 w-8 text-white" />
                   </div>
                 </div>
               </CardContent>

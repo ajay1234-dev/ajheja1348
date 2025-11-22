@@ -91,6 +91,11 @@ export interface IStorage {
     updates: Partial<SharedReport>
   ): Promise<SharedReport | undefined>;
 
+  // New functions for Share With Doctor feature
+  getMappedDoctor(patientId: string): Promise<User | undefined>;
+  getPatientReports(patientId: string): Promise<Report[]>;
+  getSharedReports(doctorId: string): Promise<SharedReport[]>;
+
   // Notifications
   getNotification(id: string): Promise<Notification | undefined>;
   getUserNotifications(userId: string): Promise<Notification[]>;
