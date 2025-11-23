@@ -53,13 +53,13 @@ export const useMappedDoctor = () => {
       });
       if (!response.ok) {
         if (response.status === 404) {
-          return []; // No mapped doctor found
+          return []; // No mapped doctors found
         }
-        throw new Error("Failed to fetch mapped doctor");
+        throw new Error("Failed to fetch mapped doctors");
       }
-      const doctor = await response.json();
-      // Return as array to match the expected type
-      return Array.isArray(doctor) ? doctor : [doctor];
+      const doctors = await response.json();
+      // Ensure we always return an array
+      return Array.isArray(doctors) ? doctors : [doctors];
     },
   });
 };

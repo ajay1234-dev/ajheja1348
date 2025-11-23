@@ -136,4 +136,65 @@ export async function checkS3FileExists(fileUrl: string): Promise<boolean> {
   }
 }
 
+/**
+ * Upload a patient report to S3 under /documents folder
+ */
+export async function uploadReportToS3(
+  fileBuffer: Buffer,
+  fileName: string,
+  mimeType: string,
+  patientId: string,
+  reportId: string
+): Promise<string> {
+  if (!s3Client || !s3Available) {
+    throw new Error(
+      "AWS S3 is not configured. Please set up environment variables."
+    );
+  }
+
+  try {
+    // Sanitize the filename to remove any problematic characters
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+    // Create the key for the report in the documents folder
+    // S3 doesn't have real folders, but we can simulate them with prefixes
+    const key = `documents/${patientId}/${reportId}-${sanitizedFileName}`;
+
+    // Log detailed information about the upload
+    console.log("🔄 Preparing to upload report to S3:");
+    console.log("   Bucket:", BUCKET_NAME);
+    console.log("   Key:", key);
+    console.log("   File size:", fileBuffer.length, "bytes");
+    console.log("   MIME type:", mimeType);
+    console.log("   Patient ID:", patientId);
+    console.log("   Report ID:", reportId);
+
+    const command = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: fileBuffer,
+      ContentType: mimeType,
+    });
+
+    console.log("📤 Sending S3 upload command...");
+    await s3Client.send(command);
+    console.log("✅ S3 upload command sent successfully");
+
+    // Generate public URL
+    const publicUrl = `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key}`;
+    console.log("✅ Report uploaded to S3:", publicUrl);
+    return publicUrl;
+  } catch (error: any) {
+    console.error("❌ S3 report upload error:", error);
+    // Log additional error details
+    if (error.$metadata) {
+      console.error(
+        "   Error metadata:",
+        JSON.stringify(error.$metadata, null, 2)
+      );
+    }
+    throw new Error(`Failed to upload report to S3: ${error.message}`);
+  }
+}
+
 export { s3Client, s3Available, BUCKET_NAME, AWS_REGION };

@@ -40,10 +40,45 @@ export function registerShareRoutes(app: Express) {
             .json({ message: "Report not found or unauthorized" });
         }
 
-        // Get the doctor's email for the shared report
+        // Get file type from URL or report
+        const fileType = reportURL.includes(".pdf")
+          ? "application/pdf"
+          : reportURL.includes(".jpg") || reportURL.includes(".jpeg")
+          ? "image/jpeg"
+          : reportURL.includes(".png")
+          ? "image/png"
+          : "unknown";
+
+        // Save the report record in Firestore using our new helper function
+        await storage.saveReportRecord({
+          reportId: reportId,
+          reportName: reportName,
+          reportURL: reportURL,
+          uploadDate: new Date(),
+          fileType: fileType,
+          patientId: patientId,
+        });
+
+        // Create a unique ID for the shared report
+        const sharedReportId = randomUUID();
+
+        // Share the report with the doctor using our new helper function
+        await storage.shareReportWithDoctor({
+          sharedReportId: sharedReportId,
+          patientId: patientId,
+          patientName: `${patient.firstName} ${patient.lastName}`,
+          doctorId: doctorId,
+          reportId: reportId,
+          reportName: reportName,
+          reportURL: reportURL,
+          timestamp: Date.now(),
+        });
+
+        // Get the doctor's email for the shared report (for compatibility)
         const doctorEmail = doctor.email;
 
         // Create the shared report entry in Firestore under doctors/{doctorId}/sharedReports
+        // (Maintaining compatibility with existing system)
         const sharedReportData = {
           patientId: patientId,
           patientName: `${patient.firstName} ${patient.lastName}`,
@@ -99,13 +134,13 @@ export function registerShareRoutes(app: Express) {
     async (req: Request, res: Response) => {
       try {
         const patientId = req.session.userId!;
-        const doctor = await storage.getMappedDoctor(patientId);
+        const doctors = await storage.getMappedDoctor(patientId);
 
-        if (!doctor) {
-          return res.status(404).json({ message: "No mapped doctor found" });
+        if (!doctors) {
+          return res.status(404).json({ message: "No mapped doctors found" });
         }
 
-        res.json(doctor);
+        res.json(doctors);
       } catch (error) {
         res.status(500).json({
           message: error instanceof Error ? error.message : "Operation failed",
@@ -138,7 +173,21 @@ export function registerShareRoutes(app: Express) {
     async (req: Request, res: Response) => {
       try {
         const doctorId = req.session.userId!;
-        const sharedReports = await storage.getSharedReports(doctorId);
+
+        // Try to get shared reports using our new helper function first
+        let sharedReports = [];
+        try {
+          sharedReports = await storage.getDoctorSharedReports(doctorId);
+        } catch {
+          console.log("Fallback to existing method for shared reports");
+          // Fallback to existing method if new method fails
+          sharedReports = await storage.getSharedReports(doctorId);
+        }
+
+        // If we still don't have reports, try the existing method
+        if (sharedReports.length === 0) {
+          sharedReports = await storage.getSharedReports(doctorId);
+        }
 
         // Enrich shared reports with patient information
         const enrichedReports = await Promise.all(

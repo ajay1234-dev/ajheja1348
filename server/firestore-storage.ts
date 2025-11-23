@@ -1308,37 +1308,37 @@ export class FirestoreStorage implements IStorage {
     return count;
   }
 
-  // Add this new function to get mapped doctor for a patient
-  async getMappedDoctor(patientId: string): Promise<User | undefined> {
+  // Modified function to get all mapped doctors for a patient
+  async getMappedDoctor(patientId: string): Promise<User[] | undefined> {
     if (!firestore) throw new Error("Firestore is not initialized");
 
     // Get shared reports for this patient
     const sharedReports = await this.getSharedReportsByPatientId(patientId);
 
-    // Filter for approved or pending shared reports (both indicate a doctor assignment)
-    const relevantReports = sharedReports.filter(
-      (report) =>
-        report.approvalStatus === "approved" ||
-        report.approvalStatus === "pending"
+    // Filter for approved shared reports
+    const approvedReports = sharedReports.filter(
+      (report) => report.approvalStatus === "approved"
     );
 
-    if (relevantReports.length === 0) return undefined;
+    if (approvedReports.length === 0) return undefined;
 
-    // Get the most recent relevant report
-    const latestReport = relevantReports.sort((a, b) => {
-      const dateA =
-        a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-      const dateB =
-        b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
-      return dateB.getTime() - dateA.getTime();
-    })[0];
+    // Get unique doctor IDs from approved reports and filter out null/undefined values
+    const doctorIds = Array.from(
+      new Set(approvedReports.map((report) => report.doctorId))
+    ).filter((id): id is string => id !== null && id !== undefined);
 
-    // Get the doctor associated with this report
-    if (latestReport.doctorId) {
-      return await this.getUser(latestReport.doctorId);
-    }
+    // If no valid doctor IDs, return undefined
+    if (doctorIds.length === 0) return undefined;
 
-    return undefined;
+    // Get all doctors associated with these reports
+    const doctors = await Promise.all(
+      doctorIds.map(async (doctorId) => {
+        return await this.getUser(doctorId);
+      })
+    );
+
+    // Filter out any null/undefined doctors and return
+    return doctors.filter((doctor): doctor is User => Boolean(doctor));
   }
 
   // Add this new function to get patient reports
@@ -1374,5 +1374,99 @@ export class FirestoreStorage implements IStorage {
 
     await firestore.collection("notifications").doc(id).delete();
     return true;
+  }
+
+  /**
+   * Save a patient report record in Firestore
+   * @param reportData - The report data to save
+   * @returns The saved report record
+   */
+  async saveReportRecord(reportData: {
+    reportId: string;
+    reportName: string;
+    reportURL: string;
+    uploadDate: Date;
+    fileType: string;
+    patientId: string;
+  }): Promise<any> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const reportRecord = {
+      reportId: reportData.reportId,
+      reportName: reportData.reportName,
+      reportURL: reportData.reportURL,
+      uploadDate: reportData.uploadDate,
+      fileType: reportData.fileType,
+      patientId: reportData.patientId,
+      createdAt: new Date(),
+    };
+
+    // Save to patients/{patientId}/reports/{reportId}
+    await firestore
+      .collection("patients")
+      .doc(reportData.patientId)
+      .collection("reports")
+      .doc(reportData.reportId)
+      .set(reportRecord);
+
+    return reportRecord;
+  }
+
+  /**
+   * Share a report with a doctor by creating a shared report record
+   * @param shareData - The data needed to share the report
+   * @returns The shared report record
+   */
+  async shareReportWithDoctor(shareData: {
+    sharedReportId: string;
+    patientId: string;
+    patientName: string;
+    doctorId: string;
+    reportId: string;
+    reportName: string;
+    reportURL: string;
+    timestamp: number;
+  }): Promise<any> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    const sharedReportRecord = {
+      sharedReportId: shareData.sharedReportId,
+      patientId: shareData.patientId,
+      patientName: shareData.patientName,
+      doctorId: shareData.doctorId,
+      reportId: shareData.reportId,
+      reportName: shareData.reportName,
+      reportURL: shareData.reportURL,
+      timestamp: shareData.timestamp,
+      createdAt: new Date(),
+    };
+
+    // Save to doctors/{doctorId}/sharedReports/{sharedReportId}
+    await firestore
+      .collection("doctors")
+      .doc(shareData.doctorId)
+      .collection("sharedReports")
+      .doc(shareData.sharedReportId)
+      .set(sharedReportRecord);
+
+    return sharedReportRecord;
+  }
+
+  /**
+   * Get shared reports for a doctor (new implementation)
+   * @param doctorId - The ID of the doctor
+   * @returns Array of shared reports
+   */
+  async getDoctorSharedReports(doctorId: string): Promise<any[]> {
+    if (!firestore) throw new Error("Firestore is not initialized");
+
+    // Get from doctors/{doctorId}/sharedReports
+    const snapshot = await firestore
+      .collection("doctors")
+      .doc(doctorId)
+      .collection("sharedReports")
+      .get();
+
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
 }

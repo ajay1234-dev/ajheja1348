@@ -92,9 +92,61 @@ export interface IStorage {
   ): Promise<SharedReport | undefined>;
 
   // New functions for Share With Doctor feature
-  getMappedDoctor(patientId: string): Promise<User | undefined>;
+  getMappedDoctor(patientId: string): Promise<User[] | undefined>;
   getPatientReports(patientId: string): Promise<Report[]>;
   getSharedReports(doctorId: string): Promise<SharedReport[]>;
+
+  // AWS S3 Document Storage functions
+  saveReportRecord(reportData: {
+    reportId: string;
+    reportName: string;
+    reportURL: string;
+    uploadDate: Date;
+    fileType: string;
+    patientId: string;
+  }): Promise<{
+    reportId: string;
+    reportName: string;
+    reportURL: string;
+    uploadDate: Date;
+    fileType: string;
+    patientId: string;
+    createdAt: Date;
+  }>;
+  shareReportWithDoctor(shareData: {
+    sharedReportId: string;
+    patientId: string;
+    patientName: string;
+    doctorId: string;
+    reportId: string;
+    reportName: string;
+    reportURL: string;
+    timestamp: number;
+  }): Promise<{
+    sharedReportId: string;
+    patientId: string;
+    patientName: string;
+    doctorId: string;
+    reportId: string;
+    reportName: string;
+    reportURL: string;
+    timestamp: number;
+    createdAt: Date;
+  }>;
+  getDoctorSharedReports(doctorId: string): Promise<
+    Array<{
+      id: string;
+      sharedReportId: string;
+      patientId: string;
+      patientName: string;
+      doctorId: string;
+      reportId: string;
+      reportName: string;
+      reportURL: string;
+      timestamp: number;
+      createdAt: Date;
+    }>
+  >;
 
   // Notifications
   getNotification(id: string): Promise<Notification | undefined>;

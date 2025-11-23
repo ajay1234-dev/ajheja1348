@@ -22,7 +22,12 @@ import {
 } from "./services/ocr";
 import { verifyFirebaseToken } from "./services/firebase-verify";
 import { analyzeReportForSpecialization } from "./services/ai-doctor-matching";
-import { uploadToS3, deleteFromS3, s3Available } from "./s3-storage";
+import {
+  uploadToS3,
+  uploadReportToS3,
+  deleteFromS3,
+  s3Available,
+} from "./s3-storage";
 import { registerShareRoutes } from "./routes-share";
 import bcrypt from "bcrypt";
 import session from "express-session";
@@ -656,7 +661,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const fileId = randomUUID();
         const fileName = req.file.originalname;
-        const fileUrl = `/uploads/${fileId}_${fileName}`;
+        let fileUrl = `/uploads/${fileId}_${fileName}`;
+
+        // Log file information
+        console.log("📥 Received file upload request:");
+        console.log("   Original filename:", fileName);
+        console.log("   File size:", req.file.size, "bytes");
+        console.log("   MIME type:", req.file.mimetype);
+        console.log("   Generated file ID:", fileId);
+
+        // Use S3 for storage when available
+        if (s3Available) {
+          console.log("🔄 S3 is available, attempting to upload to S3");
+          try {
+            // Get the current user to get their ID for the S3 path
+            const user = await storage.getUser(req.session.userId!);
+            if (user) {
+              console.log("👤 User found:", user.id, user.email);
+              // Upload to S3 with the new structure: documents/{patientId}/{reportId}-{fileName}
+              console.log("📤 Uploading to S3...");
+              fileUrl = await uploadReportToS3(
+                req.file.buffer,
+                fileName,
+                req.file.mimetype,
+                user.id,
+                fileId
+              );
+              console.log("✅ Report uploaded to S3:", fileUrl);
+            } else {
+              console.warn("⚠️  User not found, falling back to local storage");
+            }
+          } catch (s3Error: any) {
+            console.error(
+              "❌ S3 upload failed, falling back to local storage:",
+              s3Error.message
+            );
+            // Log the full error for debugging
+            console.error("Full S3 error:", s3Error);
+            // Fall back to local storage if S3 fails
+            fileUrl = `/uploads/${fileId}_${fileName}`;
+          }
+        } else {
+          console.log("🔄 S3 not available, using local storage");
+        }
 
         // Create report immediately without processing
         const report = await storage.createReport({
@@ -667,6 +714,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           originalText: "", // Will be updated after processing
           status: "processing",
         });
+
+        console.log("📄 Report record created:", report.id);
 
         // Process in background (don't await this)
         processReportAsync(report.id, req.file.buffer, req.file.mimetype).catch(

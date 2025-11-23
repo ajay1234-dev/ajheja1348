@@ -4,15 +4,56 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FileText, User, Download, Clock } from "lucide-react";
 import { safeFormatDate } from "@/lib/date-utils";
 import { useDoctorSharedReports } from "@/hooks/use-share-with-doctor";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DoctorSharedReports() {
   // Fetch shared reports for this doctor
   const { data: sharedReports, isLoading } = useDoctorSharedReports();
+  const { toast } = useToast();
 
-  const handleDownloadReport = (reportURL: string) => {
-    // In a real implementation, this would download the report from S3 or Firebase
-    // For now, we'll just open it in a new tab
-    window.open(reportURL, "_blank");
+  const handleDownloadReport = async (
+    reportURL: string,
+    reportName: string
+  ) => {
+    try {
+      // For S3 URLs, we can use a direct download approach
+      if (reportURL.includes(".amazonaws.com")) {
+        // Create a temporary link and trigger download
+        const link = document.createElement("a");
+        link.href = reportURL;
+        link.download = reportName;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // For other URLs, fetch and download as blob
+        const response = await fetch(reportURL);
+        if (!response.ok) throw new Error("Failed to fetch report");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = reportName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+
+      toast({
+        title: "Download Started",
+        description: "Your report download has started",
+      });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to download the report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -103,7 +144,12 @@ export default function DoctorSharedReports() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => handleDownloadReport(report.reportURL)}
+                      onClick={() =>
+                        handleDownloadReport(
+                          report.reportURL,
+                          report.reportName
+                        )
+                      }
                       variant="outline"
                       size="sm"
                     >
