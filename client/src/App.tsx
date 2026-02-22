@@ -24,6 +24,7 @@ import DoctorSharedReports from "@/pages/doctor/shared-reports";
 import ProfilePage from "@/pages/profile";
 import HealthTimelineDemo from "@/pages/health-timeline-demo";
 import HealthTimelineProductionDemo from "@/pages/health-timeline-production-demo";
+import ScrollbarDemo from "@/pages/scrollbar-demo";
 import MainLayout from "@/components/layout/main-layout";
 
 function ProtectedRoute({
@@ -179,6 +180,12 @@ function Router() {
       <Route path="/health-timeline-production-demo">
         <ProtectedRoute>
           <HealthTimelineProductionDemo />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/scrollbar-demo">
+        <ProtectedRoute>
+          <ScrollbarDemo />
         </ProtectedRoute>
       </Route>
 

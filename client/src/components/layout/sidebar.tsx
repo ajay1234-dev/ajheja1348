@@ -21,6 +21,7 @@ import {
   X,
   UserCircle,
   Eye,
+  Scissors,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -81,6 +82,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       href: "/health-timeline-production-demo",
       icon: Heart,
     },
+    { name: "Scrollbar Demo", href: "/scrollbar-demo", icon: Scissors },
     { name: "Reminders", href: "/reminders", icon: Bell },
     { name: "Share with Doctor", href: "/share", icon: Share },
     { name: "Profile", href: "/profile", icon: UserCircle },

@@ -892,6 +892,7 @@
 }
 
 /* Hide scrollbars but keep scrolling functionality */
+/* Apply to specific elements with .no-scrollbar class */
 .no-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
@@ -899,6 +900,16 @@
 
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
+}
+
+/* Apply globally to hide scrollbar on body (optional) */
+body.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Enhanced responsive utilities */
